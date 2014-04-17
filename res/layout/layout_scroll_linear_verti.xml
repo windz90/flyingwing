@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layoutScrollLinLay"
+	android:orientation="vertical"
+	android:layout_width="match_parent" 
+	android:layout_height="match_parent"
+	android:gravity="center_horizontal">
+	<View
+		android:layout_width="0dip"
+		android:layout_height="0dip"
+		android:visibility="gone"/>
+	<ScrollView
+		android:id="@+id/layoutScrollLinScrollView"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content">
+		<LinearLayout
+			android:id="@+id/layoutScrollLinScrLinLay"
+			android:orientation="vertical"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center_horizontal">
+		</LinearLayout>
+	</ScrollView>
+</LinearLayout>

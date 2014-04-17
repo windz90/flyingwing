@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<!-- 首頁 -->
+	<string name="app_name">ModularTools</string>
+   	<string name="main0Tc">首頁</string>
+	<string name="main1Tc">開課查詢</string>
+	<string name="main1DataTc">課程資料</string>
+	<string name="main2Tc">看地圖找巨匠</string>
+	<string name="main3Tc">我的課表</string>
+	<string name="main4Tc">個人資料管理</string>
+	<string name="main5Tc">我的上課記錄</string>
+	<string name="main6Tc">學員公告</string>
+	
+	<!-- 事件確認 -->
+	<string name="sendConfirm">是否執行？</string>
+	<string name="yes">是</string>
+	<string name="no">否</string>
+	<string name="ok">確定</string>
+	<string name="cancel">取消</string>
+	<string name="finish">完成</string>
+	<string name="back">返回</string>
+	<string name="send">送出</string>
+	<string name="edit">修改</string>
+	<string name="exit">離開</string>
+	<string name="open">開啟</string>
+	<string name="close">關閉</string>
+	<string name="quit">結束本程式</string>
+	<string name="startAPP">開啟APP</string>
+	<string name="noData">沒有資料</string>
+	<string name="noSearchResults">沒有搜尋結果</string>
+	<string name="connectionFail">無法連線</string>
+	<string name="connectionSendFail">連線發生錯誤，請使用軟體功能確認資料是否送出，或與我們聯絡。</string>
+	<string name="noNetworkConnection">沒有網路連線</string>
+	<string name="unknownError">不明錯誤</string>
+	<string name="geoPointDataNull">沒有緯經度資料，無法定位</string>
+</resources>

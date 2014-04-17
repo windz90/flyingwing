@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="Transparent">#00000000</color>
+	<color name="Black">#FF000000</color>
+	<color name="White">#FFFFFFFF</color>
+	<color name="BlackGray">#FF444444</color>
+	<color name="Gray">#FF888888</color>
+	<color name="WhiteGray">#FFBBBBBB</color>
+	<color name="Red">#FFFF0000</color>
+	<color name="Green">#FF00FF00</color>
+	<color name="Blue">#FF0000FF</color>
+	<color name="Yellow">#FFFFFF00</color>
+	<color name="Cyan">#FF00FFFF</color>
+	<color name="Purple">#FFFF00FF</color>
+	
+	<color name="Black55">#55000000</color>
+	<color name="BlackAA">#AA000000</color>
+	<color name="Black40">#40000000</color>
+	<color name="Black80">#80000000</color>
+	<color name="BlackC0">#C0000000</color>
+	<color name="Black33">#33000000</color>
+	<color name="Black66">#66000000</color>
+	<color name="Black99">#99000000</color>
+	<color name="BlackCC">#CC000000</color>
+	<color name="White66">#66FFFFFF</color>
+	<color name="WhiteCC">#CCFFFFFF</color>
+	<color name="Gray66">#66888888</color>
+	<color name="GrayCC">#CC888888</color>
+	
+	<color name="Red9C">#FF9C0000</color>
+	<color name="Green9C">#FF009C00</color>
+	<color name="Blue9C">#FF00009C</color>
+	<color name="Yellow9C9C00">#FF9C9C00</color>
+	<color name="Cyan009C9C">#FF009C9C</color>
+	<color name="Purple9C009C">#FF9C009C</color>
+	
+	<!-- 仿Android淺青藍色 -->
+	<color name="Cyan8000AAE8">#8000AAE8</color>
+	<!-- 仿Android青藍色 -->
+	<color name="CyanC048A0E8">#C048A0E8</color>
+</resources>
+<!-- 
+16進制各均分值
+1/3 0x55 85
+2/3 0xAA 170
+1/4 0x40 64
+2/4 0x80 128
+3/4 0xC0 192
+1/5 0x33 51
+2/5 0x66 102
+3/5 0x99 153
+4/5 0xCC 204
+ -->
