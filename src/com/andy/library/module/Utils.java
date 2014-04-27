@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.7
+ * @version 3.2.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -784,23 +784,22 @@ public class Utils {
 		if(map != null){
 			spNewKey = "";
 			entryIterator = map.entrySet().iterator();
-			while(entryIterator.hasNext()){
-				try {
+			try {
+				while(entryIterator.hasNext()){
 					entry = entryIterator.next();
-				} catch (Exception e) {
-					e.printStackTrace();
-					break;
+					
+					if(toggleMode && sp.contains(spMapHeadKey + entry.getKey())){
+						spEdit.remove(spMapHeadKey + entry.getKey());
+					}else{
+						spEdit.putString(spMapHeadKey + entry.getKey(), entry.getValue());
+						spNewKey = getStringSymbolCombine(spNewKey, entry.getKey(), false);
+					}
+					if(oldKeySet.size() > 0){
+						oldKeySet.remove(entry.getKey());
+					}
 				}
-				
-				if(toggleMode && sp.contains(spMapHeadKey + entry.getKey())){
-					spEdit.remove(spMapHeadKey + entry.getKey());
-				}else{
-					spEdit.putString(spMapHeadKey + entry.getKey(), entry.getValue());
-					spNewKey = getStringSymbolCombine(spNewKey, entry.getKey(), false);
-				}
-				if(oldKeySet.size() > 0){
-					oldKeySet.remove(entry.getKey());
-				}
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		spEdit.putString(spMapHeadKey, spNewKey);
