@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -36,6 +36,7 @@ import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff.Mode;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
@@ -43,7 +44,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.6
+ * @version 3.3.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -747,18 +748,23 @@ public class C_imageProcessor {
 		return null;
 	}
 	
+	@SuppressLint("NewApi")
 	public static Bitmap getAgileBitmap(InputStream is, int inSampleSize){
 		// 圖片設定
 		BitmapFactory.Options options = new BitmapFactory.Options();
-		// 是否讓BitmapFactory.Options只讀取圖片寬高資料而不實際將圖片載入Bitmap
+		// 設定是否讓BitmapFactory.Options只讀取圖片寬高資料而不實際將圖片載入Bitmap
 		options.inJustDecodeBounds = false;
 		// 設定匯入後圖片的寬高縮小比例，預設1為原始寬高
 		options.inSampleSize = inSampleSize;
 		// 設定圖片ARGB屬性佔用記憶體空間，預設Bitmap.Config.ARGB_8888為各佔8Bit
 		options.inPreferredConfig = IMAGESETTING.bitmapConfig;
-		// 系統記憶體不足時先行回收部分的記憶體，但回收動作仍會佔用JVM的記憶體
+		// 設定是否系統記憶體不足時先行回收部分的記憶體，但回收動作仍會佔用JVM的記憶體
 		options.inPurgeable = true;
 		options.inInputShareable = true;
+		// SDK 11 開始可設定是否讓圖片內容允許變動
+		if(Build.VERSION.SDK_INT >= 11){
+			options.inMutable = true;
+		}
 		try {
 			// 直接把不使用的記憶體歸給JVM，回收動作不佔用JVM的記憶體
 			BitmapFactory.Options.class.getField("inNativeAlloc").setBoolean(options, IMAGESETTING.inNativeAlloc);
@@ -813,8 +819,10 @@ public class C_imageProcessor {
 		return bigDecimal.intValue();
 	}
 	
-	public static Bitmap convertMutableBitmap(Bitmap bitmap){
-		File file = new File(Environment.getExternalStorageDirectory() + File.separator + "temp.tmp");
+	public static Bitmap convertToMutableBitmap(Bitmap bitmap, File file){
+		if(bitmap.isMutable()){
+			return bitmap;
+		}
 		try {
 			int width = bitmap.getWidth();
 			int height = bitmap.getHeight();
@@ -848,7 +856,17 @@ public class C_imageProcessor {
 		return bitmap;
 	}
 	
-	public static Canvas getDrawCanvas(Bitmap bitmap){
+	public static Bitmap convertToMutableBitmapUseInsidePrivate(Context context, Bitmap bitmap){
+		File file = new File(context.getFilesDir().toString() + File.separator + "temp.tmp");
+		return convertToMutableBitmap(bitmap, file);
+	}
+	
+	public static Bitmap convertToMutableBitmapUseExternalStorage(Bitmap bitmap){
+		File file = new File(Environment.getExternalStorageDirectory().toString() + File.separator + "temp.tmp");
+		return convertToMutableBitmap(bitmap, file);
+	}
+	
+	public static Canvas getCanvas(Bitmap bitmap){
 		Canvas canvas = new Canvas(bitmap);
 		// 設定抗鋸齒、抖動平滑
 		PaintFlagsDrawFilter paintF = new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
@@ -856,13 +874,13 @@ public class C_imageProcessor {
 		return canvas;
 	}
 	
-	public static Paint getDrawPaint(float strokeWidth){
+	public static Paint getPaint(float strokeWidth){
 		// 設定抗鋸齒、抖動平滑
-		Paint drawPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
+		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
 		// 設定Paint抗鋸齒
-		drawPaint.setAntiAlias(true);
-		drawPaint.setStrokeWidth(strokeWidth);
-		return drawPaint;
+		paint.setAntiAlias(true);
+		paint.setStrokeWidth(strokeWidth);
+		return paint;
 	}
 	
 	public static Paint getClearPaint(int strokeWidth){
@@ -873,96 +891,186 @@ public class C_imageProcessor {
 		return clearPaint;
 	}
 	
-	public static Paint getDrawPaint(float strokeWidth, float red, float green, float blue, float alpha){
-		Paint drawPaint = getDrawPaint(strokeWidth);
-		setDrawPaintColor(drawPaint, red, green, blue, alpha);
+	public static Paint getPaint(float strokeWidth, float baseRed, float baseGreen, float baseBlue, float baseAlpha
+			, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
+		Paint paint = getPaint(strokeWidth);
+		setPaintColor(paint, baseRed, baseGreen, baseBlue, baseAlpha, offsetRed, offsetGreen, offsetBlue, offsetAlpha);
+		return paint;
+	}
+	
+	public static Paint getPaint(float strokeWidth, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
+		Paint drawPaint = getPaint(strokeWidth);
+		setPaintColor(drawPaint, offsetRed, offsetGreen, offsetBlue, offsetAlpha);
 		return drawPaint;
 	}
 	
-	public static Paint getDrawPaint(float strokeWidth, float red, float green, float blue, float alpha
-			, float baseRed, float baseGreen, float baseBlue, float baseAlpha){
-		Paint drawPaint = getDrawPaint(strokeWidth);
-		setDrawPaintColor(drawPaint, red, green, blue, alpha, baseRed, baseGreen, baseBlue, baseAlpha);
-		return drawPaint;
-	}
-	
-	public static void setDrawPaintColor(Paint drawPaint, float red, float green, float blue, float alpha
-			, float baseRed, float baseGreen, float baseBlue, float baseAlpha){
+	public static void setPaintColor(Paint paint, float baseRed, float baseGreen, float baseBlue, float baseAlpha
+			, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
 		ColorMatrix colorMatrix = new ColorMatrix();
 		// 設定顏色矩陣R, G, B, A, offset
 		float[] color = new float[]{
-				baseRed, 0, 0, 0, red// Red
-				, 0, baseGreen, 0, 0, green// Green
-				, 0, 0, baseBlue, 0, blue// Blue
-				, 0, 0, 0, baseAlpha, alpha};// Alpha
+				baseRed, 0, 0, 0, offsetRed// sumRed
+				, 0, baseGreen, 0, 0, offsetGreen// sumGreen
+				, 0, 0, baseBlue, 0, offsetBlue// sumBlue
+				, 0, 0, 0, baseAlpha, offsetAlpha};// sumAlpha
 		// 設定筆色效果
 		colorMatrix.set(color);
-		drawPaint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
 	}
 	
-	public static void setDrawPaintColor(Paint drawPaint, float red, float green, float blue, float alpha){
-		setDrawPaintColor(drawPaint, red, green, blue, alpha, 1.0f, 1.0f, 1.0f, 1.0f);
+	public static void setPaintColor(Paint paint, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
+		setPaintColor(paint, 1.0f, 1.0f, 1.0f, 1.0f, offsetRed, offsetGreen, offsetBlue, offsetAlpha);
 	}
 	
-	/**
-	 * 設定畫筆互補色（反相、負片）
-	 * @param drawPaint
-	 * @param red
-	 * @param green
-	 * @param blue
-	 */
-	public static void setDrawPaintComplementaryColor(Paint drawPaint, float red, float green, float blue){
-		float maxValue = 255;
-		setDrawPaintColor(drawPaint, maxValue - red, maxValue - green, maxValue - blue, 0, 1.0f, 1.0f, 1.0f, 1.0f);
+	public static void setPaintColor(Paint paint, ColorMatrix colorMatrix){
+		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
 	}
 	
 	/**
-	 * 設定畫筆高低互補色
-	 * @param drawPaint
-	 * @param red
-	 * @param green
-	 * @param blue
+	 * 設定畫筆顏色亮度
+	 * @param paint
+	 * @param brightnessValue
 	 */
-	public static void setDrawPaintComplementaryHighLowColor(Paint drawPaint, float red, float green, float blue){
-		float[] colors = new float[]{red, green, blue};
+	public static void setPaintBrightness(Paint paint, float brightnessValue){
+		setPaintColor(paint, 1.0f, 1.0f, 1.0f, 1.0f, brightnessValue, brightnessValue, brightnessValue, 0);
+	}
+	
+	/**
+	 * 設定畫筆顏色對比
+	 * @param paint
+	 * @param contrastValue
+	 */
+	public static void setPaintContrast(Paint paint, float contrastValue){
+		final float offset = 127.5f * (1.0f - contrastValue);
+		setPaintColor(paint, contrastValue, contrastValue, contrastValue, 1.0f, offset, offset, offset, 0);
+	}
+	
+	/**
+	 * 設定畫筆顏色飽和
+	 * @param paint
+	 * @param saturationValue
+	 */
+	public static void setPaintSaturation(Paint paint, float saturationValue){
+		// R = 0.3086, G = 0.6094, B = 0.0820
+		// R = 0.213, G = 0.715, B = 0.072
+		// colorMatrix.setSaturation(saturationValue);
+		final float diff = 1 - saturationValue;
+		final float R = 0.213f * diff;
+		final float G = 0.715f * diff;
+		final float B = 0.072f * diff;
+		ColorMatrix colorMatrix = new ColorMatrix();
+		float[] color = new float[]{
+				R + saturationValue, G, B, 0, 0
+				, R, G + saturationValue, B, 0, 0
+				, R, G, B + saturationValue, 0, 0
+				, 0, 0, 0, 1, 0};
+		colorMatrix.set(color);
+		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+	}
+	
+	/**
+	 * 設定畫筆顏色色相（色調）旋轉
+	 * @param paint
+	 * @param hueDegreesOffsetValue
+	 */
+	public static void setPaintHueRotate(Paint paint, float hueDegreesOffsetValue){
+		ColorMatrix colorMatrix = new ColorMatrix();
+		colorMatrix.setRotate(0, hueDegreesOffsetValue);
+		colorMatrix.setRotate(1, hueDegreesOffsetValue);
+		colorMatrix.setRotate(2, hueDegreesOffsetValue);
+		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+	}
+	
+	/**
+	 * 設定畫筆顏色反相（負片、互補色）
+	 * @param paint
+	 * @param offsetRed
+	 * @param offsetGreen
+	 * @param offsetBlue
+	 */
+	public static void setPaintInverting(Paint paint){
+		setPaintColor(paint, -1.0f, -1.0f, -1.0f, 1.0f, 255, 255, 255, 0);
+	}
+	
+	/**
+	 * 設定畫筆顏色高低互補色
+	 * @param paint
+	 * @param offsetRed
+	 * @param offsetGreen
+	 * @param offsetBlue
+	 */
+	public static void setPaintComplementaryHighLowColor(Paint paint, float offsetRed, float offsetGreen, float offsetBlue
+			, float offsetAlpha){
+		float[] colors = new float[]{offsetRed, offsetGreen, offsetBlue};
 		Arrays.sort(colors);
 		float sumValue = colors[0] + colors[2];
-		setDrawPaintColor(drawPaint, sumValue - red, sumValue - green, sumValue - blue, 0, 1.0f, 1.0f, 1.0f, 1.0f);
+		setPaintColor(paint, 1.0f, 1.0f, 1.0f, 1.0f, sumValue - offsetRed, sumValue - offsetGreen, sumValue - offsetBlue
+				, offsetAlpha);
 	}
 	
 	/**
-	 * 設定圖片反相（負片、互補色）效果
+	 * 設定圖片顏色亮度
 	 * @param bitmap
-	 * @return
+	 * @param brightnessValue
 	 */
-	public static Bitmap drawComplementaryBitmap(Bitmap bitmap){
-		bitmap = bitmap.copy(IMAGESETTING.bitmapConfig, true);
-		Canvas canvas = getDrawCanvas(bitmap);
-		Paint paint = getDrawPaint(1);
-		setDrawPaintColor(paint, 255, 255, 255, 0, -1.0f, -1.0f, -1.0f, 1.0f);
-		
-		ColorMatrix colorMatrix = new ColorMatrix();
-		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+	public static Bitmap drawBitmapBrightness(Bitmap bitmap, float brightnessValue){
+		Canvas canvas = getCanvas(bitmap);
+		Paint paint = getPaint(1);
+		setPaintBrightness(paint, brightnessValue);
 		canvas.drawBitmap(bitmap, 0, 0, paint);
 		return bitmap;
 	}
 	
 	/**
-	 * 設定圖片色彩飽和度<br>
-	 * degree值等於0時為灰階效果
+	 * 設定圖片顏色對比
 	 * @param bitmap
-	 * @param degree
+	 * @param contrastValue
+	 */
+	public static Bitmap drawBitmapContrast(Bitmap bitmap, float contrastValue){
+		Canvas canvas = getCanvas(bitmap);
+		Paint paint = getPaint(1);
+		setPaintContrast(paint, contrastValue);
+		canvas.drawBitmap(bitmap, 0, 0, paint);
+		return bitmap;
+	}
+	
+	/**
+	 * 設定圖片顏色飽和<br>
+	 * saturationValue值等於0時為灰階效果
+	 * @param bitmap
+	 * @param saturationValue
 	 * @return
 	 */
-	public static Bitmap drawSaturationBitmap(Bitmap bitmap, float degree){
-		bitmap = bitmap.copy(IMAGESETTING.bitmapConfig, true);
-		Canvas canvas = getDrawCanvas(bitmap);
-		Paint paint = getDrawPaint(1);
-		
-		ColorMatrix colorMatrix = new ColorMatrix();
-		// 設定色彩飽和度
-		colorMatrix.setSaturation(degree);
-		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+	public static Bitmap drawBitmapSaturation(Bitmap bitmap, float saturationValue){
+		Canvas canvas = getCanvas(bitmap);
+		Paint paint = getPaint(1);
+		setPaintSaturation(paint, saturationValue);
+		canvas.drawBitmap(bitmap, 0, 0, paint);
+		return bitmap;
+	}
+	
+	/**
+	 * 設定圖片顏色色相（色調）旋轉
+	 * @param bitmap
+	 * @param hueDegreesOffsetValue
+	 */
+	public static Bitmap drawBitmapHueRotate(Bitmap bitmap, float hueDegreesOffsetValue){
+		Canvas canvas = getCanvas(bitmap);
+		Paint paint = getPaint(1);
+		setPaintHueRotate(paint, hueDegreesOffsetValue);
+		canvas.drawBitmap(bitmap, 0, 0, paint);
+		return bitmap;
+	}
+	
+	/**
+	 * 設定圖片顏色反相（負片、互補色）
+	 * @param bitmap
+	 * @return
+	 */
+	public static Bitmap drawBitmapInverting(Bitmap bitmap){
+		Canvas canvas = getCanvas(bitmap);
+		Paint paint = getPaint(1);
+		setPaintInverting(paint);
 		canvas.drawBitmap(bitmap, 0, 0, paint);
 		return bitmap;
 	}
@@ -972,10 +1080,9 @@ public class C_imageProcessor {
 	 * @param bitmap
 	 * @return
 	 */
-	public static Bitmap drawEmbossBitmap(Bitmap bitmap){
-		bitmap = bitmap.copy(IMAGESETTING.bitmapConfig, true);
-		Canvas canvas = getDrawCanvas(bitmap);
-		Paint paint = getDrawPaint(1);
+	public static Bitmap drawBitmapEmboss(Bitmap bitmap){
+		Canvas canvas = getCanvas(bitmap);
+		Paint paint = getPaint(1);
 		
 		// 設定浮雕效果
 		EmbossMaskFilter emboss = new EmbossMaskFilter(new float[]{1, 1, 1}, 0.4f, 6, 3.5f);
@@ -991,10 +1098,9 @@ public class C_imageProcessor {
 	 * @param style
 	 * @return
 	 */
-	public static Bitmap drawBlurBitmap(Bitmap bitmap, float radius, BlurMaskFilter.Blur style){
-		bitmap = bitmap.copy(IMAGESETTING.bitmapConfig, true);
-		Canvas canvas = getDrawCanvas(bitmap);
-		Paint paint = getDrawPaint(1);
+	public static Bitmap drawBitmapBlur(Bitmap bitmap, float radius, BlurMaskFilter.Blur style){
+		Canvas canvas = getCanvas(bitmap);
+		Paint paint = getPaint(1);
 		
 		// 設定模糊效果
 		BlurMaskFilter blur = new BlurMaskFilter(radius, style);
