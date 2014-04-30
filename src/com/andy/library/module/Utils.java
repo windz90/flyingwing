@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.8
+ * @version 3.2.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -449,6 +449,20 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	public static void deleteAll(File file){
+		File[] fileArray = file.listFiles();
+		if(fileArray != null){
+			for(int i=0; i<fileArray.length; i++){
+				if(fileArray[i].isDirectory()){
+					deleteAll(fileArray[i]);
+				}else{
+					fileArray[i].delete();
+				}
+			}
+		}
+		file.delete();
 	}
 	
 	public static String halfWidthToFullWidth(String text){
