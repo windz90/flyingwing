@@ -44,7 +44,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.0
+ * @version 3.3.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -804,6 +804,9 @@ public class C_imageProcessor {
 	}
 	
 	public static int getImagespecifiedSizeNarrowScale(InputStream is, float specifiedSize){
+		if(specifiedSize == 0){
+			return 1;
+		}
 		float[] imageSize = getImageSize(is);
 		BigDecimal bigDecimal;
 		float narrowScale;
