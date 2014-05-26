@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.9
+ * @version 3.2.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -681,6 +681,10 @@ public class Utils {
 	public static void setToast(Context context, CharSequence text, int duration){
 		Toast toast = Toast.makeText(context, text, duration);
 		toast.show();
+	}
+	
+	public static void setToast(Context context, CharSequence text){
+		setToast(context, text, Toast.LENGTH_SHORT);
 	}
 	
 	public static SharedPreferences.Editor getNotYetCommitSharedPreferencesEditor(Context context, String SPname, String key, Object value
