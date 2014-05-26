@@ -6,13 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.0.0
+ * @version 3.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -62,8 +61,7 @@ public class C_formatData {
 		return getList(objectData, style, false);
 	}
 	
-	private static void addData(Object objectData, int style, List<Map<String, String>> dataList, boolean isAddNullString
-			) throws JSONException{
+	private static void addData(Object objectData, int style, List<Map<String, String>> dataList, boolean isAddNullString){
 		switch (style) {
 		case C_downLoadEvent.STYLE_STORE_BY_NEIGHBOR:
 			deployJsonAction(dataList, objectData.toString(), style, isAddNullString);
@@ -85,8 +83,7 @@ public class C_formatData {
 		}
 	}
 	
-	private static void deployJsonAction(List<Map<String, String>> dataList, String data, int style, boolean isAddNullString
-			) throws JSONException{
+	private static void deployJsonAction(List<Map<String, String>> dataList, String data, int style, boolean isAddNullString){
 		switch (style) {
 		case C_downLoadEvent.STYLE_STORE_BY_NEIGHBOR:
 			break;
@@ -108,14 +105,14 @@ public class C_formatData {
 				for(int i=0; i<list.size(); i++){
 					hashMap.put(JSON_ARRAY_MAPKEY + i, list.get(i));
 				}
-			} catch (JSONException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}else if(isJSONObject(data)){
 			try {
 				JSONObject jsonObject = new JSONObject(data);
 				hashMap = getJSONObjectToMap(jsonObject);
-			} catch (JSONException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -128,7 +125,7 @@ public class C_formatData {
 			if(object instanceof JSONArray){
 				return true;
 			}
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -140,7 +137,7 @@ public class C_formatData {
 			if(object instanceof JSONObject){
 				return true;
 			}
-		} catch (JSONException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return false;
