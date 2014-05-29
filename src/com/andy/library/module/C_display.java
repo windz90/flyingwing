@@ -14,7 +14,7 @@ import android.view.Window;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.1.1
+ * @version 3.1.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -108,10 +108,10 @@ public class C_display {
 			height = dm.heightPixels;
 		}
 		int displayAbsWidth = getAbsWidth(width, height);
-		if(displayAbsWidth / dm.density + 0.5f > limitDipWidth){
-			return true;
+		if(displayAbsWidth / dm.density + 0.5f < limitDipWidth){
+			return false;
 		}
-		return false;
+		return true;
 	}
 	
 	public static int getWidthPixels(Activity activity, boolean isAbs){

@@ -91,14 +91,14 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.10
+ * @version 3.2.11
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 public class Utils {
 	
-	public static final int LIMIT_DIP_WIDTH = 599;
-	public static final int LIMIT_DIP_WIDTH_480 = 479;
+	public static final int LIMIT_DIP_WIDTH = 600;
+	public static final int LIMIT_DIP_WIDTH_480 = 480;
 	public static final int SIZE_SUBJECT_S = 0;
 	public static final int SIZE_TAB_S = 1;
 	public static final int SIZE_TITLE_S = 2;
