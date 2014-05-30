@@ -60,7 +60,7 @@ import android.os.Message;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.3
+ * @version 3.3.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -610,28 +610,11 @@ public class C_networkAccess{
 		if(is == null){
 			return null;
 		}
-		Object object = null;
-		boolean isText = false;
-		Charset charset = null;
-		if(contentType != null && contentType.trim().length() > 0){
-			String[] values = contentType.split(";");
-			for(String value : values){
-				if(value.contains("text/")){
-					isText = true;
-					break;
-				}
-			}
-			// 取得網頁文字編碼
-			for(String value : values){
-				value = value.trim();
-				if(value.toLowerCase(Locale.ENGLISH).startsWith("charset=")){
-					charset = Charset.forName(value.substring("charset=".length()));
-					break;
-				}
-			}
-		}
-		if(isText){
-			object = inputStreamToString(is, charset);
+		ConnectionResult connectionResult = new ConnectionResult();
+		connectionResult.setContentType(contentType);
+		Object object;
+		if(checkContentTypeIsText(connectionResult)){
+			object = inputStreamToString(is, connectionResult.getContentCharset());
 		}else{
 			object = inputStreamToByteArray(is);
 		}
@@ -639,27 +622,12 @@ public class C_networkAccess{
 	}
 	
 	private static void deployDataForConnectionResult(InputStream is, ConnectionResult connectionResult){
-		String contentType = connectionResult.getContentType();
-		boolean isText = false;
-		Charset charset = null;
-		if(contentType != null && contentType.trim().length() > 0){
-			String[] values = contentType.split(";");
-			// 取得網頁文字編碼
-			for(String value : values){
-				value = value.trim();
-				if(value.contains("text/")){
-					isText = true;
-				}
-				if(value.toLowerCase(Locale.ENGLISH).startsWith("charset=")){
-					charset = Charset.forName(value.substring("charset=".length()));
-					connectionResult.setContentCharset(charset);
-					break;
-				}
-			}
+		if(is == null){
+			return;
 		}
 		Object object;
-		if(isText){
-			object = inputStreamToString(is, charset);
+		if(checkContentTypeIsText(connectionResult)){
+			object = inputStreamToString(is, connectionResult.getContentCharset());
 		}else{
 			object = inputStreamToByteArray(is);
 		}
@@ -668,6 +636,32 @@ public class C_networkAccess{
 			object = null;
 		}
 		connectionResult.setContent(object);
+	}
+	
+	public static boolean checkContentTypeIsText(ConnectionResult connectionResult){
+		boolean isText = false;
+		Charset charset = null;
+		String contentType = connectionResult.getContentType();
+		if(contentType != null && contentType.trim().length() > 0){
+			String[] values = contentType.split(";");
+			// 取得網頁文字編碼
+			for(String value : values){
+				value = value.trim();
+				if(value.contains("text/")){
+					isText = true;
+				}
+				if(value.toLowerCase(Locale.ENGLISH).startsWith("charset=")){
+					charset = Charset.forName(value.substring("charset=".length()));
+					if(connectionResult != null){
+						connectionResult.setContentCharset(charset);
+					}
+				}
+				if(isText && charset != null){
+					break;
+				}
+			}
+		}
+		return isText;
 	}
 	
 	public static String inputStreamToString(InputStream is, Charset charset){
