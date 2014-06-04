@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.11
+ * @version 3.2.12
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -296,7 +296,7 @@ public class Utils {
 	}
 	
 	public static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os){
-		return inputStreamWriteOutputStream(is, os, 1024 * 10);
+		return inputStreamWriteOutputStream(is, os, 1024 * 128);
 	}
 	
 	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os, int bufferSize){
@@ -308,7 +308,7 @@ public class Utils {
 	}
 	
 	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os){
-		return ByteArrayWriteOutStream(byteArray, os, 1024 * 10);
+		return ByteArrayWriteOutStream(byteArray, os, 1024 * 128);
 	}
 	
 	public static boolean writeSDCardFile(InputStream is, String directory, String fileName, int bufferSize){

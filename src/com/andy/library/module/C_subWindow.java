@@ -44,7 +44,7 @@ import android.widget.TextView;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.2.3
+ * @version 2.2.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -160,7 +160,7 @@ public class C_subWindow {
 	public static void alertMenuUseButton(final Activity activity, int width, int height, String title, final String[][] strArray
 			, boolean isOutsideCancel, final ClickAction click){
 		Resources res = activity.getResources();
-		int itemWi, itemHe;
+		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
 		
 		DisplayMetrics dm = new DisplayMetrics();
@@ -184,9 +184,11 @@ public class C_subWindow {
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
 		
-		itemWi = width;
+		space = (int)(5 * dm.density);
+		itemWi = width - space * 2;
 		itemHe = LayoutParams.WRAP_CONTENT;
 		linLayPar = new LayoutParams(itemWi, itemHe);
+		linLayPar.setMargins(space, 0, space, 0);
 		for(int i=0; i<button.length; i++){
 			button[i] = new Button(activity);
 			button[i].setLayoutParams(linLayPar);
@@ -264,7 +266,7 @@ public class C_subWindow {
 	public static void dialogMenuUseButton(final Activity activity, int width, int height, String title, final String[][] strArray
 			, boolean isOutsideCancel, final ClickAction click){
 		Resources res = activity.getResources();
-		int itemWi, itemHe;
+		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
 		
 		DisplayMetrics dm = new DisplayMetrics();
@@ -289,13 +291,15 @@ public class C_subWindow {
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
 		
-		itemWi = width;
+		space = (int)(5 * dm.density);
+		itemWi = width - space * 2;
 		itemHe = (int)(61.5f * 0.75f * dm.density);
 		linLayPar = new LayoutParams(itemWi, itemHe);
+		linLayPar.setMargins(space, 0, space, 0);
 		if(!TextUtils.isEmpty(title)){
 			textView = new TextView(activity);
 			textView.setLayoutParams(linLayPar);
-			textView.setPadding((int)(10 * dm.density), 0, 0, 0);
+			textView.setPadding(space, 0, 0, 0);
 			textView.setGravity(Gravity.CENTER_VERTICAL);
 			textView.setTextColor(res.getColor(R.color.Black));
 			Utils.setTextSizeMethod(activity, textView, Utils.getTextSize(activity, Utils.SIZE_SUBJECT));
@@ -307,6 +311,7 @@ public class C_subWindow {
 		}
 		
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
+		linLayPar.setMargins(space, 0, space, 0);
 		for(int i=0; i<button.length; i++){
 			button[i] = new Button(activity);
 			button[i].setLayoutParams(linLayPar);
@@ -398,7 +403,7 @@ public class C_subWindow {
 		linLay.setBackgroundResource(R.color.White);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		
-		space = (int)(10 * dm.density);
+		space = (int)(5 * dm.density);
 		if(topBar == null){
 			TextView[] topView = new TextView[3];
 			
@@ -452,9 +457,9 @@ public class C_subWindow {
 			((TextView)topBar.findViewWithTag("center")).setText(title);
 		}
 		
-		itemWi = width;
+		itemWi = width - space * 2;
 		itemHe = LayoutParams.WRAP_CONTENT;
-		linLayPar = new LayoutParams(itemWi - space * 2, itemHe);
+		linLayPar = new LayoutParams(itemWi, itemHe);
 		linLayPar.setMargins(space, 0, space, space);
 		listView = new ListView(activity);
 		listView.setLayoutParams(linLayPar);
