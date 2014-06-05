@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.12
+ * @version 3.2.13
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1004,6 +1004,10 @@ public class Utils {
 		return strArray;
 	}
 	
+	public static String[][] getMapToArray(Map<String, ?> map){
+		return getMapToArray(map, false);
+	}
+	
 	public static void printListItem(List<?> list){
 		for(int i=0; i<list.size(); i++){
 			System.out.println("count " + i + ":" + list.get(i).toString());
@@ -1022,10 +1026,6 @@ public class Utils {
 		for(int i=0; i<array.length; i++){
 			System.out.println("count " + i + ":" + array[i].toString());
 		}
-	}
-	
-	public static String[][] getMapToArray(Map<String, ?> map){
-		return getMapToArray(map, false);
 	}
 	
 	public static String neatString(String string){
@@ -1299,12 +1299,7 @@ public class Utils {
 	
 	// 取得系統亮度
 	public static int getScreenBrightnessForSystem(Activity activity){
-		int screenBrightness = 0;
-		try {
-			screenBrightness = Settings.System.getInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
-		} catch (SettingNotFoundException e) {
-			e.printStackTrace();
-		}
+		int screenBrightness = Settings.System.getInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
 		return screenBrightness;
 	}
 	
