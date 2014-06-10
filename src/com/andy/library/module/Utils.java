@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.13
+ * @version 3.2.14
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1086,6 +1086,24 @@ public class Utils {
 		return list;
 	}
 	
+	@SuppressWarnings("unchecked")
+	public static List<Object> reflectionJSONArrayToList(JSONArray jsonArray){
+		List<Object> list = null;
+		try {
+			Field field = jsonArray.getClass().getDeclaredField("values");
+			field.setAccessible(true);
+			list = (List<Object>)field.get(jsonArray);
+			field.setAccessible(false);
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+		return list;
+	}
+	
 	public static JSONObject newJSONObject(String data){
 		try {
 			return new JSONObject(data);
@@ -1130,6 +1148,24 @@ public class Utils {
 		for(int i=0; i<jsonArrayKey.length(); i++){
 			key = jsonArrayKey.optString(i);
 			map.put(key, jsonObject.optString(key));
+		}
+		return map;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> reflectionJSONObjectToMap(JSONObject jsonObject){
+		Map<String, Object> map = null;
+		try {
+			Field field = jsonObject.getClass().getDeclaredField("nameValuePairs");
+			field.setAccessible(true);
+			map = (Map<String, Object>)field.get(jsonObject);
+			field.setAccessible(false);
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
 		}
 		return map;
 	}
