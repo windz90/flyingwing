@@ -53,6 +53,7 @@ import org.apache.http.protocol.HTTP;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.NetworkInfo.State;
 import android.os.Handler;
 import android.os.Handler.Callback;
@@ -60,7 +61,7 @@ import android.os.Message;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.4
+ * @version 3.3.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -770,24 +771,27 @@ public class C_networkAccess{
 		return object;
 	}
 	
-	public static boolean isConnectSelectedType(Context context, int ConnectivityManagerType) {
-		ConnectivityManager connectManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		State state = connectManager.getNetworkInfo(ConnectivityManagerType).getState();
-		if(state == State.CONNECTED){
+	public static boolean isConnectedSelectedType(Context context, int connectivityManagerType) {
+		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connectivityManager.getNetworkInfo(connectivityManagerType);
+		if(networkInfo != null){
+			State state = networkInfo.getState();
+			if(state == State.CONNECTED){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isConnectedMobileNetwork(Context context) {
+		if(isConnectedSelectedType(context, ConnectivityManager.TYPE_MOBILE)){
 			return true;
 		}
 		return false;
 	}
 	
-	public static boolean isConnectMobileNetwork(Context context) {
-		if(isConnectSelectedType(context, ConnectivityManager.TYPE_MOBILE)){
-			return true;
-		}
-		return false;
-	}
-	
-	public static boolean isConnectWIFI(Context context) {
-		if(isConnectSelectedType(context, ConnectivityManager.TYPE_WIFI)){
+	public static boolean isConnectedWIFI(Context context) {
+		if(isConnectedSelectedType(context, ConnectivityManager.TYPE_WIFI)){
 			return true;
 		}
 		return false;

@@ -1,5 +1,7 @@
 package com.andy.library.module;
 
+import java.util.concurrent.ExecutorService;
+
 import com.andy.library.R;
 import com.andy.library.module.C_networkAccess.ConnectionResult;
 
@@ -16,7 +18,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.0.5
+ * @version 3.0.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -35,17 +37,33 @@ public class C_downLoadEvent {
 		private boolean isUseThread, isUseHandler, isDialogShow, isDialogDismiss;
 		private int runOption;
 		private String hintText;
+		private ExecutorService executorService;
 		
 		public DownLoadSetting(){}
 		
 		public DownLoadSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int runOption
-				, String hintText){
+				, String hintText, ExecutorService executorService){
 			this.isUseThread = isUseThread;
 			this.isUseHandler = isUseHandler;
 			this.isDialogShow = isDialogShow;
 			this.isDialogDismiss = isDialogDismiss;
 			this.runOption = runOption;
 			this.hintText = hintText;
+			this.executorService = executorService;
+		}
+		
+		public DownLoadSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int runOption
+				, String hintText){
+			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, runOption, hintText, null);
+		}
+		
+		public DownLoadSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int runOption
+				, ExecutorService executorService){
+			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, runOption, null, executorService);
+		}
+		
+		public DownLoadSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int runOption){
+			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, runOption, null, null);
 		}
 		
 		public void setUseThread(boolean isUseThread){
@@ -64,6 +82,10 @@ public class C_downLoadEvent {
 			this.isDialogDismiss = isDialogDismiss;
 		}
 		
+		public void setExecutorService(ExecutorService executorService){
+			this.executorService = executorService;
+		}
+		
 		public void setRunOption(int runOption){
 			this.runOption = runOption;
 		}
@@ -78,6 +100,10 @@ public class C_downLoadEvent {
 		
 		public String getHintText(){
 			return hintText;
+		}
+		
+		public ExecutorService getExecutorService(){
+			return executorService;
 		}
 		
 		public boolean isUseThread(){
@@ -188,7 +214,7 @@ public class C_downLoadEvent {
 			C_progressDialog.setInstanceMessage(setting.hintText);
 		}
 		if(setting.isUseThread){
-			Thread thread = new Thread(new Runnable() {
+			Runnable runnable = new Runnable() {
 				
 				@Override
 				public void run() {
@@ -199,8 +225,12 @@ public class C_downLoadEvent {
 						reply(msg, complete);
 					}
 				}
-			});
-			thread.start();
+			};
+			if(setting.executorService == null){
+				new Thread(runnable).start();
+			}else{
+				setting.executorService.submit(runnable);
+			}
 		}else{
 			Message msg = runOptionDispatch(connecting(context, style, valueArray), setting.runOption, setting.isDialogDismiss);
 			if(setting.isUseHandler){
