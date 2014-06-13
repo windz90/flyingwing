@@ -61,7 +61,7 @@ import android.os.Message;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.5
+ * @version 3.4.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -70,6 +70,10 @@ public class C_networkAccess{
 	public static final int SPLIT_AUTO_MAX_QUANTITY = 0;
 	public static final int SPLIT_BY_QUANTITY = 1;
 	public static final int SPLIT_BY_LENGTH = 2;
+	public static final int CONNECTION_CONNECT_FAIL = 0x101;
+	public static final int CONNECTION_CONNECTED = 0x102;
+	public static final int CONNECTION_LOAD_FAIL = 0x103;
+	public static final int CONNECTION_LOADED = 0x104;
 	private static final String ONLY_READ_HEADER = "header";
 	private static final String REQUEST_GET = "GET";
 	private static final String REQUEST_POST = "POST";
@@ -114,10 +118,12 @@ public class C_networkAccess{
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
-			, boolean isSkipDataRead){
+			, boolean isSkipDataRead, Handler handler){
 		ConnectionResult connectionResult = new ConnectionResult();
 		connectionResult.setStatusMessage("Connect Fail No Network Connection");
-		connectUseHttpURLConnection(context, httpUrl, objectArray, null, isSkipDataRead, connectionResult);
+		if(isConnect(context)){
+			connectUseHttpURLConnection(context, httpUrl, objectArray, null, isSkipDataRead, connectionResult, handler);
+		}
 		return connectionResult;
 	}
 	
@@ -133,7 +139,7 @@ public class C_networkAccess{
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, List<Map<String, Object>> contentList
-			, boolean isSkipDataRead){
+			, boolean isSkipDataRead, Handler handler){
 		Object[][] objectArray = new Object[contentList.size()][3];
 		Map<String, Object> map = new HashMap<String, Object>();
 		for(int i=0; i<contentList.size(); i++){
@@ -142,7 +148,7 @@ public class C_networkAccess{
 			objectArray[i][1] = map.get("1");
 			objectArray[i][2] = map.get("2");
 		}
-		return connectUseHttpURLConnection(context, httpUrl, objectArray, isSkipDataRead);
+		return connectUseHttpURLConnection(context, httpUrl, objectArray, isSkipDataRead, handler);
 	}
 	
 	/**
@@ -156,33 +162,78 @@ public class C_networkAccess{
 	 */
 	private static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, String requestRangeIndex, boolean isSkipDataRead){
-		return connectUseHttpURLConnection(context, httpUrl, objectArray, requestRangeIndex, isSkipDataRead, null);
+		if(isConnect(context)){
+			return connectUseHttpURLConnection(context, httpUrl, objectArray, requestRangeIndex, isSkipDataRead, null, null);
+		}
+		return null;
 	}
 	
 	private static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
-			, String requestRangeIndex, boolean isSkipDataRead, ConnectionResult connectionResult){
-		if(isConnect(context)){
-			HttpURLConnection httpURLConnection = connectUseHttpURLConnectionImplementRequest(httpUrl, objectArray
-					, requestRangeIndex);
-			connectUseHttpURLConnectionImplementResponse(httpURLConnection, connectionResult);
+			, String requestRangeIndex, boolean isSkipDataRead, ConnectionResult connectionResult, Handler handler){
+		HttpURLConnection httpURLConnection = connectUseHttpURLConnectionImplementRequest(httpUrl, objectArray
+				, requestRangeIndex);
+		
+		if(httpURLConnection == null || connectionResult == null){
+			if(connectionResult != null){
+				connectionResult.setStatusMessage("Connecting, Connect Fail Exception");
+			}
+			return httpURLConnection;
+		}
+		connectionResult.setConnectUrl(httpURLConnection.getURL().getPath());
+		connectionResult.setRequestType(httpURLConnection.getRequestMethod());
+		try {
+			connectionResult.setResponseCode(httpURLConnection.getResponseCode());
+			connectionResult.setResponseMessage(httpURLConnection.getResponseMessage());
+			if(httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK && 
+					httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_PARTIAL){
+				System.out.println("Connect Fail StatusCode " + httpURLConnection.getResponseCode());
+				connectionResult.setStatusMessage("Connect Fail StatusCode " + httpURLConnection.getResponseCode());
+				
+				if(handler != null){
+					Message msg = new Message();
+					msg.what = CONNECTION_CONNECT_FAIL;
+					msg.obj = connectionResult;
+					handler.sendMessage(msg);
+				}
+				return httpURLConnection;
+			}
 			
+			connectionResult.setStatusMessage("Connect Success");
 			connectionResult.setContentEncoding(httpURLConnection.getContentEncoding());
 			connectionResult.setContentLength(httpURLConnection.getContentLength());
 			connectionResult.setContentType(httpURLConnection.getContentType());
-			try {
-				if(isSkipDataRead){
-					connectionResult.setContent(httpURLConnection.getInputStream());
-					return httpURLConnection;
-				}
-				deployDataForConnectionResult(httpURLConnection.getInputStream(), connectionResult);
-			} catch (IOException e) {
-				System.out.println("LoadData, IOException " + e);
-				connectionResult.setStatusMessage("LoadData, Connect Fail IOException " + e);
+			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
+//				System.out.println("Connect ok StatusCode " + httpURLConnection.getResponseCode());
+			}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
+//				System.out.println("Connecting StatusCode " + httpURLConnection.getResponseCode());
 			}
-			httpURLConnection.disconnect();
-			return httpURLConnection;
+		} catch (IOException e) {
+			System.out.println("Connect, IOException " + e);
+			connectionResult.setStatusMessage("Connect, Connect Fail IOException " + e);
+		} catch (Exception e) {
+			System.out.println("Connect, Exception " + e);
+			connectionResult.setStatusMessage("Connect, Connect Fail Exception " + e);
 		}
-		return null;
+		
+		if(handler != null){
+			Message msg = new Message();
+			msg.what = CONNECTION_CONNECTED;
+			msg.obj = connectionResult;
+			handler.sendMessage(msg);
+		}
+		
+		try {
+			if(isSkipDataRead){
+				connectionResult.setContent(httpURLConnection.getInputStream());
+				return httpURLConnection;
+			}
+			deployDataForConnectionResult(httpURLConnection.getInputStream(), connectionResult);
+		} catch (IOException e) {
+			System.out.println("LoadData, IOException " + e);
+			connectionResult.setStatusMessage("LoadData, Connect Fail IOException " + e);
+		}
+		httpURLConnection.disconnect();
+		return httpURLConnection;
 	}
 	
 	/**
@@ -220,45 +271,6 @@ public class C_networkAccess{
 			System.out.println(requestType + ", " + httpUrl);
 		}
 		return null;
-	}
-	
-	/**
-	 * HttpURLConnection Response Implement Layer<br>
-	 * @param httpURLConnection
-	 * @param connectionResult
-	 */
-	private static void connectUseHttpURLConnectionImplementResponse(HttpURLConnection httpURLConnection
-			, ConnectionResult connectionResult){
-		if(httpURLConnection == null || connectionResult == null){
-			if(connectionResult != null){
-				connectionResult.setStatusMessage("Connecting, Connect Fail Exception");
-			}
-			return;
-		}
-		connectionResult.setConnectUrl(httpURLConnection.getURL().getPath());
-		connectionResult.setStatusMessage("Connect Success");
-		connectionResult.setRequestType(httpURLConnection.getRequestMethod());
-		try {
-			connectionResult.setResponseCode(httpURLConnection.getResponseCode());
-			connectionResult.setResponseMessage(httpURLConnection.getResponseMessage());
-			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK || 
-					httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
-				if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
-//					System.out.println("Connect ok StatusCode " + httpURLConnection.getResponseCode());
-				}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
-//					System.out.println("Connecting StatusCode " + httpURLConnection.getResponseCode());
-				}
-			}else{
-				System.out.println("Connect Fail StatusCode " + httpURLConnection.getResponseCode());
-				connectionResult.setStatusMessage("Connect Fail StatusCode " + httpURLConnection.getResponseCode());
-			}
-		} catch (IOException e) {
-			System.out.println("LoadData, IOException " + e);
-			connectionResult.setStatusMessage("LoadData, Connect Fail IOException " + e);
-		} catch (Exception e) {
-			System.out.println("LoadData, Exception " + e);
-			connectionResult.setStatusMessage("LoadData, Connect Fail Exception " + e);
-		}
 	}
 	
 	private static HttpURLConnection useHttpURLConnectionGet(URL httpUrl, String requestRangeIndex){
@@ -362,8 +374,8 @@ public class C_networkAccess{
 	 * @param httpUrl
 	 * @return
 	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl){
-		return connectUseHttpClient(context, httpUrl, null, null, false);
+	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, Handler handler){
+		return connectUseHttpClient(context, httpUrl, null, null, false, handler);
 	}
 	
 	/**
@@ -374,8 +386,8 @@ public class C_networkAccess{
 	 * @param isSkipDataRead
 	 * @return
 	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, boolean isSkipDataRead){
-		return connectUseHttpClient(context, httpUrl, null, null, isSkipDataRead);
+	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, boolean isSkipDataRead, Handler handler){
+		return connectUseHttpClient(context, httpUrl, null, null, isSkipDataRead, handler);
 	}
 	
 	/**
@@ -386,8 +398,12 @@ public class C_networkAccess{
 	 * @param httpPostData
 	 * @return
 	 */
+	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData, Handler handler){
+		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, handler);
+	}
+	
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData){
-		return connectUseHttpClient(context, httpUrl, httpPostData, null, false);
+		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, null);
 	}
 	
 	/**
@@ -400,8 +416,8 @@ public class C_networkAccess{
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData
-			, boolean isSkipDataRead){
-		return connectUseHttpClient(context, httpUrl, httpPostData, null, isSkipDataRead);
+			, boolean isSkipDataRead, Handler handler){
+		return connectUseHttpClient(context, httpUrl, httpPostData, null, isSkipDataRead, handler);
 	}
 	
 	/**
@@ -412,8 +428,8 @@ public class C_networkAccess{
 	 * @param is
 	 * @return
 	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is){
-		return connectUseHttpClient(context, httpUrl, null, is, false);
+	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, Handler handler){
+		return connectUseHttpClient(context, httpUrl, null, is, false, handler);
 	}
 	
 	/**
@@ -425,16 +441,17 @@ public class C_networkAccess{
 	 * @param isSkipDataRead
 	 * @return
 	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, boolean isSkipDataRead){
-		return connectUseHttpClient(context, httpUrl, null, is, isSkipDataRead);
+	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, boolean isSkipDataRead
+			, Handler handler){
+		return connectUseHttpClient(context, httpUrl, null, is, isSkipDataRead, handler);
 	}
 	
 	private static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData
-			, InputStream is, boolean isSkipDataRead){
+			, InputStream is, boolean isSkipDataRead, Handler handler){
 		ConnectionResult connectionResult = new ConnectionResult();
 		connectionResult.setStatusMessage("Connect Fail No Network Connection");
 		if(isConnect(context)){
-			connectUseHttpClientImplementConnection(httpUrl, getHttpPost(httpUrl, httpPostData, is), connectionResult, isSkipDataRead);
+			connectUseHttpClientImplementConnection(httpUrl, getHttpPost(httpUrl, httpPostData, is), connectionResult, isSkipDataRead, handler);
 		}
 		return connectionResult;
 	}
@@ -448,7 +465,7 @@ public class C_networkAccess{
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClientImplementConnection(String httpUrl, HttpPost httpPost
-			, ConnectionResult connectionResult, boolean isSkipDataRead){
+			, ConnectionResult connectionResult, boolean isSkipDataRead, Handler handler){
 		HttpResponse httpResponse = null;
 		HttpParams httpParams = new BasicHttpParams();
 		HttpConnectionParams.setConnectionTimeout(httpParams, NETWORKSETTING.connectTimeout);
@@ -513,6 +530,13 @@ public class C_networkAccess{
 		if(statusLine.getStatusCode() != HttpStatus.SC_OK){
 			System.out.println("Connect Fail StatusCode " + statusLine.getStatusCode());
 			connectionResult.setStatusMessage("Connect Fail StatusCode " + statusLine.getStatusCode());
+			
+			if(handler != null){
+				Message msg = new Message();
+				msg.what = CONNECTION_CONNECT_FAIL;
+				msg.obj = connectionResult;
+				handler.sendMessage(msg);
+			}
 			return connectionResult;
 		}
 		
@@ -522,6 +546,14 @@ public class C_networkAccess{
 		connectionResult.setContentLength(httpEntity.getContentLength());
 		header = httpEntity.getContentType();
 		connectionResult.setContentType(header == null ? null : header.getValue());
+		
+		if(handler != null){
+			Message msg = new Message();
+			msg.what = CONNECTION_CONNECTED;
+			msg.obj = connectionResult;
+			handler.sendMessage(msg);
+		}
+		
 		try{
 			if(isSkipDataRead){
 				connectionResult.setContent(httpEntity.getContent());
@@ -946,10 +978,12 @@ public class C_networkAccess{
 		private Object[] portContentArray;
 		
 		public interface MultiPortDownLoadComplete{
-			public void loaded(HttpURLConnection httpURLConnection, int sum, Object object);
+			public void connectFail(HttpURLConnection httpURLConnection);
+			public void connected(HttpURLConnection httpURLConnection);
+			public void loadFail(HttpURLConnection httpURLConnection);
 			public void loading(HttpURLConnection httpURLConnection, int count, Object objectPort);
 			public void loadExpired(HttpURLConnection httpURLConnection, int count);
-			public void loadFail(HttpURLConnection httpURLConnection);
+			public void loaded(HttpURLConnection httpURLConnection, int sum, Object object);
 		}
 		
 		public MultiPortManager(){}
@@ -961,10 +995,17 @@ public class C_networkAccess{
 				@Override
 				public boolean handleMessage(Message msg) {
 					HttpURLConnection httpURLConnection = (HttpURLConnection)msg.obj;
-					if(httpURLConnection == null){
-						multiPortComplete.loadFail(httpURLConnection);
+					try {
+						if(httpURLConnection == null || (httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK && 
+								httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_PARTIAL)){
+							multiPortComplete.connectFail(httpURLConnection);
+							return false;
+						}
+					} catch (IOException e) {
+						multiPortComplete.connectFail(httpURLConnection);
 						return false;
 					}
+					multiPortComplete.connected(httpURLConnection);
 					multiPortDownLoad(context, httpUrl, objectArray, httpURLConnection
 							, multiPortMode, multiPortValue, multiPortComplete);
 					return false;

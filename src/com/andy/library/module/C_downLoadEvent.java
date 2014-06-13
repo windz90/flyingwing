@@ -11,26 +11,50 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.os.Handler;
 import android.os.Handler.Callback;
-import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.0.6
+ * @version 3.1.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 public class C_downLoadEvent {
 	
-	public static final int STYLE_STORE_BY_NEIGHBOR = 8;
-	public static final int STYLE_STORE_BY_ZONE = 9;
+	public static final int STYLE_TEST = 1;
 	
-	public static final int RUN_FOREGROUND = 0xA1;
-	public static final int RUN_BACKGROUND_ALLOW = 0xA2;
-	public static final int RUN_BACKGROUND = 0xA3;
-	public static final int RUN_BACKGROUND_QUIET = 0xA4;
+	public static ConnectionResult updateTestData(Context context, String post1, String post2, String post3, String post4){
+		String urlPost = "http://test.com";
+		String[][] postData = new String[][]{{"post1", post1}, {"post2", post2}, {"post3", post3}
+		, {"post4", post4}};
+		ConnectionResult connectionResult = C_networkAccess.connectUseHttpClient(context, urlPost, postData);
+		return connectionResult;
+	}
+	
+	public static ConnectionResult prepareData(Context context, Handler handler, int style, String[] valueArray){
+		ConnectionResult connectionResult = null;
+		for(int i=0; i<valueArray.length; i++){
+			if(valueArray[i] == null){
+				valueArray[i] = "";
+			}
+		}
+		if(style == STYLE_TEST){
+			String post1 = valueArray[0];
+			String post2 = valueArray[1];
+			String post3 = valueArray[2];
+			String post4 = valueArray[3];
+			connectionResult = updateTestData(context, post1, post2, post3, post4);
+		}
+		return connectionResult;
+	}
+	
+	public static final int RUN_FOREGROUND = 0x0A1;
+	public static final int RUN_BACKGROUND_ALLOW = 0x0A2;
+	public static final int RUN_BACKGROUND = 0x0A3;
+	public static final int RUN_BACKGROUND_QUIET = 0x0A4;
 	
 	public static class DownLoadSetting{
 		
@@ -124,75 +148,71 @@ public class C_downLoadEvent {
 	}
 	
 	public static abstract class DownLoadComplete{
-		public abstract void loaded(ConnectionResult connectionResult);
+		public void connectFail(ConnectionResult connectionResult){};
+		public void connected(ConnectionResult connectionResult){};
 		public abstract void loadFail(ConnectionResult connectionResult);
+		public abstract void loaded(ConnectionResult connectionResult);
 		public void onCancelForegroundWait(DialogInterface dialog){};
 	}
 	
-	public static ConnectionResult updateStoreByNeighborData(Context context, String latit, String longit, String limit
-			, String offset){
-		String urlPost = "http://www.century21.com.tw/api/json/neighbor_store.aspx";
-		String[][] postData = new String[][]{{"longitude", longit}, {"latitude", latit}, {"limit", limit}
-		, {"offset", offset}};
-		ConnectionResult connectionResult = C_networkAccess.connectUseHttpClient(context, urlPost, postData);
-		return connectionResult;
-	}
-	
-	public static ConnectionResult updateStoreByZoneData(Context context, String city, String district, String keyword
-			, String limit, String offset){
-		String urlPost = "http://www.century21.com.tw/api/json/zone_store2.aspx";
-		String[][] postData = new String[][]{{"city", city}, {"district", district}, {"keyword", keyword}
-		, {"limit", limit}, {"offset", offset}};
-		ConnectionResult connectionResult = C_networkAccess.connectUseHttpClient(context, urlPost, postData);
-		return connectionResult;
-	}
-	
-	public static ConnectionResult prepareData(Context context, int style, String[] valueArray){
-		ConnectionResult connectionResult = null;
-		for(int i=0; i<valueArray.length; i++){
-			if(valueArray[i] == null){
-				valueArray[i] = "";
-			}
-		}
-		if(style == STYLE_STORE_BY_NEIGHBOR){
-			String latit = valueArray[0];
-			String longit = valueArray[1];
-			String limit = valueArray[2];
-			String offset = valueArray[3];
-			connectionResult = updateStoreByNeighborData(context, latit, longit, limit, offset);
-		}else if(style == STYLE_STORE_BY_ZONE){
-			String city = valueArray[0];
-			String district = valueArray[1];
-			String keyword = valueArray[2];
-			String limit = valueArray[3];
-			String offset = valueArray[4];
-			connectionResult = updateStoreByZoneData(context, city, district, keyword, limit, offset);
-		}
-		return connectionResult;
-	}
-	
-	public static void baseConnection(Context context, final DownLoadComplete complete, final int style, final String...valueArray){
+	public static void baseConnection(Context context, Looper looper, final DownLoadComplete complete, final int style, final String...valueArray){
 		if(!C_networkAccess.isConnect(context)){
 			reply(noNetworkConnection(context, RUN_BACKGROUND_QUIET), complete);
 			return;
 		}
-		reply(connecting(context, style, valueArray), complete);
+		Handler handler = null;
+		try {
+			Callback callback = new Callback() {
+
+				@Override
+				public boolean handleMessage(Message msg) {
+					reply(msg, complete);
+					return false;
+				}
+			};
+			if(looper == null){
+				handler = new Handler(callback);
+			}else{
+				handler = new Handler(looper, callback);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		reply(connecting(context, handler, style, valueArray), complete);
 	}
 	
-	public static void customConnection(final Context context, final DownLoadSetting setting, final DownLoadComplete complete, final int style
-			, final String...valueArray){
-		final Handler handler = new Handler(new Callback() {
-			
-			@Override
-			public boolean handleMessage(Message msg) {
-				reply(msg, complete);
-				return false;
+	public static void baseConnection(Context context, final DownLoadComplete complete, final int style, final String...valueArray){
+		baseConnection(context, null, complete, style, valueArray);
+	}
+	
+	public static void customConnection(final Context context, Looper looper, final DownLoadSetting setting, final DownLoadComplete complete
+			, final int style, final String...valueArray){
+		Handler handler = null;
+		try {
+			Callback callback = new Callback() {
+
+				@Override
+				public boolean handleMessage(Message msg) {
+					reply(msg, complete);
+					return false;
+				}
+			};
+			if(looper == null){
+				handler = new Handler(callback);
+			}else{
+				handler = new Handler(looper, callback);
 			}
-		});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if(!C_networkAccess.isConnect(context)){
 			Message msg = runOptionDispatch(noNetworkConnection(context, setting.runOption), setting.runOption, setting.isDialogDismiss);
 			if(setting.isUseHandler){
-				handler.sendMessage(msg);
+				if(handler == null){
+					Log.w("Handler", "Can't create handler inside thread that has not called Looper.prepare()");
+				}else{
+					handler.sendMessage(msg);
+				}
 			}else{
 				reply(msg, complete);
 			}
@@ -214,13 +234,18 @@ public class C_downLoadEvent {
 			C_progressDialog.setInstanceMessage(setting.hintText);
 		}
 		if(setting.isUseThread){
+			final Handler handlerCopy = handler;
 			Runnable runnable = new Runnable() {
 				
 				@Override
 				public void run() {
-					Message msg = runOptionDispatch(connecting(context, style, valueArray), setting.runOption, setting.isDialogDismiss);
+					Message msg = runOptionDispatch(connecting(context, handlerCopy, style, valueArray), setting.runOption, setting.isDialogDismiss);
 					if(setting.isUseHandler){
-						handler.sendMessage(msg);
+						if(handlerCopy == null){
+							Log.w("Handler", "Can't create handler inside thread that has not called Looper.prepare()");
+						}else{
+							handlerCopy.sendMessage(msg);
+						}
 					}else{
 						reply(msg, complete);
 					}
@@ -232,31 +257,26 @@ public class C_downLoadEvent {
 				setting.executorService.submit(runnable);
 			}
 		}else{
-			Message msg = runOptionDispatch(connecting(context, style, valueArray), setting.runOption, setting.isDialogDismiss);
+			Message msg = runOptionDispatch(connecting(context, handler, style, valueArray), setting.runOption, setting.isDialogDismiss);
 			if(setting.isUseHandler){
-				handler.sendMessage(msg);
+				if(handler == null){
+					Log.w("Handler", "Can't create handler inside thread that has not called Looper.prepare()");
+				}else{
+					handler.sendMessage(msg);
+				}
 			}else{
 				reply(msg, complete);
 			}
 		}
 	}
 	
+	public static void customConnection(final Context context, final DownLoadSetting setting, final DownLoadComplete complete
+			, final int style, final String...valueArray){
+		customConnection(context, null, setting, complete, style, valueArray);
+	}
+	
 	public static void syncConnection(final Context context, Looper looper, final DownLoadComplete complete, final int style
 			, final String...valueArray){
-		if(!C_networkAccess.isConnect(context)){
-			Handler handler = new Handler(looper, new Callback() {
-				
-				@Override
-				public boolean handleMessage(Message msg) {
-					reply(noNetworkConnection(context, 0), complete);
-					return false;
-				}
-			});
-			handler.sendEmptyMessage(0);
-			return;
-		}
-		
-		Message msg = connecting(context, style, valueArray);
 		Handler handler = new Handler(looper, new Callback() {
 			
 			@Override
@@ -265,55 +285,39 @@ public class C_downLoadEvent {
 				return false;
 			}
 		});
-		handler.sendMessage(msg);
-	}
-	
-	@Deprecated
-	public static void syncConnection(final Context context, final DownLoadComplete complete, final int style
-			, final String...valueArray){
 		if(!C_networkAccess.isConnect(context)){
-			HandlerThread handlerThread = new HandlerThread("noNetworkToast");
-			handlerThread.start();
-			Handler handler = new Handler(handlerThread.getLooper(), new Callback() {
-				
-				@Override
-				public boolean handleMessage(Message msg) {
-					reply(noNetworkConnection(context, 0), complete);
-					return false;
-				}
-			});
-			handler.sendEmptyMessage(0);
-			handlerThread.quit();
+			handler.sendMessage(noNetworkConnection(context, 0));
 			return;
 		}
-		
-		Message msg = connecting(context, style, valueArray);
-		HandlerThread handlerThread = new HandlerThread("complete");
-		handlerThread.start();
-		Handler handler = new Handler(handlerThread.getLooper(), new Callback() {
-			
-			@Override
-			public boolean handleMessage(Message msg) {
-				reply(msg, complete);
-				return false;
-			}
-		});
-		handler.sendMessage(msg);
-		handlerThread.quit();
+		handler.sendMessage(connecting(context, handler, style, valueArray));
 	}
 	
-	public static void asyncConnection(final Context context, final int runOption, boolean isShow, final boolean isDismiss
+	public static void asyncConnection(final Context context, Looper looper, final int runOption, boolean isShow, final boolean isDismiss
 			, String text, final DownLoadComplete complete, final int style, final String...valueArray){
-		final Handler handler = new Handler(new Callback() {
-			
-			@Override
-			public boolean handleMessage(Message msg) {
-				reply(msg, complete);
-				return false;
+		Handler handler = null;
+		try {
+			Callback callback = new Callback() {
+
+				@Override
+				public boolean handleMessage(Message msg) {
+					reply(msg, complete);
+					return false;
+				}
+			};
+			if(looper == null){
+				handler = new Handler(callback);
+			}else{
+				handler = new Handler(looper, callback);
 			}
-		});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if(!C_networkAccess.isConnect(context)){
-			handler.sendMessage(runOptionDispatch(noNetworkConnection(context, runOption), runOption, isDismiss));
+			if(handler == null){
+				Log.w("Handler", "Can't create handler inside thread that has not called Looper.prepare()");
+			}else{
+				handler.sendMessage(runOptionDispatch(noNetworkConnection(context, runOption), runOption, isDismiss));
+			}
 			return;
 		}
 		
@@ -330,14 +334,24 @@ public class C_downLoadEvent {
 		}else if(text != null){
 			C_progressDialog.setInstanceMessage(text);
 		}
+		final Handler handlerCopy = handler;
 		Thread thread = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				handler.sendMessage(runOptionDispatch(connecting(context, style, valueArray), runOption, isDismiss));
+				if(handlerCopy == null){
+					Log.w("Handler", "Can't create handler inside thread that has not called Looper.prepare()");
+				}else{
+					handlerCopy.sendMessage(runOptionDispatch(connecting(context, handlerCopy, style, valueArray), runOption, isDismiss));
+				}
 			}
 		});
 		thread.start();
+	}
+	
+	public static void asyncConnection(final Context context, final int runOption, boolean isShow, final boolean isDismiss
+			, String text, final DownLoadComplete complete, final int style, final String...valueArray){
+		asyncConnection(context, null, runOption, isShow, isDismiss, text, complete, style, valueArray);
 	}
 	
 	public static void asyncConnection(final Activity activity, final int runOption, final DownLoadComplete complete, final int style
@@ -367,20 +381,22 @@ public class C_downLoadEvent {
 		return msg;
 	}
 	
-	private static Message connecting(final Context context, final int style, final String...valueArray){
-		ConnectionResult connectionResult;
-		connectionResult = prepareData(context, style, valueArray);
+	private static Message connecting(final Context context, Handler handler, final int style, final String...valueArray){
+		ConnectionResult connectionResult = prepareData(context, handler, style, valueArray);
 		Message msg = new Message();
 		msg.obj = connectionResult;
-		if(connectionResult != null && !connectionResult.getStatusMessage().contains("Connect Fail ")){
-			msg.what = 1;
+		if(connectionResult == null || connectionResult.getStatusMessage().contains("Connect Fail ")){
+			msg.what = C_networkAccess.CONNECTION_LOAD_FAIL;
+		}else{
+			msg.what = C_networkAccess.CONNECTION_LOADED;
 		}
 		return msg;
 	}
 	
 	private static Message runOptionDispatch(Message msg, int runOption, boolean isDismiss){
 		if((runOption == RUN_FOREGROUND || runOption == RUN_BACKGROUND_ALLOW)){
-			if((isDismiss || msg.what == 0) && C_progressDialog.hasInstance() && C_progressDialog.getInstanceDialog().isShowing()){
+			if((isDismiss || msg.what == C_networkAccess.CONNECTION_LOAD_FAIL) && 
+					C_progressDialog.hasInstance() && C_progressDialog.getInstanceDialog().isShowing()){
 				C_progressDialog.dismissInstance();
 			}else if(runOption == RUN_FOREGROUND){
 				msg.what = -1;
@@ -391,10 +407,14 @@ public class C_downLoadEvent {
 	}
 	
 	private static void reply(Message msg, DownLoadComplete complete){
-		if(msg.what == 1){
-			complete.loaded((ConnectionResult)msg.obj);
-		}else if(msg.what == 0){
+		if(msg.what == 0 || msg.what == C_networkAccess.CONNECTION_CONNECT_FAIL){
+			complete.connectFail((ConnectionResult)msg.obj);
+		}else if(msg.what == C_networkAccess.CONNECTION_CONNECTED){
+			complete.connected((ConnectionResult)msg.obj);
+		}else if(msg.what == C_networkAccess.CONNECTION_LOAD_FAIL){
 			complete.loadFail((ConnectionResult)msg.obj);
+		}else if(msg.what == C_networkAccess.CONNECTION_LOADED){
+			complete.loaded((ConnectionResult)msg.obj);
 		}
 	}
 }

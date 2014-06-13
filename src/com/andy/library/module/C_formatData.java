@@ -63,7 +63,7 @@ public class C_formatData {
 	
 	private static void addData(Object objectData, int style, List<Map<String, String>> dataList, boolean isAddNullString){
 		switch (style) {
-		case C_downLoadEvent.STYLE_STORE_BY_NEIGHBOR:
+		case C_downLoadEvent.STYLE_TEST:
 			deployJsonAction(dataList, objectData.toString(), style, isAddNullString);
 			break;
 		default:
@@ -85,7 +85,7 @@ public class C_formatData {
 	
 	private static void deployJsonAction(List<Map<String, String>> dataList, String data, int style, boolean isAddNullString){
 		switch (style) {
-		case C_downLoadEvent.STYLE_STORE_BY_NEIGHBOR:
+		case C_downLoadEvent.STYLE_TEST:
 			break;
 		}
 		if(isAddNullString && dataList.size() == 0){

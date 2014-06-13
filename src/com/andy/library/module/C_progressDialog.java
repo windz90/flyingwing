@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.0
+ * @version 2.3.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -93,6 +93,20 @@ public class C_progressDialog{
 		textView.setText(message);
 	}
 	
+	public void appendMessage(String message){
+		if(textView == null){
+			return;
+		}
+		textView.append(message);
+	}
+	
+	public String getMessage(){
+		if(textView == null){
+			return null;
+		}
+		return textView.getText().toString();
+	}
+	
 	public void dismiss(){
 		if(dialog != null){
 			dialog.dismiss();
@@ -117,13 +131,6 @@ public class C_progressDialog{
 		return progress == null ? false : true;
 	}
 	
-	public static Dialog getInstanceDialog(){
-		if(progress == null){
-			return null;
-		}
-		return progress.getDialog();
-	}
-	
 	public static void setInstanceCancelable(boolean isCancel){
 		if(progress == null){
 			return;
@@ -136,6 +143,27 @@ public class C_progressDialog{
 			return;
 		}
 		progress.setMessage(message);
+	}
+	
+	public static void appendInstanceMessage(String message){
+		if(progress == null){
+			return;
+		}
+		progress.appendMessage(message);
+	}
+	
+	public static String getInstanceMessage(){
+		if(progress == null){
+			return null;
+		}
+		return progress.getMessage();
+	}
+	
+	public static Dialog getInstanceDialog(){
+		if(progress == null){
+			return null;
+		}
+		return progress.getDialog();
 	}
 	
 	public static void dismissInstance(){
