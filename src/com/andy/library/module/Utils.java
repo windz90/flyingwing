@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.14
+ * @version 3.2.15
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -139,10 +139,14 @@ public class Utils {
 //			System.out.print("charset get fail, using default, ");
 		}
 //		System.out.println("charset = " + charset.displayName());
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		BufferedReader reader;
 		StringBuilder stringBuilder = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
 		String line;
 		try {
+			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
 			try {
 				while((line = reader.readLine()) != null){
 					stringBuilder.append(line + "\n");
@@ -156,6 +160,8 @@ public class Utils {
 		} catch (OutOfMemoryError e) {
 			is = null;
 			reader = null;
+			stringBuilder = null;
+			line = null;
 			stringBuilder = new StringBuilder();
 			e.printStackTrace();
 		}
@@ -163,7 +169,7 @@ public class Utils {
 	}
 	
 	public static String inputStreamToString(InputStream is, Charset charset){
-		return inputStreamToString(is, charset, 1024 * 10);
+		return inputStreamToString(is, charset, 1024 * 128);
 	}
 	
 	public static byte[] inputStreamToByteArray(InputStream is, int bufferSize){
@@ -172,9 +178,14 @@ public class Utils {
 		}
 		byte[] byteArray = null;
 		int progress;
-		byte[] buffer = new byte[bufferSize];
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		byte[] buffer;
+		ByteArrayOutputStream baos;
 		try {
+			buffer = new byte[bufferSize];
+			baos = new ByteArrayOutputStream();
 			try {
 				while((progress = is.read(buffer)) != -1){
 					baos.write(buffer, 0, progress);
@@ -201,7 +212,7 @@ public class Utils {
 	}
 	
 	public static byte[] inputStreamToByteArray(InputStream is){
-		return inputStreamToByteArray(is, 1024 * 10);
+		return inputStreamToByteArray(is, 1024 * 128);
 	}
 	
 	public static OutputStream byteArrayToOutputStream(byte[] byteArray, OutputStream os, int bufferSize){
@@ -209,9 +220,14 @@ public class Utils {
 			return null;
 		}
 		int progress;
-		byte[] buffer = new byte[bufferSize];
-		InputStream is = new ByteArrayInputStream(byteArray);
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		byte[] buffer;
+		InputStream is;
 		try {
+			buffer = new byte[bufferSize];
+			is = new ByteArrayInputStream(byteArray);
 			try {
 				while((progress = is.read(buffer)) != -1){
 					os.write(buffer, 0, progress);
@@ -235,7 +251,7 @@ public class Utils {
 	}
 	
 	public static OutputStream byteArrayToOutputStream(byte[] byteArray, OutputStream os){
-		return byteArrayToOutputStream(byteArray, os, 1024 * 10);
+		return byteArrayToOutputStream(byteArray, os, 1024 * 128);
 	}
 	
 	public static byte[] fileToByteArray(File file){
@@ -272,8 +288,12 @@ public class Utils {
 			return false;
 		}
 		int progress;
-		byte[] buffer = new byte[bufferSize];
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		byte[] buffer;
 		try {
+			buffer = new byte[bufferSize];
 			try {
 				while((progress = is.read(buffer)) != -1){
 					os.write(buffer, 0, progress);
@@ -337,7 +357,7 @@ public class Utils {
 	}
 	
 	public static boolean writeSDCardFile(InputStream is, String directory, String fileName){
-		return writeSDCardFile(is, directory, fileName, 1024 * 10);
+		return writeSDCardFile(is, directory, fileName, 1024 * 128);
 	}
 	
 	public static byte[] readSDCardFile(String directory, String fileName){
@@ -366,6 +386,9 @@ public class Utils {
 			FileChannel fileChannelRead = fileInputStream.getChannel();
 			FileChannel fileChannelWrite = fileOutputStream.getChannel();
 			
+			if(bufferSize < 8192){
+				bufferSize = 8192;
+			}
 			ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
 			while(fileChannelRead.read(byteBuffer) != -1){
 				byteBuffer.flip();
@@ -394,6 +417,9 @@ public class Utils {
 			RandomAccessFile randomAccessFileRead = new RandomAccessFile(file, "r");
 			file = new File(pathWrite);
 			RandomAccessFile randomAccessFileWrite = new RandomAccessFile(file, "rw");
+			if(bufferSize < 8192){
+				bufferSize = 8192;
+			}
 			byte[] buffer = new byte[bufferSize];
 			while(randomAccessFileRead.read(buffer) != -1){
 				randomAccessFileWrite.write(buffer);
@@ -422,6 +448,9 @@ public class Utils {
 			
 			long progress = 0;
 			MappedByteBuffer mappedByteBufferRead, mappedByteBufferWrite;
+			if(bufferSize < 8192){
+				bufferSize = 8192;
+			}
 			while(progress < fileChannelRead.size()){
 				if(fileChannelRead.size() - progress < bufferSize){
 					bufferSize = fileChannelRead.size() - progress;

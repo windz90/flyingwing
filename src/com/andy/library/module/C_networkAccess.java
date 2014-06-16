@@ -61,7 +61,7 @@ import android.os.Message;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.0
+ * @version 3.4.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -647,9 +647,9 @@ public class C_networkAccess{
 		connectionResult.setContentType(contentType);
 		Object object;
 		if(checkContentTypeIsText(connectionResult)){
-			object = inputStreamToString(is, connectionResult.getContentCharset());
+			object = inputStreamToString(is, connectionResult.getContentCharset(), 1024 * 16);
 		}else{
-			object = inputStreamToByteArray(is);
+			object = inputStreamToByteArray(is, 1024 * 16);
 		}
 		return object;
 	}
@@ -660,9 +660,9 @@ public class C_networkAccess{
 		}
 		Object object;
 		if(checkContentTypeIsText(connectionResult)){
-			object = inputStreamToString(is, connectionResult.getContentCharset());
+			object = inputStreamToString(is, connectionResult.getContentCharset(), 1024 * 16);
 		}else{
-			object = inputStreamToByteArray(is);
+			object = inputStreamToByteArray(is, 1024 * 16);
 		}
 		if(object instanceof String && object.equals("OutOfMemoryError")){
 			connectionResult.setStatusMessage("LoadData, Connect Fail OutOfMemoryError");
@@ -697,7 +697,7 @@ public class C_networkAccess{
 		return isText;
 	}
 	
-	public static String inputStreamToString(InputStream is, Charset charset){
+	public static String inputStreamToString(InputStream is, Charset charset, int bufferSize){
 		if(is == null){
 			return null;
 		}
@@ -706,10 +706,14 @@ public class C_networkAccess{
 //			System.out.print("charset get fail, using default, ");
 		}
 //		System.out.println("charset = " + charset.displayName());
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is, charset));
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		BufferedReader reader;
 		StringBuilder stringBuilder = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
 		String line;
 		try {
+			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
 			try {
 				while((line = reader.readLine()) != null){
 					stringBuilder.append(line + "\n");
@@ -723,21 +727,28 @@ public class C_networkAccess{
 		} catch (OutOfMemoryError e) {
 			is = null;
 			reader = null;
+			stringBuilder = null;
+			line = null;
 			stringBuilder = new StringBuilder("OutOfMemoryError");
 			e.printStackTrace();
 		}
 		return stringBuilder.toString();
 	}
 	
-	public static Object inputStreamToByteArray(InputStream is){
+	public static Object inputStreamToByteArray(InputStream is, int bufferSize){
 		if(is == null){
 			return null;
 		}
 		Object byteArray = null;
 		int progress;
-		byte[] buffer = new byte[1024];
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		byte[] buffer;
+		ByteArrayOutputStream baos;
 		try {
+			buffer = new byte[bufferSize];
+			baos = new ByteArrayOutputStream();
 			try {
 				while((progress = is.read(buffer)) != -1){
 					baos.write(buffer, 0, progress);
@@ -755,6 +766,7 @@ public class C_networkAccess{
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			is = null;
+			byteArray = null;
 			buffer = null;
 			baos = null;
 			byteArray = "OutOfMemoryError";
