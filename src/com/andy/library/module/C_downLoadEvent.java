@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.1.0
+ * @version 3.1.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -409,6 +409,7 @@ public class C_downLoadEvent {
 	private static void reply(Message msg, DownLoadComplete complete){
 		if(msg.what == 0 || msg.what == C_networkAccess.CONNECTION_CONNECT_FAIL){
 			complete.connectFail((ConnectionResult)msg.obj);
+			complete.loadFail((ConnectionResult)msg.obj);
 		}else if(msg.what == C_networkAccess.CONNECTION_CONNECTED){
 			complete.connected((ConnectionResult)msg.obj);
 		}else if(msg.what == C_networkAccess.CONNECTION_LOAD_FAIL){
