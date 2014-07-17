@@ -91,7 +91,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.15
+ * @version 3.2.16
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -699,6 +699,14 @@ public class Utils {
 	public static int getStatusBarHeightSP(Activity activity, String SPname){
 		SharedPreferences sp = activity.getSharedPreferences(SPname, Context.MODE_PRIVATE);
 		return sp.getInt(Utils.SP_KEY_STATUSBAR_HEIGHT, 0);
+	}
+	
+	public static int getAttributeResorce(Context context, int attrResource, int defResource){
+		TypedValue typedValue = new TypedValue();
+		if(context.getTheme().resolveAttribute(attrResource, typedValue, true)){
+			return typedValue.resourceId;
+		}
+		return defResource;
 	}
 	
 	public static void setToast(Context context, CharSequence text, int gravity, int duration){

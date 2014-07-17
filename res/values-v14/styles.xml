@@ -20,6 +20,7 @@
 		<!-- <item name="android:homeAsUpIndicator"></item> -->
 		<item name="android:actionButtonStyle">@style/ActionButtonStyle</item>
 		<item name="android:actionOverflowButtonStyle">@style/ActionOverflowButtonStyle</item>
+		<item name="android:actionMenuTextColor">?android:attr/textColorPrimaryInverse</item>
 		<item name="android:actionMenuTextAppearance">@style/ActionMenuTextAppearance</item>
 		
 		<item name="android:actionBarWidgetTheme">@style/ActionBarWidgetTheme</item>
