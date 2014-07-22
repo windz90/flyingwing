@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -44,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.1
+ * @version 3.3.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -808,9 +809,10 @@ public class C_imageProcessor {
 			return 1;
 		}
 		float[] imageSize = getImageSize(is);
-		BigDecimal bigDecimal;
+		float differenceWi = Math.abs(imageSize[0] - specifiedSize);
+		float differenceHe = Math.abs(imageSize[1] - specifiedSize);
 		float narrowScale;
-		if(imageSize[0] > imageSize[1]){
+		if(differenceWi < differenceHe){
 			narrowScale = imageSize[0] / specifiedSize;
 		}else{
 			narrowScale = imageSize[1] / specifiedSize;
@@ -818,7 +820,7 @@ public class C_imageProcessor {
 		if(narrowScale < 1){
 			narrowScale = 1;
 		}
-		bigDecimal = new BigDecimal("" + narrowScale).setScale(0, BigDecimal.ROUND_HALF_UP);
+		BigDecimal bigDecimal = new BigDecimal("" + narrowScale).setScale(0, BigDecimal.ROUND_HALF_UP);
 		return bigDecimal.intValue();
 	}
 	
