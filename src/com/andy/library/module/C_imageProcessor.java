@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -45,7 +44,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.2
+ * @version 3.4.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -253,6 +252,13 @@ public class C_imageProcessor {
 		return null;
 	}
 	
+	public static boolean deleteInsidePrivateImage(Context context, String imageName){
+		// 使用context.open處理具私有權限保護的/data/data/packageName/檔案
+		imageName = imageName.replace(File.separator, "_");
+		deleteBufferBitmap(imageName, SAMPLE_WORD);
+		return context.deleteFile(imageName);
+	}
+	
 	public static void writeInsideImageFile(Context context, Bitmap bitmap, int quality, String directory, String imageName){
 		// 取得app路徑/data/data/packageName
 		String insidePath = context.getFilesDir().toString().replace("files", "inside") + File.separator;
@@ -332,6 +338,14 @@ public class C_imageProcessor {
 //			System.out.println(e);
 		}
 		return null;
+	}
+	
+	public static boolean deleteInsideImageFile(Context context, String directory, String imageName){
+		// 取得app路徑/data/data/packageName
+		String insidePath = context.getFilesDir().toString().replace("files", "inside") + File.separator;
+		deleteBufferBitmap(insidePath + directory + imageName, SAMPLE_WORD);
+		File file = new File(insidePath + directory + imageName);
+		return file.delete();
 	}
 	
 	public static void writeSDCardImageFile(Bitmap bitmap, int quality, String directory, String imageName){
@@ -439,6 +453,23 @@ public class C_imageProcessor {
 		return null;
 	}
 	
+	public static boolean deleteSDCardImageFile(Context context, String directory, String imageName){
+		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		// 確認sdCard是否掛載
+		if(sdCardExist){
+			// 取得sdCard路徑/mnt/sdcard
+			File file = Environment.getExternalStorageDirectory();
+			String sdCardPath = file.toString() + File.separator;
+			if(directory.indexOf(sdCardPath) == 0){
+				sdCardPath = "";
+			}
+			deleteBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD);
+			file = new File(sdCardPath + directory + imageName);
+			return file.delete();
+		}
+		return false;
+	}
+	
 	public static byte[] loadStream(String streamURL) throws IOException{
 		InputStream is = null;
 		streamURL = streamURL.replace(" ", "%20");
@@ -523,13 +554,26 @@ public class C_imageProcessor {
 		return null;
 	}
 	
-	public static boolean isMatchBufferSample(String path, String sampleWord, int sampleSize){
+	public static void deleteBufferBitmap(String path, String sampleWord){
+		if(path != null && path.trim().length() > 0){
+			String sampleStr = SAMPLE_MAP.get(path);
+			SAMPLE_MAP.remove(path);
+			if(sampleStr != null && sampleStr.trim().length() > 0){
+				String[] sampleArray = sampleStr.split(",");
+				for(int i=0; i<sampleArray.length; i++){
+					BUFFER_MAP.remove(path + sampleWord + sampleArray[i]);
+				}
+			}
+		}
+	}
+	
+	public static boolean isMatchBufferSample(String path, String sampleWord, int inSampleSize){
 		String sampleStr = SAMPLE_MAP.get(path);
 		if(sampleStr != null && sampleStr.trim().length() > 0){
-			String[] sampleArray = SAMPLE_MAP.get(path).split(",");
+			String[] sampleArray = sampleStr.split(",");
 			for(int i=0; i<sampleArray.length; i++){
 				// 尋找符合的採樣值
-				if(sampleArray[i].equals("" + sampleSize)){
+				if(sampleArray[i].equals("" + inSampleSize)){
 					return true;
 				}
 			}
@@ -537,11 +581,28 @@ public class C_imageProcessor {
 		return false;
 	}
 	
-	public static int firstBufferSample(String path){
+	public static int getBufferSample(String path, String sampleWord, float specifiedSize){
 		String sampleStr = SAMPLE_MAP.get(path);
-		if(sampleStr != null && sampleStr.trim().length() > 0){
-			String[] sampleArray = SAMPLE_MAP.get(path).split(",");
-			return Integer.parseInt(sampleArray[0]);
+		if(sampleStr == null || sampleStr.trim().length() == 0){
+			return -1;
+		}
+		
+		String[] sampleArray = sampleStr.split(",");
+		int width, height;
+		for(int i=0; i<sampleArray.length; i++){
+			int bufferSample = Integer.parseInt(sampleArray[i]);
+			SoftReference<Bitmap> softReference = BUFFER_MAP.get(path + sampleWord + bufferSample);
+			if(softReference == null){
+				continue;
+			}
+			Bitmap bitmap = softReference.get();
+			if(bitmap == null){
+				continue;
+			}
+			
+			width = bitmap.getWidth() * bufferSample;
+			height = bitmap.getHeight() * bufferSample;
+			return getImagespecifiedSizeNarrowScale(new float[]{width, height}, specifiedSize);
 		}
 		return -1;
 	}
@@ -551,7 +612,7 @@ public class C_imageProcessor {
 			return null;
 		}
 		
-		Bitmap bitmap = getBufferBitmap(streamURL, SAMPLE_WORD, firstBufferSample(streamURL));
+		Bitmap bitmap = getBufferBitmap(streamURL, SAMPLE_WORD, getBufferSample(streamURL, SAMPLE_WORD, specifiedSize));
 		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
         if(bitmap != null){
             return bitmap;
@@ -690,7 +751,7 @@ public class C_imageProcessor {
 		}
 		
 		final String imageNameCopy = imageName.replace(File.separator, "_");
-		Bitmap bitmap = getBufferBitmap(imageNameCopy, SAMPLE_WORD, firstBufferSample(imageNameCopy));
+		Bitmap bitmap = getBufferBitmap(imageNameCopy, SAMPLE_WORD, getBufferSample(imageNameCopy, SAMPLE_WORD, specifiedSize));
 		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
 		if(bitmap != null){
 			return bitmap;
@@ -804,11 +865,10 @@ public class C_imageProcessor {
 		return imageSize;
 	}
 	
-	public static int getImagespecifiedSizeNarrowScale(InputStream is, float specifiedSize){
+	public static int getImagespecifiedSizeNarrowScale(float[] imageSize, float specifiedSize){
 		if(specifiedSize == 0){
 			return 1;
 		}
-		float[] imageSize = getImageSize(is);
 		float differenceWi = Math.abs(imageSize[0] - specifiedSize);
 		float differenceHe = Math.abs(imageSize[1] - specifiedSize);
 		float narrowScale;
@@ -822,6 +882,10 @@ public class C_imageProcessor {
 		}
 		BigDecimal bigDecimal = new BigDecimal("" + narrowScale).setScale(0, BigDecimal.ROUND_HALF_UP);
 		return bigDecimal.intValue();
+	}
+	
+	public static int getImagespecifiedSizeNarrowScale(InputStream is, float specifiedSize){
+		return getImagespecifiedSizeNarrowScale(getImageSize(is), specifiedSize);
 	}
 	
 	public static Bitmap convertToMutableBitmap(Bitmap bitmap, File file){
