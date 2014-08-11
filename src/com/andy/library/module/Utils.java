@@ -14,7 +14,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -91,7 +90,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.16
+ * @version 3.2.17
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -129,6 +128,71 @@ public class Utils {
 	public static final String REG_EXP_FLOAT_STRICT_POS = "^\\d+(\\.\\d+){1}$";
 	public static final String REG_EXP_FLOAT_STRICT_NEG = "^-\\d+(\\.\\d+){1}$";
 	public static final String REG_EXP_EMAIL = "\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
+//	final String[][] MIME_TABLE = {
+//			{".3gp", "video/3gpp"}, 
+//			{".apk", "application/vnd.android.package-archive"}, 
+//			{".asf", "video/x-ms-asf"}, 
+//			{".avi", "video/x-msvideo"}, 
+//			{".bin", "application/octet-stream"}, 
+//			{".bmp", "image/bmp"}, 
+//			{".c", "text/plain"}, 
+//			{".class", "application/octet-stream"}, 
+//			{".conf", "text/plain"}, 
+//			{".cpp", "text/plain"}, 
+//			{".doc", "application/msword"}, 
+//			{".exe", "application/octet-stream"}, 
+//			{".gif", "image/gif"}, 
+//			{".gtar", "application/x-gtar"}, 
+//			{".gz", "application/x-gzip"}, 
+//			{".h", "text/plain"}, 
+//			{".htm", "text/html"}, 
+//			{".html", "text/html"}, 
+//			{".jar", "application/java-archive"}, 
+//			{".java", "text/plain"}, 
+//			{".jpeg", "image/jpeg"}, 
+//			{".jpg", "image/jpeg"}, 
+//			{".js", "application/x-javascript"}, 
+//			{".log", "text/plain"}, 
+//			{".m3u", "audio/x-mpegurl"}, 
+//			{".m4a", "audio/mp4a-latm"}, 
+//			{".m4b", "audio/mp4a-latm"}, 
+//			{".m4p", "audio/mp4a-latm"}, 
+//			{".m4u", "video/vnd.mpegurl"}, 
+//			{".m4v", "video/x-m4v"}, 
+//			{".mov", "video/quicktime"}, 
+//			{".mp2", "audio/x-mpeg"}, 
+//			{".mp3", "audio/x-mpeg"}, 
+//			{".mp4", "video/mp4"}, 
+//			{".mpc", "application/vnd.mpohun.certificate"}, 
+//			{".mpe", "video/mpeg"}, 
+//			{".mpeg", "video/mpeg"}, 
+//			{".mpg", "video/mpeg"}, 
+//			{".mpg4", "video/mp4"}, 
+//			{".mpga", "audio/mpeg"}, 
+//			{".msg", "application/vnd.ms-outlook"}, 
+//			{".ogg", "audio/ogg"}, 
+//			{".pdf", "application/pdf"}, 
+//			{".png", "image/png"}, 
+//			{".pps", "application/vnd.ms-powerpoint"}, 
+//			{".ppt", "application/vnd.ms-powerpoint"}, 
+//			{".prop", "text/plain"}, 
+//			{".rar", "application/x-rar-compressed"}, 
+//			{".rc", "text/plain"}, 
+//			{".rmvb", "audio/x-pn-realaudio"}, 
+//			{".rtf", "application/rtf"}, 
+//			{".sh", "text/plain"}, 
+//			{".tar", "application/x-tar"}, 
+//			{".tgz", "application/x-compressed"}, 
+//			{".txt", "text/plain"}, 
+//			{".wav", "audio/x-wav"}, 
+//			{".wma", "audio/x-ms-wma"}, 
+//			{".wmv", "audio/x-ms-wmv"}, 
+//			{".wps", "application/vnd.ms-works"}, 
+//			{".xml", "text/plain"}, 
+//			{".z", "application/x-compress"}, 
+//			{".zip", "application/zip"}, 
+//			{"", "*/*"}
+//	};
 	
 	public static String inputStreamToString(InputStream is, Charset charset, int bufferSize){
 		if(is == null){
@@ -600,13 +664,7 @@ public class Utils {
 						method.setAccessible(true);
 						method.invoke(textView);
 						method.setAccessible(false);
-					} catch (NoSuchMethodException e) {
-						e.printStackTrace();
-					} catch (IllegalArgumentException e) {
-						e.printStackTrace();
-					} catch (IllegalAccessException e) {
-						e.printStackTrace();
-					} catch (InvocationTargetException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 					textView.requestLayout();
@@ -633,16 +691,7 @@ public class Utils {
 				method.setAccessible(true);
 				method.invoke(textView, TypedValue.applyDimension(unit, size, dm));
 				method.setAccessible(false);
-			} catch (NoSuchMethodException e) {
-				setTextSize(activity, textView, unit, size);
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				setTextSize(activity, textView, unit, size);
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				setTextSize(activity, textView, unit, size);
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
+			} catch (Exception e) {
 				setTextSize(activity, textView, unit, size);
 				e.printStackTrace();
 			}
@@ -1131,11 +1180,7 @@ public class Utils {
 			field.setAccessible(true);
 			list = (List<Object>)field.get(jsonArray);
 			field.setAccessible(false);
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return list;
@@ -1197,22 +1242,30 @@ public class Utils {
 			field.setAccessible(true);
 			map = (Map<String, Object>)field.get(jsonObject);
 			field.setAccessible(false);
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return map;
 	}
 	
 	/**
-	 * intentType<br>
-	 * "text/plain"<br>
+	 * MIME Type<br>
+	 * "text/plain; charset=utf-8"<br>
+	 * "text/*"<br>
 	 * "image/jpeg"<br>
 	 * "image/*"<br>
-	 * "video/*"
+	 * "audio/x-mpeg"<br>
+	 * "audio/*"<br>
+	 * "video/mp4"<br>
+	 * "video/*"<br>
+	 * "application/zip"<br>
+	 * "application/octet-stream"<br>
+	 * "multipart/mixed"<br>
+	 * "multipart/related"<br>
+	 * "multipart/alternative"<br>
+	 * "message/rfc822"
+	 * 
+	 * @param streamUri Uri.fromFile(file)
 	 */
 	public static Intent getActionSendIntent(String intentType, String subject, String text, Uri streamUri){
 		Intent intent = new Intent(Intent.ACTION_SEND);
@@ -1790,13 +1843,7 @@ public class Utils {
 			method.setAccessible(false);
 			hashMap.put("networkTypeName", networkTypeName);
 			infoList.add(hashMap);
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
