@@ -11,8 +11,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
@@ -32,7 +30,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
@@ -61,7 +58,7 @@ import android.os.Message;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.1
+ * @version 3.4.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -83,6 +80,8 @@ public class C_networkAccess{
 		private int connectTimeout = 20000;
 		private int readTimeout = 65000;
 		private int bufferSize = 8192;
+		private boolean isPrintConnectionUrl = true;
+		private boolean isPrintConnectException = true;
 	}
 	
 	public static void setConnectTimeout(int connectTimeout){
@@ -107,6 +106,28 @@ public class C_networkAccess{
 	
 	public static int getBufferSize(){
 		return C_networkAccess.NETWORKSETTING.bufferSize;
+	}
+	
+	public static void setPrintConnectionUrl(boolean isPrintConnectionUrl){
+		C_networkAccess.NETWORKSETTING.isPrintConnectionUrl = isPrintConnectionUrl;
+	}
+	
+	public static boolean isPrintConnectionUrl(){
+		return C_networkAccess.NETWORKSETTING.isPrintConnectionUrl;
+	}
+	
+	public static void setPrintConnectException(boolean isPrintConnectException){
+		C_networkAccess.NETWORKSETTING.isPrintConnectException = isPrintConnectException;
+	}
+	
+	public static boolean isPrintConnectException(){
+		return C_networkAccess.NETWORKSETTING.isPrintConnectException;
+	}
+	
+	private static void printInfo(String info, boolean isPrint){
+		if(isPrint){
+			System.out.println(info);
+		}
 	}
 	
 	/**
@@ -186,7 +207,8 @@ public class C_networkAccess{
 			connectionResult.setResponseMessage(httpURLConnection.getResponseMessage());
 			if(httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK && 
 					httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_PARTIAL){
-				System.out.println("Connect Fail StatusCode " + httpURLConnection.getResponseCode());
+				printInfo("Connect Fail StatusCode " + httpURLConnection.getResponseCode()
+						, C_networkAccess.NETWORKSETTING.isPrintConnectException);
 				connectionResult.setStatusMessage("Connect Fail StatusCode " + httpURLConnection.getResponseCode());
 				
 				if(handler != null){
@@ -203,15 +225,13 @@ public class C_networkAccess{
 			connectionResult.setContentLength(httpURLConnection.getContentLength());
 			connectionResult.setContentType(httpURLConnection.getContentType());
 			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
-//				System.out.println("Connect ok StatusCode " + httpURLConnection.getResponseCode());
+				printInfo("Connect ok StatusCode " + httpURLConnection.getResponseCode(), false);
 			}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
-//				System.out.println("Connecting StatusCode " + httpURLConnection.getResponseCode());
+				printInfo("Connecting StatusCode " + httpURLConnection.getResponseCode(), false);
 			}
-		} catch (IOException e) {
-			System.out.println("Connect, IOException " + e);
-			connectionResult.setStatusMessage("Connect, Connect Fail IOException " + e);
+//		} catch (IOException e) {
 		} catch (Exception e) {
-			System.out.println("Connect, Exception " + e);
+			printInfo("Connect, Exception " + e, C_networkAccess.NETWORKSETTING.isPrintConnectException);
 			connectionResult.setStatusMessage("Connect, Connect Fail Exception " + e);
 		}
 		
@@ -228,9 +248,10 @@ public class C_networkAccess{
 				return httpURLConnection;
 			}
 			deployDataForConnectionResult(httpURLConnection.getInputStream(), connectionResult);
-		} catch (IOException e) {
-			System.out.println("LoadData, IOException " + e);
-			connectionResult.setStatusMessage("LoadData, Connect Fail IOException " + e);
+//		} catch (IOException e) {
+		} catch (Exception e) {
+			printInfo("LoadData, Exception " + e, C_networkAccess.NETWORKSETTING.isPrintConnectException);
+			connectionResult.setStatusMessage("LoadData, Connect Fail Exception " + e);
 		}
 		httpURLConnection.disconnect();
 		return httpURLConnection;
@@ -261,14 +282,12 @@ public class C_networkAccess{
 			
 			httpURLConnection.connect();
 			return httpURLConnection;
-		} catch (MalformedURLException e) {
-			System.out.println("Connecting, MalformedURLException " + e);
-		} catch (IOException e) {
-			System.out.println("Connecting, IOException " + e);
+//		} catch (MalformedURLException e) {
+//		} catch (IOException e) {
 		} catch (Exception e) {
-			System.out.println("Connecting, Exception " + e);
+			printInfo("Connecting, Exception " + e, C_networkAccess.NETWORKSETTING.isPrintConnectException);
 		}finally{
-			System.out.println(requestType + ", " + httpUrl);
+			printInfo(requestType + ", " + httpUrl, C_networkAccess.NETWORKSETTING.isPrintConnectionUrl);
 		}
 		return null;
 	}
@@ -292,10 +311,10 @@ public class C_networkAccess{
 				}
 			}
 			return httpURLConnection;
-		} catch (ProtocolException e) {
-			System.out.println("HttpGetSetting, ProtocolException " + e);
-		} catch (IOException e) {
-			System.out.println("HttpGetSetting, IOException " + e);
+//		} catch (ProtocolException e) {
+//		} catch (IOException e) {
+		} catch (Exception e) {
+			printInfo("HttpGetSetting, Exception " + e, C_networkAccess.NETWORKSETTING.isPrintConnectException);
 		}
 		return null;
 	}
@@ -359,10 +378,10 @@ public class C_networkAccess{
 			dataOutputStream.flush();
 			dataOutputStream.close();
 			return httpURLConnection;
-		} catch (ProtocolException e) {
-			System.out.println("HttpPostSetting, ProtocolException " + e);
-		} catch (IOException e) {
-			System.out.println("HttpPostSetting, IOException " + e);
+//		} catch (ProtocolException e) {
+//		} catch (IOException e) {
+		} catch (Exception e) {
+			printInfo("HttpPostSetting, Exception " + e, C_networkAccess.NETWORKSETTING.isPrintConnectException);
 		}
 		return null;
 	}
@@ -505,17 +524,13 @@ public class C_networkAccess{
 				connectionResult.setRequestType(REQUEST_POST);
 				httpResponse = httpClient.execute(httpPost);
 			}
-		} catch (ClientProtocolException e) {
-			System.out.println("Connecting, ClientProtocolException " + e);
-			connectionResult.setStatusMessage("Connecting, Connect Fail ClientProtocolException " + e);
-		} catch (IOException e) {
-			System.out.println("Connecting, IOException " + e);
-			connectionResult.setStatusMessage("Connecting, Connect Fail IOException " + e);
+//		} catch (ClientProtocolException e) {
+//		} catch (IOException e) {
 		} catch (Exception e) {
-			System.out.println("Connecting, Exception " + e);
+			printInfo("Connecting, Exception " + e, C_networkAccess.NETWORKSETTING.isPrintConnectException);
 			connectionResult.setStatusMessage("Connecting, Connect Fail Exception " + e);
 		}finally{
-			System.out.println(connectionResult.getRequestType() + ", " + httpUrl);
+			printInfo(connectionResult.getRequestType() + ", " + httpUrl, C_networkAccess.NETWORKSETTING.isPrintConnectionUrl);
 		}
 		
 		if(httpResponse == null){
@@ -528,7 +543,7 @@ public class C_networkAccess{
 		connectionResult.setResponseCode(statusLine.getStatusCode());
 		connectionResult.setResponseMessage(statusLine.getReasonPhrase());
 		if(statusLine.getStatusCode() != HttpStatus.SC_OK){
-			System.out.println("Connect Fail StatusCode " + statusLine.getStatusCode());
+			printInfo("Connect Fail StatusCode " + statusLine.getStatusCode(), C_networkAccess.NETWORKSETTING.isPrintConnectException);
 			connectionResult.setStatusMessage("Connect Fail StatusCode " + statusLine.getStatusCode());
 			
 			if(handler != null){
@@ -560,17 +575,13 @@ public class C_networkAccess{
 				return connectionResult;
 			}
 			deployDataForConnectionResult(httpEntity.getContent(), connectionResult);
-		} catch (IllegalStateException e) {
-			System.out.println("LoadData, IllegalStateException " + e);
-			connectionResult.setStatusMessage("LoadData, Connect Fail IllegalStateException " + e);
-		} catch (IOException e) {
-			System.out.println("LoadData, IOException " + e);
-			connectionResult.setStatusMessage("LoadData, Connect Fail IOException " + e);
+//		} catch (IllegalStateException e) {
+//		} catch (IOException e) {
 		} catch (Exception e) {
-			System.out.println("LoadData, Exception " + e);
+			printInfo("LoadData, Exception " + e, C_networkAccess.NETWORKSETTING.isPrintConnectException);
 			connectionResult.setStatusMessage("LoadData, Connect Fail Exception " + e);
 		}
-//		System.out.println("Connect ok StatusCode " + httpResponse.getStatusLine().getStatusCode());
+		printInfo("Connect ok StatusCode " + httpResponse.getStatusLine().getStatusCode(), false);
 		return connectionResult;
 	}
 	
@@ -703,9 +714,9 @@ public class C_networkAccess{
 		}
 		if(charset == null){
 			charset = Charset.forName("ISO-8859-1");
-//			System.out.print("charset get fail, using default, ");
+			printInfo("charset get fail, using default, ", false);
 		}
-//		System.out.println("charset = " + charset.displayName());
+		printInfo("charset = " + charset.displayName(), false);
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}

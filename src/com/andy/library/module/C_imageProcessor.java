@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetManager;
@@ -44,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.0
+ * @version 3.4.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -85,7 +86,7 @@ public class C_imageProcessor {
 		return IMAGESETTING.inNativeAlloc;
 	}
 	
-	public static void setIsPrintLoadStreamException(boolean isPrintLoadStreamException){
+	public static void setPrintLoadStreamException(boolean isPrintLoadStreamException){
 		C_imageProcessor.IMAGESETTING.isPrintLoadStreamException = isPrintLoadStreamException;
 	}
 	
@@ -497,15 +498,20 @@ public class C_imageProcessor {
 		return isConnect;
 	}
 	
-	public static byte[] inputStreamToByteArray(InputStream is){
+	public static byte[] inputStreamToByteArray(InputStream is, int bufferSize){
 		if(is == null){
 			return null;
 		}
 		byte[] byteArray = null;
 		int progress;
-		byte[] buffer = new byte[1024];
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		byte[] buffer;
+		ByteArrayOutputStream baos;
 		try {
+			buffer = new byte[bufferSize];
+			baos = new ByteArrayOutputStream();
 			try {
 				while((progress = is.read(buffer)) != -1){
 					baos.write(buffer, 0, progress);
@@ -523,11 +529,16 @@ public class C_imageProcessor {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			is = null;
+			byteArray = null;
 			buffer = null;
 			baos = null;
 			e.printStackTrace();
 		}
 		return byteArray;
+	}
+	
+	public static byte[] inputStreamToByteArray(InputStream is){
+		return inputStreamToByteArray(is, 1024 * 8);
 	}
 	
 	public static void setBufferBitmap(Bitmap bitmap, String path, String sampleWord, int inSampleSize){
