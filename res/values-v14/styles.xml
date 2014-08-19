@@ -1,16 +1,24 @@
 <resources>
 
-    <!--
-        Base application theme for API 14+. This theme completely replaces
-        AppBaseTheme from BOTH res/values/styles.xml and
-        res/values-v11/styles.xml on API 14+ devices.
-    -->
-    <style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-        <!-- API 14 theme customizations can go here. -->
-    </style>
-    
+	<!--
+		Base application theme for API 14+. This theme completely replaces
+		AppBaseTheme from BOTH res/values/styles.xml and
+		res/values-v11/styles.xml on API 14+ devices.
+	-->
+	
+	<style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
+		<!-- API 14 theme customizations can go here. -->
+	</style>
+	
 	<!-- CustomActionBar -->
-	<style name="CustomTheme" parent="android:Theme.DeviceDefault.Light.DarkActionBar">
+	
+	<!-- android:Theme -->
+	<!-- android:Theme.Light -->
+	<!-- android:Theme.Holo -->
+	<!-- android:Theme.Holo.Light.DarkActionBar -->
+	<!-- android:Theme.DeviceDefault -->
+	<!-- android:Theme.DeviceDefault.Light.DarkActionBar -->
+	<style name="CustomTheme" parent="android:Theme.Holo.Light.DarkActionBar">
 		<item name="android:windowActionBar">true</item>
 		<item name="android:windowActionBarOverlay">false</item>
 		<item name="android:actionBarStyle">@style/ActionBarStyle</item>
@@ -35,7 +43,12 @@
 		<item name="android:actionDropDownStyle">@style/ActionDropDownStyle</item>
 	</style>
 	
-	<style name="ActionBarStyle" parent="android:Widget.DeviceDefault.Light.ActionBar">
+	<!-- android:Widget.ActionBar -->
+	<!-- android:Widget.Holo.ActionBar -->
+	<!-- android:Widget.Holo.Light.ActionBar -->
+	<!-- android:Widget.DeviceDefault.ActionBar -->
+	<!-- android:Widget.DeviceDefault.Light.ActionBar -->
+	<style name="ActionBarStyle" parent="android:Widget.Holo.Light.ActionBar">
 		<item name="android:background">@color/Blue9C</item>
 		<item name="android:backgroundStacked">@color/BlackGray</item>
 		<item name="android:backgroundSplit">@color/Blue9C</item>
@@ -51,42 +64,44 @@
 		<!-- <item name="android:homeLayout"></item> -->
 	</style>
 	
-	<style name="ActionBarTitleTextAppearance" parent="android:TextAppearance.DeviceDefault.Widget.ActionBar.Title">
+	<style name="ActionBarTitleTextAppearance" parent="android:TextAppearance.Holo.Widget.ActionBar.Title">
 		<item name="android:textColor">@color/White</item>
 		<item name="android:textSize">20sp</item>
+		<item name="android:textStyle">normal</item>
 	</style>
 	
-	<style name="ActionButtonStyle" parent="android:Widget.DeviceDefault.Light.ActionButton">
+	<style name="ActionButtonStyle" parent="android:Widget.Holo.Light.ActionButton">
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
 		<item name="android:minWidth">?android:attr/actionBarSize</item>
 		<item name="android:minHeight">?android:attr/actionBarSize</item>
 		<item name="android:gravity">center</item>
-		<item name="android:paddingLeft">12dip</item>
-		<item name="android:paddingRight">12dip</item>
+		<item name="android:paddingLeft">10dip</item>
+		<item name="android:paddingRight">10dip</item>
 		<item name="android:scaleType">center</item>
 		<item name="android:maxLines">2</item>
 	</style>
 	
-	<style name="ActionOverflowButtonStyle" parent="android:Widget.DeviceDefault.ActionButton.Overflow">
+	<style name="ActionOverflowButtonStyle" parent="android:Widget.Holo.ActionButton.Overflow">
 		<!-- <item name="android:src"></item> -->
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
 		<!-- <item name="android:contentDescription"></item> -->
 	</style>
 	
-	<style name="ActionMenuTextAppearance" parent="android:TextAppearance.DeviceDefault.Widget.ActionBar.Menu">
+	<style name="ActionMenuTextAppearance" parent="android:TextAppearance.Holo.Widget.ActionBar.Menu">
 		<item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
 		<item name="android:textSize">16sp</item>
-		<item name="android:textStyle">bold</item>
+		<item name="android:textStyle">normal</item>
+		<item name="android:textAllCaps">false</item>
 	</style>
 	
-	<style name="ActionBarWidgetTheme" parent="android:Theme.DeviceDefault">
+	<style name="ActionBarWidgetTheme" parent="android:Theme.Holo">
 		<item name="android:popupMenuStyle">@style/PopupMenuStyle</item>
 		<item name="android:dropDownListViewStyle">@style/DropDownListViewStyle</item>
 		
 		<item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemStyle</item>
 	</style>
 	
-	<style name="PopupMenuStyle" parent="android:Widget.DeviceDefault.ListPopupWindow">
+	<style name="PopupMenuStyle" parent="android:Widget.Holo.ListPopupWindow">
 		<!-- <item name="android:dropDownSelector"></item> -->
 		<!-- <item name="android:popupBackground"></item> -->
 		<item name="android:dropDownVerticalOffset">0dip</item>
@@ -94,47 +109,50 @@
 		<item name="android:dropDownWidth">wrap_content</item>
 	</style>
 	
-	<style name="DropDownListViewStyle" parent="android:Widget.DeviceDefault.Light.ListView.DropDown">
+	<style name="DropDownListViewStyle" parent="android:Widget.Holo.Light.ListView.DropDown">
 		<!-- <item name="android:listSelector"></item> -->
 		<!-- <item name="android:divider"></item> -->
 	</style>
 	
-	<style name="PopupMenuTextAppearance" parent="android:TextAppearance.DeviceDefault">
+	<style name="PopupMenuTextAppearance" parent="android:TextAppearance">
+	    <item name="android:textColor">?android:attr/textColorPrimary</item>
 		<item name="android:textSize">16sp</item>
-		<item name="android:textStyle">bold</item>
+		<item name="android:textStyle">normal</item>
+		<item name="android:textAllCaps">false</item>
 	</style>
 	
-	<style name="ActionBarTabBarStyle" parent="android:Widget.DeviceDefault.Light.ActionBar.TabBar">
+	<style name="ActionBarTabBarStyle" parent="android:Widget.Holo.Light.ActionBar.TabBar">
 		<item name="android:divider">?android:attr/dividerVertical</item>
 		<item name="android:showDividers">middle</item>
 		<item name="android:dividerPadding">12dip</item>
 	</style>
 	
-	<style name="ActionBarTabViewStyle" parent="android:Widget.DeviceDefault.ActionBar.TabView">
+	<style name="ActionBarTabViewStyle" parent="android:Widget.Holo.Light.ActionBar.TabView">
 		<item name="android:gravity">center_horizontal</item>
 		<item name="android:paddingLeft">16dip</item>
 		<item name="android:paddingRight">16dip</item>
 	</style>
 	
-	<style name="ActionBarTabTextStyle" parent="android:Widget.DeviceDefault.Light.ActionBar.TabText">
+	<style name="ActionBarTabTextStyle" parent="android:Widget.Holo.Light.ActionBar.TabText">
 		<item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
 		<item name="android:textSize">16sp</item>
 		<item name="android:textStyle">bold</item>
 		<item name="android:ellipsize">marquee</item>
 		<item name="android:maxLines">2</item>
+		<item name="android:textAllCaps">false</item>
 	</style>
 	
-	<style name="ActionDropDownStyle" parent="android:Widget.DeviceDefault.Light.Spinner">
+	<style name="ActionDropDownStyle" parent="android:Widget.Holo.Light.Spinner">
 		<item name="android:dropDownVerticalOffset">0dip</item>
 		<item name="android:dropDownHorizontalOffset">0dip</item>
 		<item name="android:dropDownWidth">wrap_content</item>
 	</style>
 	
-	<style name="SpinnerDropDownItemStyle" parent="android:Widget.DeviceDefault.DropDownItem.Spinner">
+	<style name="SpinnerDropDownItemStyle" parent="android:Widget.DropDownItem.Spinner">
 	    <item name="android:textAppearance">@style/DropDownItemTextAppearance</item>
 	</style>
 	
-	<style name="DropDownItemTextAppearance" parent="android:TextAppearance.DeviceDefault.Widget.DropDownItem">
+	<style name="DropDownItemTextAppearance" parent="android:TextAppearance.Widget.DropDownItem">
 	</style>
-    
+	
 </resources>
