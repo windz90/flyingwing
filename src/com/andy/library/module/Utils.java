@@ -3,6 +3,8 @@ package com.andy.library.module;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -90,29 +92,31 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.17
+ * @version 3.2.18
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 public class Utils {
 	
-	public static final int LIMIT_DIP_WIDTH = 600;
 	public static final int LIMIT_DIP_WIDTH_480 = 480;
-	public static final int SIZE_SUBJECT_S = 0;
-	public static final int SIZE_TAB_S = 1;
+	public static final int LIMIT_DIP_WIDTH_540 = 540;
+	public static final int LIMIT_DIP_WIDTH_600 = 600;
+	public static final int LIMIT_DIP_WIDTH = LIMIT_DIP_WIDTH_600;
+	public static final int SIZE_TEXT_S = 0;
+	public static final int SIZE_BULLET_S = 1;
 	public static final int SIZE_TITLE_S = 2;
-	public static final int SIZE_BULLET_S = 3;
-	public static final int SIZE_TEXT_S = 4;
-	public static final int SIZE_SUBJECT = 5;
-	public static final int SIZE_TAB = 6;
+	public static final int SIZE_TAB_S = 3;
+	public static final int SIZE_SUBJECT_S = 4;
+	public static final int SIZE_TEXT = 5;
+	public static final int SIZE_BULLET = 6;
 	public static final int SIZE_TITLE = 7;
-	public static final int SIZE_BULLET = 8;
-	public static final int SIZE_TEXT = 9;
-	public static final int SIZE_SUBJECT_L = 10;
-	public static final int SIZE_TAB_L = 11;
+	public static final int SIZE_TAB = 8;
+	public static final int SIZE_SUBJECT = 9;
+	public static final int SIZE_TEXT_L = 10;
+	public static final int SIZE_BULLET_L = 11;
 	public static final int SIZE_TITLE_L = 12;
-	public static final int SIZE_BULLET_L = 13;
-	public static final int SIZE_TEXT_L = 14;
+	public static final int SIZE_TAB_L = 13;
+	public static final int SIZE_SUBJECT_L = 14;
 	
 	public static final String ASSETS_PATH = "file:///android_asset/";
 	public static final String SP_KEY_STATUSBAR_HEIGHT = "statusBarHe";
@@ -702,9 +706,9 @@ public class Utils {
 		setTextSizeMethod(activity, textView, TypedValue.COMPLEX_UNIT_SP, size);
 	}
 	
-	public static int getTextSize(Activity activity, int flag){
+	public static int getTextSize(Activity activity, int flag, boolean isMeasureScreen){
 		int textSize = 15;
-		if(C_display.isBigScreen(activity, LIMIT_DIP_WIDTH)){
+		if(isMeasureScreen && C_display.isBigScreen(activity, LIMIT_DIP_WIDTH)){
 			switch (flag) {
 			case SIZE_SUBJECT_L:textSize = 26;break;
 			case SIZE_TAB_L:textSize = 25;break;
@@ -718,6 +722,10 @@ public class Utils {
 			case SIZE_TEXT:textSize = 17;break;
 			case SIZE_SUBJECT_S:textSize = 16;break;
 			case SIZE_TAB_S:textSize = 15;break;
+			case SIZE_TITLE_S:textSize = 14;break;
+			case SIZE_BULLET_S:textSize = 13;break;
+			// Not recommended
+			case SIZE_TEXT_S:textSize = 12;break;
 			}
 		}else{
 			switch (flag) {
@@ -733,9 +741,17 @@ public class Utils {
 			case SIZE_TEXT:textSize = 15;break;
 			case SIZE_SUBJECT_S:textSize = 14;break;
 			case SIZE_TAB_S:textSize = 13;break;
+			// Not recommended
+			case SIZE_TITLE_S:textSize = 12;break;
+			case SIZE_BULLET_S:textSize = 11;break;
+			case SIZE_TEXT_S:textSize = 10;break;
 			}
 		}
 		return textSize;
+	}
+	
+	public static int getTextSize(Activity activity, int flag){
+		return getTextSize(activity, flag, true);
 	}
 	
 	public static int getVisibleHeightSP(Activity activity, String SPname){
@@ -1174,16 +1190,16 @@ public class Utils {
 	
 	@SuppressWarnings("unchecked")
 	public static List<Object> reflectionJSONArrayToList(JSONArray jsonArray){
-		List<Object> list = null;
 		try {
 			Field field = jsonArray.getClass().getDeclaredField("values");
 			field.setAccessible(true);
-			list = (List<Object>)field.get(jsonArray);
+			List<Object> list = (List<Object>)field.get(jsonArray);
 			field.setAccessible(false);
+			return list;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return list;
+		return null;
 	}
 	
 	public static JSONObject newJSONObject(String data){
@@ -1236,16 +1252,16 @@ public class Utils {
 	
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> reflectionJSONObjectToMap(JSONObject jsonObject){
-		Map<String, Object> map = null;
 		try {
 			Field field = jsonObject.getClass().getDeclaredField("nameValuePairs");
 			field.setAccessible(true);
-			map = (Map<String, Object>)field.get(jsonObject);
+			Map<String, Object> map = (Map<String, Object>)field.get(jsonObject);
 			field.setAccessible(false);
+			return map;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return map;
+		return null;
 	}
 	
 	/**
@@ -1622,14 +1638,16 @@ public class Utils {
 	}
 	
 	// 取得軟體資訊
-	public static PackageInfo getPackageInfo(Context context, int flags){
-		PackageInfo packageInfo = null;
+	public static PackageInfo getPackageInfo(Context context, String packageName, int flags){
 		try {
-			packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), flags);
-		} catch (NameNotFoundException e) {
-			e.printStackTrace();
-		}
-		return packageInfo;
+			PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packageName, flags);
+			return packageInfo;
+		} catch (NameNotFoundException e) {}
+		return null;
+	}
+	
+	public static PackageInfo getPackageInfo(Context context, int flags){
+		return getPackageInfo(context, context.getPackageName(), flags);
 	}
 	
 	public static int getVersionCode(Context context){
@@ -1649,8 +1667,8 @@ public class Utils {
 	}
 	
 	// 取得金鑰簽名
-	public static Signature getKeystoreSignature(Context context){
-		PackageInfo packageInfo = getPackageInfo(context, PackageManager.GET_SIGNATURES);
+	public static Signature getKeystoreSignature(Context context, String packageName){
+		PackageInfo packageInfo = getPackageInfo(context, packageName, PackageManager.GET_SIGNATURES);
 		for(Signature signature : packageInfo.signatures){
 			return signature;
 		}
@@ -1854,6 +1872,117 @@ public class Utils {
 		infoList.add(hashMap);
 		
 		return infoList;
+	}
+	
+	public static boolean executeCommand(boolean isPrint, String...cmdArray){
+		Process process = null;
+		DataOutputStream dataOutputStream = null;
+		DataInputStream dataInputStream = null;
+		boolean isExecuteFinished = false;
+		try {
+			try {
+				process = Runtime.getRuntime().exec("/system/bin/su");
+			} catch (Exception e) {}
+			try {
+				process = Runtime.getRuntime().exec("/system/xbin/su");
+			} catch (Exception e) {}
+//			process = Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","reboot now"});
+			
+			if(process != null){
+				dataInputStream = new DataInputStream(process.getInputStream());
+				if(isPrint){
+					System.out.println("Get superUser permission command result\n" + inputStreamToString(dataInputStream, null));
+				}
+			}
+			
+			if(cmdArray != null && cmdArray.length > 0){
+				int offset = 0;
+				if(process == null){
+					process = Runtime.getRuntime().exec(cmdArray[0]);
+					offset = 1;
+				}
+				dataOutputStream = new DataOutputStream(process.getOutputStream());
+				for(int i=0; i<cmdArray.length - offset; i++){
+					dataOutputStream.writeBytes(cmdArray[i + offset] + "\n");
+				}
+				dataOutputStream.flush();
+				
+				process.waitFor();
+				isExecuteFinished = true;
+				
+				dataInputStream = new DataInputStream(process.getInputStream());
+				if(isPrint){
+					System.out.println("Execute command result\n" + inputStreamToString(dataInputStream, null));
+				}
+			}
+		} catch (Exception e) {
+			if(isPrint){
+				e.printStackTrace();
+			}
+		} finally {
+			try {
+				if(dataInputStream != null){
+					dataInputStream.close();
+				}
+				if(dataOutputStream != null){
+					dataOutputStream.close();
+				}
+				if(process != null){
+					process.destroy();
+				}
+			} catch (Exception e) {
+				if(isPrint){
+					e.printStackTrace();
+				}
+			}
+		}
+		return isExecuteFinished;
+	}
+	
+	public static boolean isRooted(Context context){
+		/*
+		 * Release-Keys 正式開發者簽名
+		 * Test-Keys 第三方開發者自訂簽名
+		 * 一般來說Release-Keys會比Test-Keys更安全，但不一定總是如此
+		 */
+		String buildTags = android.os.Build.TAGS;
+		if(buildTags != null && buildTags.contains("test-keys")){
+			return true;
+		}
+		
+		// 檢查是否安裝su權限管理程式Superuser，不一定會安裝在/system/app/
+		File file = new File("/system/app/Superuser.apk");
+		if(file.isFile()){
+			return true;
+		}
+		
+		// 檢查是否安裝su權限管理程式Superuser，未安裝不一定代表沒有root
+		if(getPackageInfo(context, "com.noshufou.android.su", PackageManager.GET_ACTIVITIES) != null){
+			return true;
+		}
+		
+		// 檢查是否安裝su權限管理程式SuperSU，不一定會安裝在/system/app/
+		file = new File("/system/app/SuperSU.apk");
+		if(file.isFile()){
+			return true;
+		}
+		
+		// 檢查是否安裝su權限管理程式SuperSU，未安裝不一定代表沒有root
+		if(getPackageInfo(context, "eu.chainfire.supersu", PackageManager.GET_ACTIVITIES) != null){
+			return true;
+		}
+		
+		// 檢查各路徑是否含有su檔
+		String[] pathArray = new String[]{"/system/bin/", "/system/xbin/", "/system/bin/failsafe/"
+				, "/system/sd/xbin/", "/sbin/", "/data/local/"
+				, "/data/local/bin/", "/data/local/xbin/"};
+		for(String path : pathArray){
+			file = new File(path + "su");
+			if(file.isFile()){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	// 計算兩點距離API版

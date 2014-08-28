@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  * Comparable是在集合內部實作Comparable接口實現的排序<br><br>
  * 
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.1.0
+ * @version 2.1.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -22,14 +22,15 @@ public class C_comparator implements Comparator<Map<String, String>>{
 	
 	public static final int STYLE_STRING = 1;
 	public static final int STYLE_INT = 2;
-	public static final int STYLE_FLOAT = 3;
-	public static final int STYLE_DOUBLE = 4;
-	public static final int STYLE_INT_REG_EXP = 5;
-	public static final int STYLE_INT_REG_EXP_BEGIN = 6;
-	public static final int STYLE_INT_REG_EXP_CONTAINS = 7;
-	public static final int STYLE_FLOAT_REG_EXP = 8;
-	public static final int STYLE_FLOAT_REG_EXP_BEGIN = 9;
-	public static final int STYLE_FLOAT_REG_EXP_CONTAINS = 10;
+	public static final int STYLE_LONG = 3;
+	public static final int STYLE_FLOAT = 4;
+	public static final int STYLE_DOUBLE = 5;
+	public static final int STYLE_INT_REG_EXP = 6;
+	public static final int STYLE_INT_REG_EXP_BEGIN = 7;
+	public static final int STYLE_INT_REG_EXP_CONTAINS = 8;
+	public static final int STYLE_FLOAT_REG_EXP = 9;
+	public static final int STYLE_FLOAT_REG_EXP_BEGIN = 10;
+	public static final int STYLE_FLOAT_REG_EXP_CONTAINS = 11;
 	public static final int ORDER_BY_ASC = 1;
 	public static final int ORDER_BY_DESC = 2;
 	
@@ -57,6 +58,9 @@ public class C_comparator implements Comparator<Map<String, String>>{
 		switch (style) {
 		case STYLE_INT:
 			compareResult = compareByInt(lhs, rhs, compareKey, orderBy);
+			break;
+		case STYLE_LONG:
+			compareResult = compareByLong(lhs, rhs, compareKey, orderBy);
 			break;
 		case STYLE_FLOAT:
 			compareResult = compareByFloat(lhs, rhs, compareKey, orderBy);
@@ -107,6 +111,15 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return compareByIntAsc(lhs, rhs, compareKey);
 		}else if(orderBy == ORDER_BY_DESC){
 			return compareByIntDesc(lhs, rhs, compareKey);
+		}
+		return 0;
+	}
+	
+	private int compareByLong(Map<String, String> lhs, Map<String, String> rhs, String compareKey, int orderBy){
+		if(orderBy == ORDER_BY_ASC){
+			return compareByLongAsc(lhs, rhs, compareKey);
+		}else if(orderBy == ORDER_BY_DESC){
+			return compareByLongDesc(lhs, rhs, compareKey);
 		}
 		return 0;
 	}
@@ -172,9 +185,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsInt > rhsInt){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByIntDesc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -193,9 +205,48 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsInt < rhsInt){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
+	}
+	
+	private int compareByLongAsc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
+		long lhsLong, rhsLong;
+		try {
+			lhsLong = Long.parseLong(lhs.get(compareKey).trim());
+		} catch (Exception e) {
+			lhsLong = 0;
+		}
+		try {
+			rhsLong = Long.parseLong(rhs.get(compareKey).trim());
+		} catch (Exception e) {
+			rhsLong = 0;
+		}
+		if(lhsLong < rhsLong){
+			return -1;
+		}else if(lhsLong > rhsLong){
+			return 1;
+		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
+	}
+	
+	private int compareByLongDesc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
+		long lhsLong, rhsLong;
+		try {
+			lhsLong = Long.parseLong(lhs.get(compareKey).trim());
+		} catch (Exception e) {
+			lhsLong = 0;
+		}
+		try {
+			rhsLong = Long.parseLong(rhs.get(compareKey).trim());
+		} catch (Exception e) {
+			rhsLong = 0;
+		}
+		if(lhsLong > rhsLong){
+			return -1;
+		}else if(lhsLong < rhsLong){
+			return 1;
+		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByFloatAsc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -214,9 +265,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsFloat > rhsFloat){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByFloatDesc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -235,9 +285,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsFloat < rhsFloat){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByDoubleAsc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -256,9 +305,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsDouble > rhsDouble){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByDoubleDesc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -277,9 +325,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsDouble < rhsDouble){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByIntRegExpAsc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -296,9 +343,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsInt > rhsInt){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByIntRegExpDesc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -315,9 +361,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsInt < rhsInt){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByFloatRegExpAsc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -334,9 +379,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsFloat > rhsFloat){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByFloatRegExpDesc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
@@ -353,9 +397,8 @@ public class C_comparator implements Comparator<Map<String, String>>{
 			return -1;
 		}else if(lhsFloat < rhsFloat){
 			return 1;
-		}else{
-			return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 		}
+		return defaultSort(lhs.get(compareKey).trim(), rhs.get(compareKey).trim());
 	}
 	
 	private int compareByStringAsc(Map<String, String> lhs, Map<String, String> rhs, String compareKey){
