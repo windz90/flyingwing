@@ -45,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.1
+ * @version 3.4.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -963,6 +963,12 @@ public class C_imageProcessor {
 		return paint;
 	}
 	
+	public static Paint getPaint(float strokeWidth, int alpha, int red, int green, int blue){
+		Paint paint = getPaint(strokeWidth);
+		paint.setARGB(alpha, red, green, blue);
+		return paint;
+	}
+	
 	public static Paint getClearPaint(int strokeWidth){
 		Paint clearPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
 		clearPaint.setAntiAlias(true);
@@ -971,20 +977,7 @@ public class C_imageProcessor {
 		return clearPaint;
 	}
 	
-	public static Paint getPaint(float strokeWidth, float baseRed, float baseGreen, float baseBlue, float baseAlpha
-			, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
-		Paint paint = getPaint(strokeWidth);
-		setPaintColor(paint, baseRed, baseGreen, baseBlue, baseAlpha, offsetRed, offsetGreen, offsetBlue, offsetAlpha);
-		return paint;
-	}
-	
-	public static Paint getPaint(float strokeWidth, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
-		Paint drawPaint = getPaint(strokeWidth);
-		setPaintColor(drawPaint, offsetRed, offsetGreen, offsetBlue, offsetAlpha);
-		return drawPaint;
-	}
-	
-	public static void setPaintColor(Paint paint, float baseRed, float baseGreen, float baseBlue, float baseAlpha
+	public static void setPaintColorFilter(Paint paint, float baseRed, float baseGreen, float baseBlue, float baseAlpha
 			, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
 		ColorMatrix colorMatrix = new ColorMatrix();
 		// 設定顏色矩陣R, G, B, A, offset
@@ -998,11 +991,11 @@ public class C_imageProcessor {
 		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
 	}
 	
-	public static void setPaintColor(Paint paint, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
-		setPaintColor(paint, 1.0f, 1.0f, 1.0f, 1.0f, offsetRed, offsetGreen, offsetBlue, offsetAlpha);
+	public static void setPaintColorFilter(Paint paint, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
+		setPaintColorFilter(paint, 1.0f, 1.0f, 1.0f, 1.0f, offsetRed, offsetGreen, offsetBlue, offsetAlpha);
 	}
 	
-	public static void setPaintColor(Paint paint, ColorMatrix colorMatrix){
+	public static void setPaintColorFilter(Paint paint, ColorMatrix colorMatrix){
 		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
 	}
 	
@@ -1012,7 +1005,7 @@ public class C_imageProcessor {
 	 * @param brightnessValue
 	 */
 	public static void setPaintBrightness(Paint paint, float brightnessValue){
-		setPaintColor(paint, 1.0f, 1.0f, 1.0f, 1.0f, brightnessValue, brightnessValue, brightnessValue, 0);
+		setPaintColorFilter(paint, 1.0f, 1.0f, 1.0f, 1.0f, brightnessValue, brightnessValue, brightnessValue, 0);
 	}
 	
 	/**
@@ -1022,7 +1015,7 @@ public class C_imageProcessor {
 	 */
 	public static void setPaintContrast(Paint paint, float contrastValue){
 		final float offset = 127.5f * (1.0f - contrastValue);
-		setPaintColor(paint, contrastValue, contrastValue, contrastValue, 1.0f, offset, offset, offset, 0);
+		setPaintColorFilter(paint, contrastValue, contrastValue, contrastValue, 1.0f, offset, offset, offset, 0);
 	}
 	
 	/**
@@ -1069,7 +1062,7 @@ public class C_imageProcessor {
 	 * @param offsetBlue
 	 */
 	public static void setPaintInverting(Paint paint){
-		setPaintColor(paint, -1.0f, -1.0f, -1.0f, 1.0f, 255, 255, 255, 0);
+		setPaintColorFilter(paint, -1.0f, -1.0f, -1.0f, 1.0f, 255, 255, 255, 0);
 	}
 	
 	/**
@@ -1084,7 +1077,7 @@ public class C_imageProcessor {
 		float[] colors = new float[]{offsetRed, offsetGreen, offsetBlue};
 		Arrays.sort(colors);
 		float sumValue = colors[0] + colors[2];
-		setPaintColor(paint, 1.0f, 1.0f, 1.0f, 1.0f, sumValue - offsetRed, sumValue - offsetGreen, sumValue - offsetBlue
+		setPaintColorFilter(paint, 1.0f, 1.0f, 1.0f, 1.0f, sumValue - offsetRed, sumValue - offsetGreen, sumValue - offsetBlue
 				, offsetAlpha);
 	}
 	
