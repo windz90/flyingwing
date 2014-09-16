@@ -52,6 +52,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -92,7 +93,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.18
+ * @version 3.2.19
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -752,6 +753,32 @@ public class Utils {
 	
 	public static int getTextSize(Activity activity, int flag){
 		return getTextSize(activity, flag, true);
+	}
+	
+	public static int getTextWidth(Paint paint, String text){
+		// paint.measureText(text);
+		// Layout.getDesiredWidth(text, paint);
+		// new StaticLayout(text, textPaint, width, Alignment.ALIGN_NORMAL, 1.0f, 0.0f, true).getLineWidth(0);
+		
+		/*
+		 * minimal bounds
+		 * Rect rect = new Rect();
+		 * paint.getTextBounds(text, 0, text.length(), rect);
+		 * rect.width();
+		 */
+		
+		int width = 0;
+		if(TextUtils.isEmpty(text)){
+			return 0;
+		}
+		
+		int length = text.length();
+		float[] widths = new float[length];
+		paint.getTextWidths(text, widths);
+		for(int i=0; i<length; i++){
+			width = width + (int)Math.ceil(widths[i]);
+		}
+		return width;
 	}
 	
 	public static int getVisibleHeightSP(Activity activity, String SPname){
