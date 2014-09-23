@@ -18,7 +18,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.1.1
+ * @version 3.1.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -385,7 +385,10 @@ public class C_downLoadEvent {
 		ConnectionResult connectionResult = prepareData(context, handler, style, valueArray);
 		Message msg = new Message();
 		msg.obj = connectionResult;
-		if(connectionResult == null || connectionResult.getStatusMessage().contains("Connect Fail ")){
+		if(connectionResult.getStatusMessage().contains("Connect Fail StatusCode ")){
+			// C_networkAccess.CONNECTION_CONNECT_FAIL已即時回調，故此時的回調略過不處理。
+			msg.what = -1;
+		}else if(connectionResult.getStatusMessage().contains("Connect Fail ")){
 			msg.what = C_networkAccess.CONNECTION_LOAD_FAIL;
 		}else{
 			msg.what = C_networkAccess.CONNECTION_LOADED;
