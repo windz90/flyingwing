@@ -16,7 +16,7 @@ import android.widget.TextView;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.1
+ * @version 2.3.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -24,11 +24,14 @@ public class C_progressDialog{
 	
 	private static C_progressDialog progress;
 	
+	private Activity activity;
 	private Dialog dialog;
 	private LinearLayout linLay;
 	private TextView textView;
 	
 	public C_progressDialog(Activity activity, String message){
+		this.activity = activity;
+		
 		int itemWi;
 		LinearLayout.LayoutParams linLayPar;
 		
@@ -86,18 +89,30 @@ public class C_progressDialog{
 		dialog.setCancelable(isCancel);
 	}
 	
-	public void setMessage(String message){
+	public void setMessage(final String message){
 		if(textView == null){
 			return;
 		}
-		textView.setText(message);
+		activity.runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				textView.setText(message);
+			}
+		});
 	}
 	
-	public void appendMessage(String message){
+	public void appendMessage(final String message){
 		if(textView == null){
 			return;
 		}
-		textView.append(message);
+		activity.runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				textView.append(message);
+			}
+		});
 	}
 	
 	public String getMessage(){
@@ -113,6 +128,7 @@ public class C_progressDialog{
 			textView = null;
 			linLay = null;
 			dialog = null;
+			activity = null;
 		}
 	}
 	
