@@ -45,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.2
+ * @version 3.4.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -899,51 +899,80 @@ public class C_imageProcessor {
 		return getImagespecifiedSizeNarrowScale(getImageSize(is), specifiedSize);
 	}
 	
-	public static Bitmap convertToMutableBitmap(Bitmap bitmap, File file){
-		if(bitmap.isMutable()){
-			return bitmap;
-		}
+	public static Bitmap convertMappedBitmap(Bitmap bitmap, int newWidth, int newHeight, Bitmap.Config config, File tempFile){
 		try {
-			int width = bitmap.getWidth();
-			int height = bitmap.getHeight();
-			Bitmap.Config config = bitmap.getConfig();
-			
-			RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+			RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw");
 			FileChannel fileChannel = randomAccessFile.getChannel();
 			
-			MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, bitmap.getRowBytes() * height);
+			// 設定映射緩衝區永遠不比圖像小，避免圖像資料進出緩衝區時發生緩衝區不足的錯誤
+			long size;
+			if(newWidth == bitmap.getWidth() && newHeight == bitmap.getHeight()){
+				size = bitmap.getByteCount();
+			}else{
+				int bufferWidth = newWidth > bitmap.getWidth() ? newWidth : bitmap.getWidth();
+				int bufferHeight = newHeight > bitmap.getHeight() ? newHeight : bitmap.getHeight();
+				int pixelByte = bitmap.getByteCount() / bitmap.getWidth() / bitmap.getHeight();
+				size = pixelByte * (long)bufferWidth * (long)bufferHeight;
+			}
+			MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, size);
 			bitmap.copyPixelsToBuffer(mappedByteBuffer);
 			bitmap.recycle();
 			bitmap = null;
 			System.gc();
 			
-			bitmap = Bitmap.createBitmap(width, height, config);
-			mappedByteBuffer.position(0);
-			bitmap.copyPixelsFromBuffer(mappedByteBuffer);
+			if(newWidth > 0 && newHeight > 0){
+				/*
+				 * Bitmap CreateType
+				 * 1.
+				 * Bitmap.createBitmap(display, width, height, config)
+				 * Bitmap.createBitmap(width, height, config)
+				 * 2.
+				 * Bitmap.createBitmap(display, colors, offset, stride, width, height, config)
+				 * Bitmap.createBitmap(colors, offset, stride, width, height, config)
+				 * Bitmap.createBitmap(display, colors, width, height, config)
+				 * Bitmap.createBitmap(colors, width, height, config)
+				 * 3.
+				 * Bitmap.createBitmap(source, x, y, width, height, m, filter);
+				 * Bitmap.createBitmap(source, x, y, width, height)
+				 * Bitmap.createBitmap(src)
+				 */
+				bitmap = Bitmap.createBitmap(newWidth, newHeight, config);
+				mappedByteBuffer.position(0);
+				bitmap.copyPixelsFromBuffer(mappedByteBuffer);
+			}
 			mappedByteBuffer = null;
 			fileChannel.close();
 			randomAccessFile.close();
-			file.delete();
+			tempFile.delete();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			bitmap = null;
-			file = null;
+			tempFile = null;
 			e.printStackTrace();
 		}
 		return bitmap;
 	}
 	
-	public static Bitmap convertToMutableBitmapUseInsidePrivate(Context context, Bitmap bitmap){
-		File file = new File(context.getFilesDir().toString() + File.separator + "temp.tmp");
-		return convertToMutableBitmap(bitmap, file);
+	public static Bitmap convertMappedBitmap(Bitmap bitmap, int newWidth, int newHeight, File tempFile){
+		Bitmap.Config config = bitmap.getConfig();
+		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
 	}
 	
-	public static Bitmap convertToMutableBitmapUseExternalStorage(Bitmap bitmap){
-		File file = new File(Environment.getExternalStorageDirectory().toString() + File.separator + "temp.tmp");
-		return convertToMutableBitmap(bitmap, file);
+	public static Bitmap convertMappedBitmapUseInsidePrivate(Context context, Bitmap bitmap, int newWidth, int newHeight){
+		Bitmap.Config config = bitmap.getConfig();
+		File tempFile = new File(context.getFilesDir().toString() + File.separator + "temp.tmp");
+		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
+	}
+	
+	public static Bitmap convertMappedBitmapUseExternalStorage(Bitmap bitmap, int newWidth, int newHeight){
+		Bitmap.Config config = bitmap.getConfig();
+		File tempFile = new File(Environment.getExternalStorageDirectory().toString() + File.separator + "temp.tmp");
+		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
 	}
 	
 	public static Canvas getCanvas(Bitmap bitmap){
@@ -957,9 +986,11 @@ public class C_imageProcessor {
 	public static Paint getPaint(float strokeWidth){
 		// 設定抗鋸齒、抖動平滑
 		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
-		// 設定Paint抗鋸齒
-		paint.setAntiAlias(true);
 		paint.setStrokeWidth(strokeWidth);
+		// 設定Paint抗鋸齒
+//		paint.setAntiAlias(true);
+//		paint.setFilterBitmap(true);
+//		paint.setDither(true);
 		return paint;
 	}
 	

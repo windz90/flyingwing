@@ -33,6 +33,8 @@ import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -50,9 +52,12 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
+import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -81,8 +86,10 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -93,7 +100,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.19
+ * @version 3.2.21
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -121,8 +128,10 @@ public class Utils {
 	
 	public static final String ASSETS_PATH = "file:///android_asset/";
 	public static final String SP_KEY_STATUSBAR_HEIGHT = "statusBarHe";
-	public static final String SP_MAP_HEAD = "~_spMapKey_~";
-	public static final String SP_MAP_HEAD_KEY_DELIMITER = "~_K,K_~";
+	public static final String SP_MAP_HEAD = "/!#/spMapHead/#!/";
+	public static final String SP_MAP_ITEM_LEFT_BORDER = "(!#/";
+	public static final String SP_MAP_ITEM_RIGHT_BORDER = "/#!)=";
+	public static final String SP_MAP_DELIMITER = "/!#/-/#!/";
 	public static final String REG_EXP_INT = "^-?\\d+$";
 	public static final String REG_EXP_INT_POS = "^\\d+$";
 	public static final String REG_EXP_INT_NEG = "^-\\d+$";
@@ -549,7 +558,7 @@ public class Utils {
 		return false;
 	}
 	
-	public static void deleteAll(File file){
+	public static boolean deleteAll(File file){
 		File[] fileArray = file.listFiles();
 		if(fileArray != null){
 			for(int i=0; i<fileArray.length; i++){
@@ -560,7 +569,7 @@ public class Utils {
 				}
 			}
 		}
-		file.delete();
+		return file.delete();
 	}
 	
 	public static String halfWidthToFullWidth(String text){
@@ -755,6 +764,21 @@ public class Utils {
 		return getTextSize(activity, flag, true);
 	}
 	
+	public ColorStateList getColorStateList(Resources res, int colorResource, int defaultColor){
+		ColorStateList colorStateList;
+		XmlPullParser xpp = res.getXml(colorResource);
+		try {
+			colorStateList = ColorStateList.createFromXml(res, xpp);
+		} catch (XmlPullParserException e) {
+			colorStateList = ColorStateList.valueOf(defaultColor);
+			e.printStackTrace();
+		} catch (IOException e) {
+			colorStateList = ColorStateList.valueOf(defaultColor);
+			e.printStackTrace();
+		}
+		return colorStateList;
+	}
+	
 	public static int getTextWidth(Paint paint, String text){
 		// paint.measureText(text);
 		// Layout.getDesiredWidth(text, paint);
@@ -919,7 +943,7 @@ public class Utils {
 		String spOldKey = sp.getString(spMapHeadKey, "");
 		Set<String> oldKeySet = new HashSet<String>();
 		if(!TextUtils.isEmpty(spOldKey)){
-			String[] spOldKeyArray = spOldKey.split(SP_MAP_HEAD_KEY_DELIMITER);
+			String[] spOldKeyArray = spOldKey.split(SP_MAP_DELIMITER);
 			for(int i=0; i<spOldKeyArray.length; i++){
 				oldKeySet.add(spOldKeyArray[i]);
 			}
@@ -939,7 +963,7 @@ public class Utils {
 						spEdit.remove(spMapHeadKey + entry.getKey());
 					}else{
 						spEdit.putString(spMapHeadKey + entry.getKey(), entry.getValue());
-						spNewKey = getStringSymbolCombine(spNewKey, entry.getKey(), false);
+						spNewKey = getStringSymbolCombine(spNewKey, entry.getKey(), SP_MAP_DELIMITER, false);
 					}
 					if(oldKeySet.size() > 0){
 						oldKeySet.remove(entry.getKey());
@@ -966,7 +990,7 @@ public class Utils {
 		
 		String spKey = sp.getString(spMapHeadKey, "");
 		if(!TextUtils.isEmpty(spKey)){
-			String[] spKeyArray = spKey.split(SP_MAP_HEAD_KEY_DELIMITER);
+			String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
 			for(int i=0; i<spKeyArray.length; i++){
 				spEdit.remove(spMapHeadKey + spKeyArray[i]);
 			}
@@ -1003,7 +1027,7 @@ public class Utils {
 			return map;
 		}
 		
-		String[] spKeyArray = spKey.split(SP_MAP_HEAD_KEY_DELIMITER);
+		String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
 		String spValue;
 		for(int i=0; i<spKeyArray.length; i++){
 			if(!sp.contains(spMapHeadKey + spKeyArray[i])){
@@ -1013,6 +1037,33 @@ public class Utils {
 			map.put(spKeyArray[i], spValue);
 		}
 		return map;
+	}
+	
+	public static String getSharedPreferencesMapInItem(Context context, String SPname, String mapSaveKey, int location){
+		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
+		
+		String spKey = sp.getString(spMapHeadKey, "");
+		if(spKey == null || spKey.length() == 0){
+			return null;
+		}
+		
+		String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
+		String spValue = sp.getString(spMapHeadKey + spKeyArray[location], null);
+		return spValue;
+	}
+	
+	public static String getSharedPreferencesMapInItem(Context context, String SPname, String mapSaveKey, String mapSaveItemKey){
+		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
+		
+		String spKey = sp.getString(spMapHeadKey, "");
+		if(spKey == null || spKey.length() == 0){
+			return null;
+		}
+		
+		String spValue = sp.getString(spMapHeadKey + mapSaveItemKey, null);
+		return spValue;
 	}
 	
 	@Deprecated
@@ -1115,7 +1166,7 @@ public class Utils {
 	}
 	
 	public static String getStringSymbolCombine(String body, String sub, boolean isAllowRepeat){
-		return getStringSymbolCombine(body, sub, SP_MAP_HEAD_KEY_DELIMITER, isAllowRepeat);
+		return getStringSymbolCombine(body, sub, SP_MAP_DELIMITER, isAllowRepeat);
 	}
 	
 	public static String[][] getMapToArray(Map<String, ?> map, boolean isReview){
@@ -1509,13 +1560,23 @@ public class Utils {
 	}
 	
 	// 控制鍵盤開關
-	public static void switchSoftInput(Context context, View view, boolean status){
+	public static void switchSoftInput(Context context, View view, boolean isShow){
 		InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
 		if(view != null){
-			if(status){
+			if(isShow){
 				imm.showSoftInput(view, 0);
 			}else{
 				imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+			}
+		}
+	}
+	
+	public static void switchSoftInput(Window window, boolean isShow){
+		if(window != null){
+			if(isShow){
+				window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+			}else{
+				window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 			}
 		}
 	}
@@ -2031,6 +2092,25 @@ public class Utils {
 		return miles;
 	}
 	
+	public static float spacing(MotionEvent event) {
+		float x = event.getX(0) - event.getX(1);
+		float y = event.getY(0) - event.getY(1);
+		return (float)Math.sqrt(x * x + y * y);
+	}
+	
+	public static float rotate(MotionEvent event){
+		double x = event.getX(0) - event.getX(1);
+		double y = event.getY(0) - event.getY(1);
+		double radians = Math.atan2(y, x);
+		return (float)Math.toDegrees(radians);
+	}
+	
+	public static void midPoint(PointF point, MotionEvent event) {
+		float x = event.getX(0) + event.getX(1);
+		float y = event.getY(0) + event.getY(1);
+		point.set(x / 2, y / 2);
+	}
+	
 	/**
 	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
 	 */
@@ -2062,11 +2142,15 @@ public class Utils {
 	
 	public static void getViewGroupAllView(View view, List<View> list){
 		list.add(view);
-		for(int i=0; i<list.size(); i++){
-			if(list.get(i) instanceof ViewGroup){
-				ViewGroup viewGroup = (ViewGroup)list.get(i);
-				for(int j=0; j<viewGroup.getChildCount(); j++){
-					list.add(viewGroup.getChildAt(j));
+		if(view instanceof ViewGroup){
+			ViewGroup viewGroup = (ViewGroup)view;
+			View viewChild;
+			for(int i=0; i<viewGroup.getChildCount(); i++){
+				viewChild = viewGroup.getChildAt(i);
+				if(viewChild instanceof ViewGroup){
+					getViewGroupAllView(viewChild, list);
+				}else{
+					list.add(viewChild);
 				}
 			}
 		}
