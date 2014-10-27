@@ -45,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.3
+ * @version 3.4.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -254,20 +254,20 @@ public class C_imageProcessor {
 	}
 	
 	public static boolean deleteInsidePrivateImage(Context context, String imageName){
-		// 使用context.open處理具私有權限保護的/data/data/packageName/檔案
+		// 使用context.deleteFile處理具私有權限保護的/data/data/packageName/檔案
 		imageName = imageName.replace(File.separator, "_");
 		deleteBufferBitmap(imageName, SAMPLE_WORD);
 		return context.deleteFile(imageName);
 	}
 	
-	public static void writeInsideImageFile(Context context, Bitmap bitmap, int quality, String directory, String imageName){
+	public static void writeInsideImageFile(Context context, int mode, Bitmap bitmap, int quality, String rootFolderName, String path, String imageName){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getFilesDir().toString().replace("files", "inside") + File.separator;
-		File file = new File(insidePath + directory);
+		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		File file = new File(insidePath + path);
 		if(!file.exists()){
 			file.mkdirs();
 		}
-		file = new File(insidePath + directory + imageName);
+		file = new File(insidePath + path + imageName);
 		try {
 			FileOutputStream fileOutStream = new FileOutputStream(file, false);
 			bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
@@ -280,14 +280,14 @@ public class C_imageProcessor {
 		}
 	}
 	
-	public static Bitmap readInsideImageFile(Context context, String directory, String imageName, int inSampleSize){
+	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, int inSampleSize){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getFilesDir().toString().replace("files", "inside") + File.separator;
-		Bitmap bitmap = getBufferBitmap(insidePath + directory + imageName, SAMPLE_WORD, inSampleSize);
+		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		Bitmap bitmap = getBufferBitmap(insidePath + path + imageName, SAMPLE_WORD, inSampleSize);
 		if(bitmap != null){
 			return bitmap;
 		}
-		File file = new File(insidePath + directory + imageName);
+		File file = new File(insidePath + path + imageName);
 		try {
 			InputStream is = new FileInputStream(file);
 			try {
@@ -306,10 +306,10 @@ public class C_imageProcessor {
 		return null;
 	}
 	
-	public static Bitmap readInsideImageFile(Context context, String directory, String imageName, float specifiedSize){
+	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, float specifiedSize){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getFilesDir().toString().replace("files", "inside") + File.separator;
-		File file = new File(insidePath + directory + imageName);
+		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		File file = new File(insidePath + path + imageName);
 		try {
 			InputStream is = new FileInputStream(file);
 			int scale;
@@ -319,7 +319,7 @@ public class C_imageProcessor {
 				is.close();
 				is = null;
 			}
-			Bitmap bitmap = getBufferBitmap(insidePath + directory + imageName, SAMPLE_WORD, scale);
+			Bitmap bitmap = getBufferBitmap(insidePath + path + imageName, SAMPLE_WORD, scale);
 			if(bitmap != null){
 				return bitmap;
 			}
@@ -341,11 +341,11 @@ public class C_imageProcessor {
 		return null;
 	}
 	
-	public static boolean deleteInsideImageFile(Context context, String directory, String imageName){
+	public static boolean deleteInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getFilesDir().toString().replace("files", "inside") + File.separator;
-		deleteBufferBitmap(insidePath + directory + imageName, SAMPLE_WORD);
-		File file = new File(insidePath + directory + imageName);
+		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		deleteBufferBitmap(insidePath + path + imageName, SAMPLE_WORD);
+		File file = new File(insidePath + path + imageName);
 		return file.delete();
 	}
 	
@@ -907,11 +907,11 @@ public class C_imageProcessor {
 			// 設定映射緩衝區永遠不比圖像小，避免圖像資料進出緩衝區時發生緩衝區不足的錯誤
 			long size;
 			if(newWidth == bitmap.getWidth() && newHeight == bitmap.getHeight()){
-				size = bitmap.getByteCount();
+				size = bitmap.getRowBytes() * bitmap.getHeight();
 			}else{
 				int bufferWidth = newWidth > bitmap.getWidth() ? newWidth : bitmap.getWidth();
 				int bufferHeight = newHeight > bitmap.getHeight() ? newHeight : bitmap.getHeight();
-				int pixelByte = bitmap.getByteCount() / bitmap.getWidth() / bitmap.getHeight();
+				int pixelByte = (bitmap.getRowBytes() * bitmap.getHeight()) / bitmap.getWidth() / bitmap.getHeight();
 				size = pixelByte * (long)bufferWidth * (long)bufferHeight;
 			}
 			MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, size);
