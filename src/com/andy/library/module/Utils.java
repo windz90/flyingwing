@@ -58,6 +58,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.PointF;
+import android.graphics.Paint.FontMetrics;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -100,7 +101,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.21
+ * @version 3.2.22
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -779,19 +780,24 @@ public class Utils {
 		return colorStateList;
 	}
 	
-	public static int getTextWidth(Paint paint, String text){
-		// paint.measureText(text);
-		// Layout.getDesiredWidth(text, paint);
-		// new StaticLayout(text, textPaint, width, Alignment.ALIGN_NORMAL, 1.0f, 0.0f, true).getLineWidth(0);
-		
+	public static float getTextWidths(Paint paint, String text){
 		/*
-		 * minimal bounds
+		 * 1.
+		 * width = paint.measureText(text);
+		 * 
+		 * 2.
+		 * width = Layout.getDesiredWidth(text, textPaint);
+		 * 
+		 * 3.
+		 * width = new StaticLayout(text, textPaint, width, Alignment.ALIGN_NORMAL, 1.0f, 0.0f, true).getLineWidth(0);
+		 * 
+		 * 4.minimal bounds
 		 * Rect rect = new Rect();
 		 * paint.getTextBounds(text, 0, text.length(), rect);
-		 * rect.width();
+		 * width = rect.width();
 		 */
 		
-		int width = 0;
+		float width = 0;
 		if(TextUtils.isEmpty(text)){
 			return 0;
 		}
@@ -800,9 +806,16 @@ public class Utils {
 		float[] widths = new float[length];
 		paint.getTextWidths(text, widths);
 		for(int i=0; i<length; i++){
-			width = width + (int)Math.ceil(widths[i]);
+			width = width + (float)Math.ceil(widths[i]);
 		}
 		return width;
+	}
+	
+	public static float getTextBaselineY(Paint paint){
+		float baselineY = 0;
+		FontMetrics fontMetrics = paint.getFontMetrics();
+		baselineY = (fontMetrics.bottom - fontMetrics.top) / 2 + fontMetrics.bottom;
+		return baselineY;
 	}
 	
 	public static int getVisibleHeightSP(Activity activity, String SPname){

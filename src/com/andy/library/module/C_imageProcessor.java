@@ -45,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.4
+ * @version 3.4.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -110,12 +110,15 @@ public class C_imageProcessor {
 		return IMAGESETTING.threadPoolSum;
 	}
 	
-	public static Bitmap getRawBitmap(Resources res, int resource, int inSampleSize){
+	public static Bitmap getRawBitmap(Resources res, int resource, int inSampleSize, boolean isUseBuffer){
 		// 讀取APK中/res/raw/底下被記錄在R.java的資源
 		// 此目錄僅支援讀取1MB以下的檔案
-		Bitmap bitmap = getBufferBitmap("Raw" + File.separator + resource, SAMPLE_WORD, inSampleSize);
-		if(bitmap != null){
-			return bitmap;
+		Bitmap bitmap;
+		if(isUseBuffer){
+			bitmap = getBufferBitmap("Raw" + File.separator + resource, SAMPLE_WORD, inSampleSize);
+			if(bitmap != null){
+				return bitmap;
+			}
 		}
 		try {
 			InputStream is = res.openRawResource(resource);
@@ -125,25 +128,52 @@ public class C_imageProcessor {
 				is.close();
 				is = null;
 			}
-			setBufferBitmap(bitmap, "Raw" + File.separator + resource, SAMPLE_WORD, inSampleSize);
-		} catch (IOException e) {
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, "Raw" + File.separator + resource, SAMPLE_WORD, inSampleSize);
+			}
+			return bitmap;
+		} catch (Exception e) {
+			System.out.println(e);
+		} catch (OutOfMemoryError e) {
+			bitmap = null;
 			System.out.println(e);
 		}
-		return bitmap;
+		return null;
+	}
+	
+	public static Bitmap getRawBitmap(Resources res, int resource, int inSampleSize){
+		return getRawBitmap(res, resource, inSampleSize, true);
+	}
+	
+	public static Bitmap getRawBitmap(Resources res, int resource, float specifiedSize, boolean isUseBuffer){
+		int scale = 1;
+		try {
+			InputStream is = res.openRawResource(resource);
+			try {
+				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+			} finally {
+				is.close();
+				is = null;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		return getRawBitmap(res, resource, scale, isUseBuffer);
 	}
 	
 	public static Bitmap getRawBitmap(Resources res, int resource, float specifiedSize){
-		InputStream is = res.openRawResource(resource);
-		int scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
-		return getRawBitmap(res, resource, scale);
+		return getRawBitmap(res, resource, specifiedSize, true);
 	}
 	
-	public static Bitmap readAssetsBitmap(Context context, String imageName, int inSampleSize){
+	public static Bitmap readAssetsBitmap(Context context, String imageName, int inSampleSize, boolean isUseBuffer){
 		// 讀取APK中/assets/底下的檔案
 		// 此目錄僅支援讀取1MB以下的檔案
-		Bitmap bitmap = getBufferBitmap("Assets" + File.separator + imageName, SAMPLE_WORD, inSampleSize);
-		if(bitmap != null){
-			return bitmap;
+		Bitmap bitmap;
+		if(isUseBuffer){
+			bitmap = getBufferBitmap("Assets" + File.separator + imageName, SAMPLE_WORD, inSampleSize);
+			if(bitmap != null){
+				return bitmap;
+			}
 		}
 		AssetManager assetManager = context.getAssets();
 		try {
@@ -154,15 +184,25 @@ public class C_imageProcessor {
 				is.close();
 				is = null;
 			}
-			setBufferBitmap(bitmap, "Assets" + File.separator + imageName, SAMPLE_WORD, inSampleSize);
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, "Assets" + File.separator + imageName, SAMPLE_WORD, inSampleSize);
+			}
 			return bitmap;
-		} catch (IOException e) {
+		} catch (Exception e) {
+			System.out.println(e);
+		} catch (OutOfMemoryError e) {
+			assetManager = null;
+			bitmap = null;
 			System.out.println(e);
 		}
 		return null;
 	}
 	
-	public static Bitmap readAssetsBitmap(Context context, String imageName, float specifiedSize){
+	public static Bitmap readAssetsBitmap(Context context, String imageName, int inSampleSize){
+		return readAssetsBitmap(context, imageName, inSampleSize, true);
+	}
+	
+	public static Bitmap readAssetsBitmap(Context context, String imageName, float specifiedSize, boolean isUseBuffer){
 		AssetManager assetManager = context.getAssets();
 		int scale = 1;
 		try {
@@ -173,10 +213,14 @@ public class C_imageProcessor {
 				is.close();
 				is = null;
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			System.out.println(e);
 		}
-		return readAssetsBitmap(context, imageName, scale);
+		return readAssetsBitmap(context, imageName, scale, isUseBuffer);
+	}
+	
+	public static Bitmap readAssetsBitmap(Context context, String imageName, float specifiedSize){
+		return readAssetsBitmap(context, imageName, specifiedSize, true);
 	}
 	
 	public static void writeInsidePrivateImage(Context context, Bitmap bitmap, int quality, String imageName){
@@ -194,12 +238,15 @@ public class C_imageProcessor {
 		}
 	}
 	
-	public static Bitmap readInsidePrivateImage(Context context, String imageName, int inSampleSize){
+	public static Bitmap readInsidePrivateImage(Context context, String imageName, int inSampleSize, boolean isUseBuffer){
 		// 使用context.open處理具私有權限保護的/data/data/packageName/檔案
 		imageName = imageName.replace(File.separator, "_");
-		Bitmap bitmap = getBufferBitmap(imageName, SAMPLE_WORD, inSampleSize);
-		if(bitmap != null){
-			return bitmap;
+		Bitmap bitmap;
+		if(isUseBuffer){
+			bitmap = getBufferBitmap(imageName, SAMPLE_WORD, inSampleSize);
+			if(bitmap != null){
+				return bitmap;
+			}
 		}
 		try {
 			InputStream is = context.openFileInput(imageName);
@@ -209,48 +256,47 @@ public class C_imageProcessor {
 				is.close();
 				is = null;
 			}
-			setBufferBitmap(bitmap, imageName, SAMPLE_WORD, inSampleSize);
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, imageName, SAMPLE_WORD, inSampleSize);
+			}
 			return bitmap;
 		} catch (FileNotFoundException e) {
 //			System.out.println(e);
 		} catch (IOException e) {
 //			System.out.println(e);
+		} catch (Exception e) {
+//			System.out.println(e);
+		} catch (OutOfMemoryError e) {
+			bitmap = null;
+			System.out.println(e);
 		}
 		return null;
 	}
 	
-	public static Bitmap readInsidePrivateImage(Context context, String imageName, float specifiedSize){
+	public static Bitmap readInsidePrivateImage(Context context, String imageName, int inSampleSize){
+		return readInsidePrivateImage(context, imageName, inSampleSize, true);
+	}
+	
+	public static Bitmap readInsidePrivateImage(Context context, String imageName, float specifiedSize, boolean isUseBuffer){
 		// 使用context.open處理具私有權限保護的/data/data/packageName/檔案
 		imageName = imageName.replace(File.separator, "_");
+		int scale = 1;
 		try {
 			InputStream is = context.openFileInput(imageName);
-			int scale;
 			try {
 				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
 				is.close();
 				is = null;
 			}
-			Bitmap bitmap = getBufferBitmap(imageName, SAMPLE_WORD, scale);
-			if(bitmap != null){
-				return bitmap;
-			}
-			
-			is = context.openFileInput(imageName);
-			try {
-				bitmap = getAgileBitmap(is, scale);
-			} finally {
-				is.close();
-				is = null;
-			}
-			setBufferBitmap(bitmap, imageName, SAMPLE_WORD, scale);
-			return bitmap;
-		} catch (FileNotFoundException e) {
-//			System.out.println(e);
-		} catch (IOException e) {
+		} catch (Exception e) {
 //			System.out.println(e);
 		}
-		return null;
+		return readInsidePrivateImage(context, imageName, scale, isUseBuffer);
+	}
+	
+	public static Bitmap readInsidePrivateImage(Context context, String imageName, float specifiedSize){
+		return readInsidePrivateImage(context, imageName, specifiedSize, true);
 	}
 	
 	public static boolean deleteInsidePrivateImage(Context context, String imageName){
@@ -280,12 +326,16 @@ public class C_imageProcessor {
 		}
 	}
 	
-	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, int inSampleSize){
+	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, int inSampleSize
+			, boolean isUseBuffer){
 		// 取得app路徑/data/data/packageName
 		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
-		Bitmap bitmap = getBufferBitmap(insidePath + path + imageName, SAMPLE_WORD, inSampleSize);
-		if(bitmap != null){
-			return bitmap;
+		Bitmap bitmap;
+		if(isUseBuffer){
+			bitmap = getBufferBitmap(insidePath + path + imageName, SAMPLE_WORD, inSampleSize);
+			if(bitmap != null){
+				return bitmap;
+			}
 		}
 		File file = new File(insidePath + path + imageName);
 		try {
@@ -296,32 +346,53 @@ public class C_imageProcessor {
 				is.close();
 				is = null;
 			}
-			setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
+			}
 			return bitmap;
 		} catch (FileNotFoundException e) {
 //			System.out.println(e);
 		} catch (IOException e) {
 //			System.out.println(e);
+		} catch (Exception e) {
+//			System.out.println(e);
+		} catch (OutOfMemoryError e) {
+			file = null;
+			bitmap = null;
+			System.out.println(e);
 		}
 		return null;
 	}
 	
-	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, float specifiedSize){
+	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, int inSampleSize){
+		return readInsideImageFile(context, mode, rootFolderName, path, imageName, inSampleSize, true);
+	}
+	
+	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, float specifiedSize
+			, boolean isUseBuffer){
 		// 取得app路徑/data/data/packageName
 		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
 		File file = new File(insidePath + path + imageName);
+		InputStream is;
+		int scale = 1;
 		try {
-			InputStream is = new FileInputStream(file);
-			int scale;
+			is = new FileInputStream(file);
 			try {
 				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
 				is.close();
 				is = null;
 			}
-			Bitmap bitmap = getBufferBitmap(insidePath + path + imageName, SAMPLE_WORD, scale);
-			if(bitmap != null){
-				return bitmap;
+		} catch (Exception e) {
+//			System.out.println(e);
+		}
+		Bitmap bitmap;
+		try {
+			if(isUseBuffer){
+				bitmap = getBufferBitmap(insidePath + path + imageName, SAMPLE_WORD, scale);
+				if(bitmap != null){
+					return bitmap;
+				}
 			}
 			
 			is = new FileInputStream(file);
@@ -331,14 +402,27 @@ public class C_imageProcessor {
 				is.close();
 				is = null;
 			}
-			setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
+			}
 			return bitmap;
 		} catch (FileNotFoundException e) {
 //			System.out.println(e);
 		} catch (IOException e) {
 //			System.out.println(e);
+		} catch (Exception e) {
+//			System.out.println(e);
+		} catch (OutOfMemoryError e) {
+			file = null;
+			is = null;
+			bitmap = null;
+			System.out.println(e);
 		}
 		return null;
+	}
+	
+	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, float specifiedSize){
+		return readInsideImageFile(context, mode, rootFolderName, path, imageName, specifiedSize, true);
 	}
 	
 	public static boolean deleteInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName){
@@ -377,7 +461,7 @@ public class C_imageProcessor {
 		}
 	}
 	
-	public static Bitmap readSDCardImageFile(String directory, String imageName, int inSampleSize){
+	public static Bitmap readSDCardImageFile(String directory, String imageName, int inSampleSize, boolean isUseBuffer){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
@@ -387,9 +471,12 @@ public class C_imageProcessor {
 			if(directory.indexOf(sdCardPath) == 0){
 				sdCardPath = "";
 			}
-			Bitmap bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, inSampleSize);
-			if(bitmap != null){
-				return bitmap;
+			Bitmap bitmap;
+			if(isUseBuffer){
+				bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, inSampleSize);
+				if(bitmap != null){
+					return bitmap;
+				}
 			}
 			file = new File(sdCardPath + directory + imageName);
 			try {
@@ -400,18 +487,30 @@ public class C_imageProcessor {
 					is.close();
 					is = null;
 				}
-				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
+				if(isUseBuffer){
+					setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
+				}
 				return bitmap;
 			} catch (FileNotFoundException e) {
 				System.out.println(e);
 			} catch (IOException e) {
+				System.out.println(e);
+			} catch (Exception e) {
+				System.out.println(e);
+			} catch (OutOfMemoryError e) {
+				file = null;
+				bitmap = null;
 				System.out.println(e);
 			}
 		}
 		return null;
 	}
 	
-	public static Bitmap readSDCardImageFile(String directory, String imageName, float specifiedSize){
+	public static Bitmap readSDCardImageFile(String directory, String imageName, int inSampleSize){
+		return readSDCardImageFile(directory, imageName, inSampleSize, true);
+	}
+	
+	public static Bitmap readSDCardImageFile(String directory, String imageName, float specifiedSize, boolean isUseBuffer){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
@@ -422,18 +521,26 @@ public class C_imageProcessor {
 				sdCardPath = "";
 			}
 			file = new File(sdCardPath + directory + imageName);
+			InputStream is;
+			int scale = 1;
 			try {
-				InputStream is = new FileInputStream(file);
-				int scale;
+				is = new FileInputStream(file);
 				try {
 					scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
 				} finally {
 					is.close();
 					is = null;
 				}
-				Bitmap bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, scale);
-				if(bitmap != null){
-					return bitmap;
+			} catch (Exception e) {
+				System.out.println(e);
+			}
+			Bitmap bitmap;
+			try {
+				if(isUseBuffer){
+					bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, scale);
+					if(bitmap != null){
+						return bitmap;
+					}
 				}
 				
 				is = new FileInputStream(file);
@@ -443,15 +550,28 @@ public class C_imageProcessor {
 					is.close();
 					is = null;
 				}
-				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
+				if(isUseBuffer){
+					setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
+				}
 				return bitmap;
 			} catch (FileNotFoundException e) {
 				System.out.println(e);
 			} catch (IOException e) {
 				System.out.println(e);
+			} catch (Exception e) {
+				System.out.println(e);
+			} catch (OutOfMemoryError e) {
+				file = null;
+				is = null;
+				bitmap = null;
+				System.out.println(e);
 			}
 		}
 		return null;
+	}
+	
+	public static Bitmap readSDCardImageFile(String directory, String imageName, float specifiedSize){
+		return readSDCardImageFile(directory, imageName, specifiedSize, true);
 	}
 	
 	public static boolean deleteSDCardImageFile(Context context, String directory, String imageName){
@@ -469,6 +589,98 @@ public class C_imageProcessor {
 			return file.delete();
 		}
 		return false;
+	}
+	
+	public static void writeImageFile(File file, Bitmap bitmap, int quality){
+		try {
+			FileOutputStream fileOutStream = new FileOutputStream(file, false);
+			bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
+			fileOutStream.flush();
+			fileOutStream.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void writeImageFile(String filePath, Bitmap bitmap, int quality){
+		writeImageFile(new File(filePath), bitmap, quality);
+	}
+	
+	public static Bitmap readImageFile(File file, int inSampleSize, boolean isUseBuffer){
+		Bitmap bitmap;
+		try {
+			if(isUseBuffer){
+				bitmap = getBufferBitmap(file.toString(), SAMPLE_WORD, inSampleSize);
+				if(bitmap != null){
+					return bitmap;
+				}
+			}
+			
+			InputStream is = new FileInputStream(file);
+			try {
+				bitmap = getAgileBitmap(is, inSampleSize);
+			} finally {
+				is.close();
+				is = null;
+			}
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
+			}
+			return bitmap;
+		} catch (FileNotFoundException e) {
+			System.out.println(e);
+		} catch (IOException e) {
+			System.out.println(e);
+		} catch (Exception e) {
+			System.out.println(e);
+		} catch (OutOfMemoryError e) {
+			file = null;
+			bitmap = null;
+			System.out.println(e);
+		}
+		return null;
+	}
+	
+	public static Bitmap readImageFile(String filePath, int inSampleSize, boolean isUseBuffer){
+		return readImageFile(new File(filePath), inSampleSize, isUseBuffer);
+	}
+	
+	public static Bitmap readImageFile(File file, int inSampleSize){
+		return readImageFile(file, inSampleSize, true);
+	}
+	
+	public static Bitmap readImageFile(String filePath, int inSampleSize){
+		return readImageFile(new File(filePath), inSampleSize, true);
+	}
+	
+	public static Bitmap readImageFile(File file, float specifiedSize, boolean isUseBuffer){
+		int scale = 1;
+		try {
+			InputStream is = new FileInputStream(file);
+			try {
+				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+			} finally {
+				is.close();
+				is = null;
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		return readImageFile(file, scale, isUseBuffer);
+	}
+	
+	public static Bitmap readImageFile(String filePath, float specifiedSize, boolean isUseBuffer){
+		return readImageFile(new File(filePath), specifiedSize, isUseBuffer);
+	}
+	
+	public static Bitmap readImageFile(File file, float specifiedSize){
+		return readImageFile(file, specifiedSize, true);
+	}
+	
+	public static Bitmap readImageFile(String filePath, float specifiedSize){
+		return readImageFile(new File(filePath), specifiedSize, true);
 	}
 	
 	public static byte[] loadStream(String streamURL) throws IOException{
@@ -526,13 +738,13 @@ public class C_imageProcessor {
 				baos.close();
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e);
 		} catch (OutOfMemoryError e) {
 			is = null;
 			byteArray = null;
 			buffer = null;
 			baos = null;
-			e.printStackTrace();
+			System.out.println(e);
 		}
 		return byteArray;
 	}
@@ -576,6 +788,10 @@ public class C_imageProcessor {
 				}
 			}
 		}
+	}
+	
+	public static void deleteBufferBitmap(String path){
+		deleteBufferBitmap(path, SAMPLE_WORD);
 	}
 	
 	public static boolean isMatchBufferSample(String path, String sampleWord, int inSampleSize){
@@ -860,7 +1076,10 @@ public class C_imageProcessor {
 				is = null;
 			}
 		} catch (IOException e) {
-//			e.printStackTrace();
+//			System.out.println(e);
+		} catch (OutOfMemoryError e) {
+			bitmap = null;
+			System.out.println(e);
 		}
 		return bitmap;
 	}
@@ -945,15 +1164,15 @@ public class C_imageProcessor {
 			randomAccessFile.close();
 			tempFile.delete();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			System.out.println(e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e);
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println(e);
 		} catch (OutOfMemoryError e) {
 			bitmap = null;
 			tempFile = null;
-			e.printStackTrace();
+			System.out.println(e);
 		}
 		return bitmap;
 	}
