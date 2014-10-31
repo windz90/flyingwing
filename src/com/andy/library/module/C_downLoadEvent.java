@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 
 import com.andy.library.R;
 import com.andy.library.module.C_networkAccess.ConnectionResult;
+import com.andy.library.module.widget.C_progressDialog;
 
 import android.app.Activity;
 import android.content.Context;

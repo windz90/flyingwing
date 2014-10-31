@@ -3,9 +3,9 @@ package com.andy.library;
 import com.andy.library.R;
 import com.andy.library.module.C_display;
 import com.andy.library.module.C_networkAccess;
-import com.andy.library.module.C_progressDialog;
 import com.andy.library.module.Utils;
 import com.andy.library.module.C_display.EventCallBack;
+import com.andy.library.module.widget.C_progressDialog;
 import com.andy.library.view.Main;
 
 import android.app.Activity;

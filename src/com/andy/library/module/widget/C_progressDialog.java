@@ -1,4 +1,4 @@
-package com.andy.library.module;
+package com.andy.library.module.widget;
 
 import com.andy.library.R;
 

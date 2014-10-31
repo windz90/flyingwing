@@ -1,9 +1,10 @@
-package com.andy.library.module;
+package com.andy.library.module.widget;
 
 import java.util.List;
 import java.util.Map;
 
 import com.andy.library.R;
+import com.andy.library.module.C_imageProcessor;
 import com.andy.library.module.C_imageProcessor.DownLoadComplete;
 
 import android.annotation.TargetApi;
