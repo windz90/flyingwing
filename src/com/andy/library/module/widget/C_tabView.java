@@ -27,7 +27,7 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
 
 /** 
  * Copyright 2014 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -41,15 +41,22 @@ public class C_tabView extends LinearLayout{
 	private CustomPagerAdapter mCustomPagerAdapter;
 	private ViewPager mViewPager;
 	private List<View[]> mList;
+	private OnTouchListener mOnTabBarTouchListener;
 	private OnTabChangeListener mOnTabChangeListener;
 	private OnVisibilityChangeListener mOnVisibilityChangeListener;
 	private OnDismissListener mOnDismissListener;
 	private Drawable mLeftDrawable, mMiddleDrawable, mRightDrawable;
-	private int mItemWi, mItemHe;
+	private int mItemWi, mItemHe, mMinHeight, mMaxHeight;
+	private boolean mIsDynamicControl;
 	private Resources mRes;
 	private LinearLayout.LayoutParams mLinLayPar;
 	private RelativeLayout.LayoutParams mRelLayPar;
 	private DisplayMetrics mDisplayMetrics;
+	
+	public interface DynamicResizeControl{
+		public void layoutChange(int diffWidth, int diffHeight);
+		public void layoutChanged(int viewWidth, int viewHeight);
+	}
 	
 	public interface OnTabChangeListener{
 		public void onTabSelected(int arg0);
@@ -124,6 +131,56 @@ public class C_tabView extends LinearLayout{
 		mViewPager.setAdapter(mCustomPagerAdapter);
 		this.addView(mViewPager);
 		
+		mRelLay.setOnTouchListener(new OnTouchListener() {
+			
+			DynamicResizeControl dynamicResizeControl;
+			float preRawY;
+			int resizeHeight, diffHeight, offsetHeight;
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if(!(mIsDynamicControl && getCurrentContentView() instanceof DynamicResizeControl)){
+					if(mOnTabBarTouchListener != null){
+						return mOnTabBarTouchListener.onTouch(v, event);
+					}
+					return true;
+				}
+				if(event.getAction() == MotionEvent.ACTION_DOWN){
+					preRawY = event.getRawY();
+					if(mOnTabBarTouchListener != null){
+						mOnTabBarTouchListener.onTouch(v, event);
+					}
+					return true;
+				}
+				
+				dynamicResizeControl = (DynamicResizeControl)getCurrentContentView();
+				if(event.getAction() == MotionEvent.ACTION_MOVE){
+					diffHeight = (int)(preRawY - event.getRawY());
+					resizeHeight = getLayoutParams().height + diffHeight;
+					if(resizeHeight > mMaxHeight && mMaxHeight > 0){
+						offsetHeight = mMaxHeight - resizeHeight;
+					}else if(resizeHeight < mMinHeight){
+						offsetHeight = mMinHeight - resizeHeight;
+					}else{
+						offsetHeight = 0;
+					}
+					getLayoutParams().height = resizeHeight + offsetHeight;
+					setLayoutParams(getLayoutParams());
+					preRawY = event.getRawY();
+					
+					dynamicResizeControl.layoutChange(getLayoutParams().width, diffHeight + offsetHeight);
+				}else if(event.getAction() == MotionEvent.ACTION_UP){
+					dynamicResizeControl.layoutChanged(getLayoutParams().width, getLayoutParams().height - getTabBarLayoutParams().height);
+					v.performClick();
+				}
+				
+				if(mOnTabBarTouchListener != null){
+					return mOnTabBarTouchListener.onTouch(v, event);
+				}
+				return false;
+			}
+		});
+		
 		mRadioGroup.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			
 			@Override
@@ -160,8 +217,9 @@ public class C_tabView extends LinearLayout{
 	
 	@Override
 	public void setVisibility(int visibility) {
+		boolean isChange = getVisibility() != visibility;
 		super.setVisibility(visibility);
-		if(getVisibility() != visibility && mOnVisibilityChangeListener != null){
+		if(isChange && mOnVisibilityChangeListener != null){
 			mOnVisibilityChangeListener.onVisibilityChange(visibility);
 		}
 	}
@@ -215,6 +273,24 @@ public class C_tabView extends LinearLayout{
 	
 	public ViewGroup.LayoutParams getContentGroupLayoutParams(){
 		return mViewPager.getLayoutParams();
+	}
+	
+	public void setTabBarDynamicResizeLimit(int minHeight, int maxHeight){
+		mMinHeight = minHeight;
+		mMaxHeight = maxHeight;
+	}
+	
+	public void setTabBarDynamicResizeControl(boolean isDynamicControl){
+		mIsDynamicControl = isDynamicControl;
+	}
+	
+	public void setTabBarDynamicResizeControl(int minHeight, int maxHeight, boolean isDynamicControl){
+		setTabBarDynamicResizeLimit(minHeight, maxHeight);
+		setTabBarDynamicResizeControl(isDynamicControl);
+	}
+	
+	public boolean isTabBarDynamicResizeControl(){
+		return mIsDynamicControl;
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -349,8 +425,8 @@ public class C_tabView extends LinearLayout{
 	}
 	
 	public Button buildDismissButton(String text){
-		mItemWi = (int)(61.5f * 1.0f * mDisplayMetrics.density);
-		mItemHe = (int)(61.5f * 0.75f * mDisplayMetrics.density);
+		mItemWi = LayoutParams.WRAP_CONTENT;
+		mItemHe = LayoutParams.WRAP_CONTENT;
 		return buildDismissButton(mItemWi, mItemHe, text);
 	}
 	
@@ -384,6 +460,7 @@ public class C_tabView extends LinearLayout{
 		RadioButton radioButton = new RadioButton(getContext());
 		radioButton.setButtonDrawable(android.R.color.transparent);
 		radioButton.setLayoutParams(mLinLayPar);
+		radioButton.setPadding(0, 0, 0, 0);
 		radioButton.setGravity(Gravity.CENTER);
 		radioButton.setEllipsize(TruncateAt.END);
 		radioButton.setMaxLines(2);
@@ -394,7 +471,7 @@ public class C_tabView extends LinearLayout{
 	
 	public RadioButton buildHeadButton(String title){
 		mItemWi = LayoutParams.WRAP_CONTENT;
-		mItemHe = (int)(61.5f * 0.75f * mDisplayMetrics.density);
+		mItemHe = LayoutParams.WRAP_CONTENT;
 		return buildHeadButton(mItemWi, mItemHe, title);
 	}
 	
@@ -476,6 +553,7 @@ public class C_tabView extends LinearLayout{
 			mCustomPagerAdapter = null;
 			mViewPager = null;
 			mList = null;
+			mOnTabBarTouchListener = null;
 			mOnTabChangeListener = null;
 			mOnVisibilityChangeListener = null;
 			mOnDismissListener = null;
@@ -493,7 +571,7 @@ public class C_tabView extends LinearLayout{
 	}
 	
 	public void setOnTabBarTouchListener(OnTouchListener onTouchListener){
-		mRelLay.setOnTouchListener(onTouchListener);
+		mOnTabBarTouchListener = onTouchListener;
 	}
 	
 	public void setOnHeadGroupTouchListener(OnTouchListener onTouchListener){
