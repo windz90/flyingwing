@@ -55,8 +55,10 @@ import android.content.pm.ResolveInfo;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.Resources.Theme;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.drawable.BitmapDrawable;
@@ -87,6 +89,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -101,7 +104,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.22
+ * @version 3.3.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -663,6 +666,28 @@ public class Utils {
 		}
 	}
 	
+	@SuppressLint("NewApi")
+	public static boolean isBigScreen(Activity activity, int limitDipWidth){
+		DisplayMetrics dm = new DisplayMetrics();
+		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+		int width, height;
+		if(Build.VERSION.SDK_INT >= 13){
+			Display display = activity.getWindowManager().getDefaultDisplay();
+			Point point = new Point();
+			display.getSize(point);
+			width = point.x;
+			height = point.y;
+		}else{
+			width = dm.widthPixels;
+			height = dm.heightPixels;
+		}
+		int displayAbsWidth = width / height < 1 ? width : height;
+		if(displayAbsWidth / dm.density + 0.5f < limitDipWidth){
+			return false;
+		}
+		return true;
+	}
+	
 	public static void setTextSize(Activity activity, TextView textView, int unit, float size){
 		DisplayMetrics dm = new DisplayMetrics();
 		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
@@ -717,9 +742,9 @@ public class Utils {
 		setTextSizeMethod(activity, textView, TypedValue.COMPLEX_UNIT_SP, size);
 	}
 	
-	public static int getTextSize(Activity activity, int flag, boolean isMeasureScreen){
+	public static int getTextSize(int flag, boolean isBigScreen){
 		int textSize = 15;
-		if(isMeasureScreen && C_display.isBigScreen(activity, LIMIT_DIP_WIDTH)){
+		if(isBigScreen){
 			switch (flag) {
 			case SIZE_SUBJECT_L:textSize = 26;break;
 			case SIZE_TAB_L:textSize = 25;break;
@@ -762,10 +787,14 @@ public class Utils {
 	}
 	
 	public static int getTextSize(Activity activity, int flag){
-		return getTextSize(activity, flag, true);
+		return getTextSize(flag, isBigScreen(activity, LIMIT_DIP_WIDTH));
 	}
 	
-	public ColorStateList getColorStateList(Resources res, int colorResource, int defaultColor){
+	public static int getTextSize(int flag){
+		return getTextSize(flag, false);
+	}
+	
+	public static ColorStateList getColorStateList(Resources res, int colorResource, int defaultColor){
 		ColorStateList colorStateList;
 		XmlPullParser xpp = res.getXml(colorResource);
 		try {
@@ -830,12 +859,57 @@ public class Utils {
 		return sp.getInt(Utils.SP_KEY_STATUSBAR_HEIGHT, 0);
 	}
 	
+	public static int getVisibleHeight(Activity activity){
+		DisplayMetrics dm = new DisplayMetrics();
+		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+		int visibleHe = dm.heightPixels - getStatusBarHeight(activity.getResources(), 0);
+		return visibleHe;
+	}
+	
+	public static int getStatusBarHeight(Resources res, int defValue){
+		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
+		if(resourceId > 0){
+			return res.getDimensionPixelSize(resourceId);
+		}
+		return defValue;
+	}
+	
+	public static TypedValue getAttribute(Context context, int attrResource){
+		TypedValue typedValue = new TypedValue();
+		Theme theme = context.getTheme();
+		if(theme != null){
+			if(theme.resolveAttribute(attrResource, typedValue, true)){
+				return typedValue;
+			}
+		}
+		return null;
+	}
+	
 	public static int getAttributeResorce(Context context, int attrResource, int defResource){
 		TypedValue typedValue = new TypedValue();
-		if(context.getTheme().resolveAttribute(attrResource, typedValue, true)){
-			return typedValue.resourceId;
+		Theme theme = context.getTheme();
+		if(theme != null){
+			if(theme.resolveAttribute(attrResource, typedValue, true)){
+				return typedValue.resourceId;
+			}
 		}
 		return defResource;
+	}
+	
+	public static int getAttributePixels(Context context, DisplayMetrics displayMetrics, int attrResource, int defValue){
+		TypedValue typedValue = new TypedValue();
+		Theme theme = context.getTheme();
+		if(theme != null){
+			if(theme.resolveAttribute(attrResource, typedValue, true)){
+				return TypedValue.complexToDimensionPixelSize(typedValue.data, displayMetrics);
+			}
+		}
+		return defValue;
+	}
+	
+	@SuppressLint("InlinedApi")
+	public int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defValue){
+		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defValue);
 	}
 	
 	public static void setToast(Context context, CharSequence text, int gravity, int duration){
@@ -1663,6 +1737,7 @@ public class Utils {
 	public static boolean isRunningActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		@SuppressWarnings("deprecation")
 		String runningClassName = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
 		if(context.getClass().getName().equals(runningClassName)){
 			return true;

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
@@ -14,7 +15,7 @@ import android.view.Window;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.1.2
+ * @version 3.1.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -59,12 +60,12 @@ public class C_display {
 			
 			@Override
 			public void run() {
-				callBack.completed(drawVisibleHeight(activity));
+				callBack.completed(measureVisibleHeightForOnDraw(activity));
 			}
 		});
 	}
 	
-	public static int drawVisibleHeight(Activity activity){
+	public static int measureVisibleHeightForOnDraw(Activity activity){
 		Rect rect = new Rect();
 		activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
 //		rect.top = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
@@ -73,19 +74,36 @@ public class C_display {
 		return visibleHe;
 	}
 	
-	public static int getVisibleHeight(Activity activity){
-		return getHeightPixels(activity, false) - getStatusBarHeight(activity);
+	public static int measureStatusBarHeightForOnDraw(Activity activity){
+		return getHeightPixels(activity, false) - measureVisibleHeightForOnDraw(activity);
 	}
 	
-	public static int getStatusBarHeight(Activity activity){
+	public static int getMeasureVisibleHeight(Activity activity){
+		return visibleHe;
+	}
+	
+	public static int getMeasureStatusBarHeight(Activity activity){
 		return getHeightPixels(activity, false) - visibleHe;
 	}
 	
-	@SuppressLint("InlinedApi")
-	public static int getActionBarHeight(Context context){
+	public static int getVisibleHeight(Activity activity){
+		return getHeightPixels(activity, false) - getStatusBarHeight(activity.getResources(), 0);
+	}
+	
+	public static int getStatusBarHeight(Resources res, int defValue){
+		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
+		if(resourceId > 0){
+			return res.getDimensionPixelSize(resourceId);
+		}
+		return defValue;
+	}
+	
+	public static int getActionBarHeight(Context context, int defValue){
 		TypedValue typedValue = new TypedValue();
-		context.getTheme().resolveAttribute(android.R.attr.actionBarSize, typedValue, true);
-		return context.getResources().getDimensionPixelSize(typedValue.resourceId);
+		if(context.getTheme().resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
+			return context.getResources().getDimensionPixelSize(typedValue.resourceId);
+		}
+		return defValue;
 	}
 	
 	public static boolean isOrientationPortrait(Activity activity){
