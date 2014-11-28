@@ -19,7 +19,7 @@
 	<string name="cancel">取消</string>
 	<string name="finish">完成</string>
 	<string name="back">返回</string>
-	<string name="send">送出</string>
+	<string name="submit">送出</string>
 	<string name="edit">編輯</string>
 	<string name="modify">修改</string>
 	<string name="delete">刪除</string>

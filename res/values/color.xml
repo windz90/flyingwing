@@ -3,9 +3,9 @@
 	<color name="Transparent">#00000000</color>
 	<color name="Black">#FF000000</color>
 	<color name="White">#FFFFFFFF</color>
-	<color name="BlackGray">#FF444444</color>
-	<color name="Gray">#FF888888</color>
-	<color name="WhiteGray">#FFBBBBBB</color>
+	<color name="BlackGray">#FF404040</color>
+	<color name="Gray">#FF808080</color>
+	<color name="WhiteGray">#FFC0C0C0</color>
 	<color name="Red">#FFFF0000</color>
 	<color name="Green">#FF00FF00</color>
 	<color name="Blue">#FF0000FF</color>
@@ -24,8 +24,8 @@
 	<color name="BlackCC">#CC000000</color>
 	<color name="White66">#66FFFFFF</color>
 	<color name="WhiteCC">#CCFFFFFF</color>
-	<color name="Gray66">#66888888</color>
-	<color name="GrayCC">#CC888888</color>
+	<color name="Gray66">#66808080</color>
+	<color name="GrayCC">#CC808080</color>
 	
 	<color name="Red9C">#FF9C0000</color>
 	<color name="Green9C">#FF009C00</color>
@@ -33,6 +33,9 @@
 	<color name="Yellow9C9C00">#FF9C9C00</color>
 	<color name="Cyan009C9C">#FF009C9C</color>
 	<color name="Purple9C009C">#FF9C009C</color>
+	
+	<color name="Orange">#FFFF8000</color>
+	<color name="OrangeRed">#FFFF4000</color>
 	
 	<!-- 仿Android淺青藍色 -->
 	<color name="Cyan8000AAE8">#8000AAE8</color>
