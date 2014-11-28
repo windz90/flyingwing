@@ -45,7 +45,7 @@ public class C_calendar {
 	public static int touchDown = 0xff9c009c;
 	public static int touchUp = 0xFFFFFFFF;
 	public static int drawable_click = R.drawable.calendar_selected;
-	public static int xml_textSelector = R.drawable.selector_textcolor_custom_adapter;
+	public static int xml_textSelector = R.color.selector_textcolor_custom_adapter;
 	
 	private LinearLayout calendarCalLinLayCal;
 	private TextView calendarCalHeadCenter;

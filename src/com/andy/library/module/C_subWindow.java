@@ -194,7 +194,7 @@ public class C_subWindow {
 			button[i].setLayoutParams(linLayPar);
 			button[i].setPadding(0, 0, 0, 0);
 			button[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.drawable.selector_textcolor_custom_adapter);
+			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_custom_adapter);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				button[i].setTextColor(colorList);
@@ -317,7 +317,7 @@ public class C_subWindow {
 			button[i].setLayoutParams(linLayPar);
 			button[i].setPadding(0, 0, 0, 0);
 			button[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.drawable.selector_textcolor_custom_adapter);
+			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_custom_adapter);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				button[i].setTextColor(colorList);
@@ -597,7 +597,7 @@ public class C_subWindow {
 			button[i].setLayoutParams(linLayPar);
 			button[i].setPadding(0, 0, 0, 0);
 			button[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.drawable.selector_textcolor_custom_adapter);
+			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_custom_adapter);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				button[i].setTextColor(colorList);
