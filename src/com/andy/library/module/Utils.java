@@ -58,7 +58,6 @@ import android.content.res.Resources;
 import android.content.res.Resources.Theme;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.drawable.BitmapDrawable;
@@ -89,7 +88,6 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -104,7 +102,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.0
+ * @version 3.3.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -667,36 +665,29 @@ public class Utils {
 	}
 	
 	@SuppressLint("NewApi")
-	public static boolean isBigScreen(Activity activity, int limitDipWidth){
-		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-		int width, height;
-		if(Build.VERSION.SDK_INT >= 13){
-			Display display = activity.getWindowManager().getDefaultDisplay();
-			Point point = new Point();
-			display.getSize(point);
-			width = point.x;
-			height = point.y;
-		}else{
-			width = dm.widthPixels;
-			height = dm.heightPixels;
-		}
-		int displayAbsWidth = width / height < 1 ? width : height;
-		if(displayAbsWidth / dm.density + 0.5f < limitDipWidth){
+	public static boolean isBigScreen(Context context, int limitDipWidth){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		int width = displayMetrics.widthPixels;
+		int height = displayMetrics.heightPixels;
+		int displayAbsWidth = width < height ? width : height;
+		if(displayAbsWidth / displayMetrics.density + 0.5f < limitDipWidth){
 			return false;
 		}
 		return true;
 	}
 	
-	public static void setTextSize(Activity activity, TextView textView, int unit, float size){
-		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-		DisplayMetrics dmRes = activity.getResources().getDisplayMetrics();
-		if(dm.scaledDensity == dmRes.scaledDensity){
+	public static void setTextSize(Context context, TextView textView, int unit, float size){
+		DisplayMetrics dmWin = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(dmWin);
+		DisplayMetrics dmRes = context.getResources().getDisplayMetrics();
+		if(dmWin.scaledDensity == dmRes.scaledDensity){
 			textView.setTextSize(unit, size);
 		}else{
 			if(size != textView.getTextSize()){
-				textView.getPaint().setTextSize(TypedValue.applyDimension(unit, size, dm));
+				textView.getPaint().setTextSize(TypedValue.applyDimension(unit, size, dmWin));
 				if (textView.getLayout() != null) {
 					// Reflection反射調用private方法
 					try {
@@ -714,32 +705,33 @@ public class Utils {
 		}
 	}
 	
-	public static void setTextSize(Activity activity, TextView textView, float size){
-		setTextSize(activity, textView, TypedValue.COMPLEX_UNIT_SP, size);
+	public static void setTextSize(Context context, TextView textView, float size){
+		setTextSize(context, textView, TypedValue.COMPLEX_UNIT_SP, size);
 	}
 	
-	public static void setTextSizeMethod(Activity activity, TextView textView, int unit, float size){
-		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-		DisplayMetrics dmRes = activity.getResources().getDisplayMetrics();
-		if(dm.scaledDensity == dmRes.scaledDensity){
+	public static void setTextSizeMethod(Context context, TextView textView, int unit, float size){
+		DisplayMetrics dmWin = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(dmWin);
+		DisplayMetrics dmRes = context.getResources().getDisplayMetrics();
+		if(dmWin.scaledDensity == dmRes.scaledDensity){
 			textView.setTextSize(unit, size);
 		}else{
 			// Reflection反射調用private方法
 			try {
 				Method method = textView.getClass().getDeclaredMethod("setRawTextSize", float.class);
 				method.setAccessible(true);
-				method.invoke(textView, TypedValue.applyDimension(unit, size, dm));
+				method.invoke(textView, TypedValue.applyDimension(unit, size, dmWin));
 				method.setAccessible(false);
 			} catch (Exception e) {
-				setTextSize(activity, textView, unit, size);
+				setTextSize(context, textView, unit, size);
 				e.printStackTrace();
 			}
 		}
 	}
 	
-	public static void setTextSizeMethod(Activity activity, TextView textView, float size){
-		setTextSizeMethod(activity, textView, TypedValue.COMPLEX_UNIT_SP, size);
+	public static void setTextSizeMethod(Context context, TextView textView, float size){
+		setTextSizeMethod(context, textView, TypedValue.COMPLEX_UNIT_SP, size);
 	}
 	
 	public static int getTextSize(int flag, boolean isBigScreen){
@@ -786,8 +778,8 @@ public class Utils {
 		return textSize;
 	}
 	
-	public static int getTextSize(Activity activity, int flag){
-		return getTextSize(flag, isBigScreen(activity, LIMIT_DIP_WIDTH));
+	public static int getTextSize(Context context, int flag){
+		return getTextSize(flag, isBigScreen(context, LIMIT_DIP_WIDTH));
 	}
 	
 	public static int getTextSize(int flag){
@@ -847,22 +839,24 @@ public class Utils {
 		return baselineY;
 	}
 	
-	public static int getVisibleHeightSP(Activity activity, String SPname){
-		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-		int visibleHe = dm.heightPixels - getStatusBarHeightSP(activity, SPname);
+	public static int getVisibleHeightSP(Context context, String SPname){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, SPname);
 		return visibleHe;
 	}
 	
-	public static int getStatusBarHeightSP(Activity activity, String SPname){
-		SharedPreferences sp = activity.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+	public static int getStatusBarHeightSP(Context context, String SPname){
+		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
 		return sp.getInt(Utils.SP_KEY_STATUSBAR_HEIGHT, 0);
 	}
 	
-	public static int getVisibleHeight(Activity activity){
-		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
-		int visibleHe = dm.heightPixels - getStatusBarHeight(activity.getResources(), 0);
+	public static int getVisibleHeight(Context context){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		int visibleHe = displayMetrics.heightPixels - getStatusBarHeight(context.getResources(), 0);
 		return visibleHe;
 	}
 	
@@ -908,7 +902,7 @@ public class Utils {
 	}
 	
 	@SuppressLint("InlinedApi")
-	public int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defValue){
+	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defValue){
 		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defValue);
 	}
 	
@@ -1466,9 +1460,9 @@ public class Utils {
 		return intent;
 	}
 	
-	public static Intent getActionSendIntentForAPP(Activity activity, String packageName, String className, String intentType, String subject
+	public static Intent getActionSendIntentForAPP(Context context, String packageName, String className, String intentType, String subject
 			, String text, Uri streamUri){
-		PackageManager packageManager = activity.getPackageManager();
+		PackageManager packageManager = context.getPackageManager();
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
 		List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(resolveInfoList != null && resolveInfoList.size() > 0){
@@ -1482,7 +1476,7 @@ public class Utils {
 			intent.putExtra(Intent.EXTRA_TEXT, text);
 			intent.putExtra(Intent.EXTRA_STREAM, streamUri);
 		}else{
-			Utils.setToast(activity, packageName + " Not installed", Toast.LENGTH_SHORT);
+			Utils.setToast(context, packageName + " Not installed", Toast.LENGTH_SHORT);
 			Uri uriMarket = Uri.parse("market://details?id=" + packageName);
 			intent = new Intent(Intent.ACTION_VIEW, uriMarket);
 			intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -1594,10 +1588,10 @@ public class Utils {
 	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
 	 * SCREEN_BRIGHTNESS_MODE_MANUAL = 0　為手動調節螢幕亮度
 	 */
-	public static int getScreenBrightnessMode(Activity activity){
+	public static int getScreenBrightnessMode(Context context){
 		int screenBrightnessMode = 0;
 		try {
-			screenBrightnessMode = Settings.System.getInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE);
+			screenBrightnessMode = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE);
 		} catch (SettingNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -1605,8 +1599,8 @@ public class Utils {
 	}
 	
 	// 取得系統亮度
-	public static int getScreenBrightnessForSystem(Activity activity){
-		int screenBrightness = Settings.System.getInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
+	public static int getScreenBrightnessForSystem(Context context){
+		int screenBrightness = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
 		return screenBrightness;
 	}
 	
@@ -1624,16 +1618,16 @@ public class Utils {
 	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
 	 * SCREEN_BRIGHTNESS_MODE_MANUAL = 0　為手動調節螢幕亮度
 	 */
-	public static void setScreenBrightnessMode(Activity activity, int screenBrightnessMode){
-		Settings.System.putInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
+	public static void setScreenBrightnessMode(Context context, int screenBrightnessMode){
+		Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
 	}
 	
 	// 設定系統亮度
 	/**
 	 * brightness = 0 - 255
 	 */
-	public static void setScreenBrightnessForSystem(Activity activity, int screenBrightness){
-		Settings.System.putInt(activity.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
+	public static void setScreenBrightnessForSystem(Context context, int screenBrightness){
+		Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
 	}
 	
 	// 設定目前亮度

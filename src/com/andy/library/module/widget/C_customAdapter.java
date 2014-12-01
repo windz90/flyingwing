@@ -8,22 +8,20 @@ import com.andy.library.module.C_imageProcessor;
 import com.andy.library.module.C_imageProcessor.DownLoadComplete;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Handler;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.DisplayMetrics;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
@@ -34,7 +32,7 @@ import android.widget.TextView;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.0.1
+ * @version 3.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -45,9 +43,8 @@ public class C_customAdapter extends BaseAdapter{
 	public static final int STYLE_ITEM_LIST = 2;
 	public static final int STYLE_CALENDAR_FOR_DAY = 11;
 	
-	private Point sizePoint;
 	private DisplayMetrics dm;
-	private Activity activity;
+	private Context context;
 	private C_viewArray viewArray;
 	private String[] dataArray;
 	private String[][] data2DArray;
@@ -64,52 +61,48 @@ public class C_customAdapter extends BaseAdapter{
 	private LayoutInflater itemInflater;
 	private Resources res;
 	
-	public C_customAdapter(Activity activity, int style){
-		this.activity = activity;
+	public C_customAdapter(Context context, int style){
+		this.context = context;
 		this.style = style;
-		itemInflater = LayoutInflater.from(activity);
+		itemInflater = LayoutInflater.from(context);
 		
-		res = activity.getResources();
-		Display display = activity.getWindowManager().getDefaultDisplay();
-		if(Build.VERSION.SDK_INT >= 13){
-			sizePoint = new Point();
-			display.getSize(sizePoint);
-		}
+		res = context.getResources();
 		dm = new DisplayMetrics();
-		display.getMetrics(dm);
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(dm);
 	}
 	
-	public C_customAdapter(Activity activity, String[] dataArray, int style){
-		this(activity, style);
+	public C_customAdapter(Context context, String[] dataArray, int style){
+		this(context, style);
 		setDataArray(dataArray);
 	}
 	
-	public C_customAdapter(Activity activity, String[][] data2DArray, int style){
-		this(activity, style);
+	public C_customAdapter(Context context, String[][] data2DArray, int style){
+		this(context, style);
 		setData2DArray(data2DArray);
 	}
 	
-	public C_customAdapter(Activity activity, String[][][] data3DArray, int style){
-		this(activity, style);
+	public C_customAdapter(Context context, String[][][] data3DArray, int style){
+		this(context, style);
 		setData3DArray(data3DArray);
 	}
 	
-	public C_customAdapter(Activity activity, Map<String, String> map, int style){
-		this(activity, style);
+	public C_customAdapter(Context context, Map<String, String> map, int style){
+		this(context, style);
 	}
 	
-	public C_customAdapter(Activity activity, List<Map<String, String>> dataList, int style){
-		this(activity, style);
+	public C_customAdapter(Context context, List<Map<String, String>> dataList, int style){
+		this(context, style);
 		setDataList(dataList);
 	}
 	
-	public C_customAdapter(Activity activity, int[] intArray, int style){
-		this(activity, style);
+	public C_customAdapter(Context context, int[] intArray, int style){
+		this(context, style);
 		setIntArray(intArray);
 	}
 	
-	public C_customAdapter(Activity activity, Bitmap[] bitmapArray, int style){
-		this(activity, style);
+	public C_customAdapter(Context context, Bitmap[] bitmapArray, int style){
+		this(context, style);
 		setBitmapArray(bitmapArray);
 	}
 	
@@ -545,7 +538,7 @@ public class C_customAdapter extends BaseAdapter{
 			return checkImage(bitmap, imageName);
 		}
 		view.setTag(itemURL);
-		bitmap = C_imageProcessor.getImageAsyncLoadWriteLocal(activity, itemURL, limitSize, 100, imageName, new DownLoadComplete() {
+		bitmap = C_imageProcessor.getImageAsyncLoadWriteLocal(context, itemURL, limitSize, 100, imageName, new DownLoadComplete() {
 			
 			@Override
 			public void loadedImage(String streamURL, Bitmap bitmap) {
