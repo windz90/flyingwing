@@ -49,17 +49,17 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
+import android.content.pm.Signature;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.Theme;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
-import android.graphics.PointF;
 import android.graphics.Paint.FontMetrics;
+import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -71,9 +71,9 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Handler.Callback;
 import android.os.Message;
 import android.os.RemoteException;
-import android.os.Handler.Callback;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -94,15 +94,13 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.1
+ * @version 3.3.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -776,10 +774,6 @@ public class Utils {
 			}
 		}
 		return textSize;
-	}
-	
-	public static int getTextSize(Context context, int flag){
-		return getTextSize(flag, isBigScreen(context, LIMIT_DIP_WIDTH));
 	}
 	
 	public static int getTextSize(int flag){
@@ -2193,21 +2187,18 @@ public class Utils {
 		point.set(x / 2, y / 2);
 	}
 	
-	/**
-	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
-	 */
-	public static void clearViewGroupAllView(ViewGroup viewGroup, boolean isIndicatesGC){
+	public static void clearViewGroup(ViewGroup viewGroup, boolean isIndicatesGC){
 		List<View> list = new ArrayList<View>();
 		Utils.getViewGroupAllView(viewGroup, list);
-		for(int i=0; i<list.size(); i++){
-			Utils.clearDrawable(list.get(i), true, true, false);
-		}
 		View view;
 		for(int i=0; i<list.size(); i++){
 			view = list.get(i);
-			view.clearFocus();
-			view = null;
+			if(view != null){
+				Utils.clearViewInsideDrawable(view, true, true, false);
+				view.clearFocus();
+			}
 		}
+		view = null;
 		list.clear();
 		list = null;
 		if(isIndicatesGC){
@@ -2215,11 +2206,8 @@ public class Utils {
 		}
 	}
 	
-	/**
-	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
-	 */
 	public static void activityFinishClear(Activity activity, boolean isIndicatesGC){
-		clearViewGroupAllView((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
+		clearViewGroup((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
 	}
 	
 	public static void getViewGroupAllView(View view, List<View> list){
@@ -2238,112 +2226,66 @@ public class Utils {
 		}
 	}
 	
-	/**
-	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
-	 */
-	@TargetApi(16)
-	public static void clearDrawable(View view, boolean foreground, boolean background, boolean isIndicatesGC){
-		// drawable instanceof ColorDrawable
-		// drawable instanceof ShapeDrawable
-		// drawable instanceof BitmapDrawable
-		// drawable instanceof NinePatchDrawable
-		// drawable instanceof ClipDrawable
-		// drawable instanceof LayerDrawable
-		// drawable instanceof StateListDrawable
-		// drawable instanceof AnimationDrawable
+	@SuppressWarnings("deprecation")
+	public static void clearViewInsideDrawable(View view, boolean foreground, boolean background, boolean isIndicatesGC){
+		/*
+		Known Direct Subclasses
+		AnimatedVectorDrawable, BitmapDrawable, ClipDrawable, ColorDrawable, DrawableContainer, GradientDrawable, InsetDrawable, LayerDrawable
+		, NinePatchDrawable, PictureDrawable, RotateDrawable, RoundedBitmapDrawable, ScaleDrawable, ShapeDrawable, VectorDrawable
+		Known Indirect Subclasses
+		AnimatedStateListDrawable, AnimationDrawable, LevelListDrawable, PaintDrawable, RippleDrawable, StateListDrawable, TransitionDrawable
+		*/
 		Drawable drawable;
-		BitmapDrawable bd;
-		Bitmap bitmap = null;
 		
 		if(foreground){
 			if(view instanceof ImageView){
 				drawable = ((ImageView)view).getDrawable();
-				if(drawable != null){
-					((ImageView)view).setImageDrawable(null);
-					if(drawable instanceof BitmapDrawable){
-						bd = (BitmapDrawable)drawable;
-						if(bd != null){
-							bitmap = bd.getBitmap();
-							bd.setCallback(null);
-							bd = null;
-//							recycleBitmap(bitmap, false);
-						}
-					}else{
-						drawable.setCallback(null);
-					}
-					drawable = null;
-				}
-			}else if(view instanceof ImageButton){
-				drawable = ((ImageButton)view).getDrawable();
-				if(drawable != null){
-					((ImageButton)view).setImageDrawable(null);
-					if(drawable instanceof BitmapDrawable){
-						bd = (BitmapDrawable)drawable;
-						if(bd != null){
-							bitmap = bd.getBitmap();
-							bd.setCallback(null);
-							bd = null;
-//							recycleBitmap(bitmap, false);
-						}
-					}else{
-						drawable.setCallback(null);
-					}
-					drawable = null;
-				}
-			}else if(view instanceof TextView || view instanceof Button){
-				Drawable[] drawableArray = ((TextView)view).getCompoundDrawables();
+				((ImageView)view).setImageDrawable(null);
+				drawable = clearDrawable(drawable);
+			}else if(view instanceof TextView){
+				Drawable[] drawables = ((TextView)view).getCompoundDrawables();
 				((TextView)view).setCompoundDrawables(null, null, null, null);
-				for(int i=0; i<drawableArray.length; i++){
-					if(drawableArray[i] != null){
-						if(drawableArray[i] instanceof BitmapDrawable){
-							bd = (BitmapDrawable)drawableArray[i];
-							if(bd != null){
-								bitmap = bd.getBitmap();
-								bd.setCallback(null);
-								bd = null;
-//								recycleBitmap(bitmap, false);
-							}
-						}else{
-							drawableArray[i].setCallback(null);
-						}
-						drawableArray[i] = null;
-					}
+				for(int i=0; i<drawables.length; i++){
+					drawables[i] = clearDrawable(drawables[i]);
 				}
 			}
 		}
 		
 		if(background){
 			drawable = view.getBackground();
-			if(drawable != null){
-				view.setBackground(null);
-//				view.setBackgroundDrawable(null);
-				if(drawable instanceof BitmapDrawable){
-					bd = (BitmapDrawable)drawable;
-					if(bd != null){
-						bitmap = bd.getBitmap();
-						bd.setCallback(null);
-						bd = null;
-//						recycleBitmap(bitmap, false);
-					}
-				}else{
-					drawable.setCallback(null);
-				}
-				drawable = null;
-			}
+			view.setBackgroundDrawable(null);
+			drawable = clearDrawable(drawable);
 		}
 		
-		if(bitmap != null){
-			bitmap = null;
-		}
 		if(isIndicatesGC){
 			System.gc();
 		}
 	}
 	
+	public static Drawable clearDrawable(Drawable drawable){
+		BitmapDrawable bd;
+		Bitmap bitmap;
+		if(drawable != null){
+			if(drawable instanceof BitmapDrawable){
+				bd = (BitmapDrawable)drawable;
+				if(bd != null){
+					bitmap = bd.getBitmap();
+					bd.setCallback(null);
+					bd = null;
+					bitmap = recycleBitmap(bitmap, false);
+				}
+			}else{
+				drawable.setCallback(null);
+			}
+			drawable = null;
+		}
+		return drawable;
+	}
+	
 	/**
 	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
 	 */
-	public static void recycleBitmap(Bitmap bitmap, boolean isIndicatesGC){
+	public static Bitmap recycleBitmap(Bitmap bitmap, boolean isIndicatesGC){
 		if(bitmap != null){
 			bitmap.recycle();
 			bitmap = null;
@@ -2351,5 +2293,6 @@ public class Utils {
 				System.gc();
 			}
 		}
+		return bitmap;
 	}
 }
