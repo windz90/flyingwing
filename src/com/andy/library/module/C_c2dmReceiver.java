@@ -81,7 +81,7 @@ public class C_c2dmReceiver extends BroadcastReceiver{
 	@TargetApi(16)
 	private void receiveNotification(Context context, Intent intent){
 		Bundle bundle = intent.getExtras();
-		bundle.putInt("icon", R.drawable.appicon_114x114);
+		bundle.putInt("icon", R.drawable.ic_launcher);
 		try{
 			NotificationManager notifiManager = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
 			
