@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.os.Handler;
@@ -19,6 +18,7 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -34,7 +34,7 @@ import android.widget.TextView;
 
 /** 
  * Copyright 2014 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.0
  */
@@ -95,13 +95,13 @@ public class C_pullToRefresh {
 		}
 	}
 	
-	public C_pullToRefresh(Activity activity, int progressViewBackgroundColor, int progressBarDrawableColor, AttributeSet progressBarAttrs
+	public C_pullToRefresh(Context context, int progressViewBackgroundColor, int progressBarDrawableColor, AttributeSet progressBarAttrs
 			, int progressBarStyleResourceId){
-		if(activity == null){
+		if(context == null){
 			throw new IllegalArgumentException("activity cannot be null");
 		}
 		
-		mContext = activity;
+		mContext = context;
 		
 		mProgressView = new View(mContext);
 		mProgressView.setBackgroundColor(progressViewBackgroundColor);
@@ -116,16 +116,17 @@ public class C_pullToRefresh {
 			mProgressBar.getIndeterminateDrawable().setColorFilter(progressBarDrawableColor, PorterDuff.Mode.SRC_IN);
 		}
 		
-		mDisplayMetrics = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(mDisplayMetrics);
+		DisplayMetrics mDisplayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
 	}
 	
-	public C_pullToRefresh(Activity activity, int progressViewBackgroundColor, int progressBarDrawableColor){
-		this(activity, progressViewBackgroundColor, progressBarDrawableColor, null, android.R.attr.progressBarStyleHorizontal);
+	public C_pullToRefresh(Context context, int progressViewBackgroundColor, int progressBarDrawableColor){
+		this(context, progressViewBackgroundColor, progressBarDrawableColor, null, android.R.attr.progressBarStyleHorizontal);
 	}
 	
-	public C_pullToRefresh(Activity activity){
-		this(activity, 0xFF33B5E5, -1, null, android.R.attr.progressBarStyleHorizontal);
+	public C_pullToRefresh(Context context){
+		this(context, android.R.color.holo_blue_light, -1, null, android.R.attr.progressBarStyleHorizontal);
 	}
 	
 	public void setProgressBar(ProgressBar progressBar){
@@ -334,52 +335,59 @@ public class C_pullToRefresh {
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
 				mGestureDetector.onTouchEvent(event);
-				if(event.getAction() == MotionEvent.ACTION_UP && mProgressView.getLayoutParams().width > 0){
-					final Timer timer = new Timer();
-					timer.schedule(new TimerTask() {
-						
-						int diffWidth = mProgressWidth / 10;
-						
-						Handler handler = new Handler(new Callback() {
-							
-							@Override
-							public boolean handleMessage(Message msg) {
-								if(mProgressView == null){
-									return false;
-								}
-								mProgressView.setLayoutParams(new LayoutParams(msg.what, progressViewHeight));
-								if(msg.what > 0){
-									return false;
-								}
-								
-								mProgressView.setVisibility(View.GONE);
-								if(mActionBar != null && (mProgressFlag == PROGRESS_USE_ACTIONBAR || mActionBarRefreshInfoView != null)){
-									mActionBar.setDisplayShowCustomEnabled(false);
-								}
-								timer.cancel();
-								cancel();
-								return false;
-							}
-						});
-						
-						@Override
-						public void run() {
-							if(mProgressView == null){
-								timer.cancel();
-								cancel();
-								return;
-							}
-							int progress = mProgressView.getLayoutParams().width - diffWidth;
-							progress = progress < 0 ? 0 : progress;
-							handler.sendEmptyMessage(progress);
-						}
-					}, 0, 50);
+				boolean isConsumed = false;
+				if(event.getAction() != MotionEvent.ACTION_UP || mProgressView.getLayoutParams().width < 1){
+					if(mOnTouchListener != null){
+						isConsumed = mOnTouchListener.onTouch(v, event);
+					}
+					return isConsumed;
 				}
 				
+				final Timer timer = new Timer();
+				timer.schedule(new TimerTask() {
+					
+					int diffWidth = mProgressWidth / 10;
+					
+					Handler handler = new Handler(new Callback() {
+						
+						@Override
+						public boolean handleMessage(Message msg) {
+							if(mProgressView == null){
+								return false;
+							}
+							mProgressView.setLayoutParams(new LayoutParams(msg.what, progressViewHeight));
+							if(msg.what > 0){
+								return false;
+							}
+							
+							mProgressView.setVisibility(View.GONE);
+							if(mActionBar != null && (mProgressFlag == PROGRESS_USE_ACTIONBAR || mActionBarRefreshInfoView != null)){
+								mActionBar.setDisplayShowCustomEnabled(false);
+							}
+							timer.cancel();
+							cancel();
+							return false;
+						}
+					});
+					
+					@Override
+					public void run() {
+						if(mProgressView == null){
+							timer.cancel();
+							cancel();
+							return;
+						}
+						int progress = mProgressView.getLayoutParams().width - diffWidth;
+						progress = progress < 0 ? 0 : progress;
+						handler.sendEmptyMessage(progress);
+					}
+				}, 0, 50);
+				
 				if(mOnTouchListener != null){
-					return mOnTouchListener.onTouch(v, event);
+					isConsumed = mOnTouchListener.onTouch(v, event);
 				}
-				return false;
+				v.performClick();
+				return isConsumed;
 			}
 		};
 		

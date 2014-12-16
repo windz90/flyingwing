@@ -45,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.5
+ * @version 3.4.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -809,6 +809,9 @@ public class C_imageProcessor {
 	}
 	
 	public static int getBufferSample(String path, String sampleWord, float specifiedSize){
+		if(path == null || path.trim().length() == 0){
+			return -1;
+		}
 		String sampleStr = SAMPLE_MAP.get(path);
 		if(sampleStr == null || sampleStr.trim().length() == 0){
 			return -1;
@@ -906,7 +909,6 @@ public class C_imageProcessor {
 			return null;
 		}
 		
-		final String imageNameCopy = imageName.replace(File.separator, "_");
 		final Handler handlerLoad = new Handler(new Callback() {
 			
 			@Override
@@ -944,10 +946,17 @@ public class C_imageProcessor {
 						is.close();
 						is = null;
 					}
-					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
-					setBufferBitmap(bitmap, imageNameCopy, SAMPLE_WORD, scale);
-					// 將下載的圖片儲存於本地端
-					writeInsidePrivateImage(context, bitmap, quality, imageNameCopy);
+					
+					if(imageName != null){
+						String imageNameCopy = imageName.trim().replace(File.separator, "_");
+						if(imageNameCopy.length() > 0){
+							// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
+							setBufferBitmap(bitmap, imageNameCopy, SAMPLE_WORD, scale);
+							// 將下載的圖片儲存於本地端
+							writeInsidePrivateImage(context, bitmap, quality, imageNameCopy);
+						}
+					}
+					
 					Message msg = new Message();
 					msg.obj = bitmap;
 					handlerLoad.sendMessage(msg);
@@ -971,13 +980,19 @@ public class C_imageProcessor {
 		return getImageAsyncLocal(context, streamURL, specifiedSize, imageName, complete, handlerNone);
 	}
 	
-	public static Bitmap getImageAsyncLocal(final Context context, final String streamURL, final float specifiedSize, final String imageName
+	public static Bitmap getImageAsyncLocal(final Context context, final String streamURL, final float specifiedSize, String imageName
 			, final DownLoadComplete complete, final Handler handlerNone){
 		if(streamURL == null || streamURL.trim().length() == 0){
 			return null;
 		}
+		if(imageName == null){
+			handlerNone.sendEmptyMessage(0);
+		}
+		final String imageNameCopy = imageName.trim().replace(File.separator, "_");
+		if(imageNameCopy.length() == 0){
+			handlerNone.sendEmptyMessage(0);
+		}
 		
-		final String imageNameCopy = imageName.replace(File.separator, "_");
 		Bitmap bitmap = getBufferBitmap(imageNameCopy, SAMPLE_WORD, getBufferSample(imageNameCopy, SAMPLE_WORD, specifiedSize));
 		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
 		if(bitmap != null){
