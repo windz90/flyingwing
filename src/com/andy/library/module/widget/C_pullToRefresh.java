@@ -34,7 +34,7 @@ import android.widget.TextView;
 
 /** 
  * Copyright 2014 Andy Lin. All rights reserved.
- * @version 1.0.1
+ * @version 1.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.0
  */
@@ -116,7 +116,7 @@ public class C_pullToRefresh {
 			mProgressBar.getIndeterminateDrawable().setColorFilter(progressBarDrawableColor, PorterDuff.Mode.SRC_IN);
 		}
 		
-		DisplayMetrics mDisplayMetrics = new DisplayMetrics();
+		mDisplayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
 	}
@@ -319,7 +319,7 @@ public class C_pullToRefresh {
 			if(listAdapter instanceof HeaderViewListAdapter){
 				listAdapter = ((HeaderViewListAdapter)listAdapter).getWrappedAdapter();
 			}
-			// 提高對Android舊版的相容性，校正設定順序，先設定header再設定adapter，避免Android舊版API拋出IllegalStateException
+			// 提高對Android 4.2以下的相容性，校正設定順序，先設定header再設定adapter，避免舊版拋出IllegalStateException
 			mListView.setAdapter(null);
 			mListView.addHeaderView(mProgressLayout, null, false);
 			mListView.setAdapter(listAdapter);

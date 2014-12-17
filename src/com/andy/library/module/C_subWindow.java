@@ -44,7 +44,7 @@ import com.andy.library.R;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.0
+ * @version 2.3.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -134,7 +134,7 @@ public class C_subWindow {
 		alertBuilderConfirm(context, title, context.getString(R.string.sendConfirm), clickAction);
 	}
 	
-	public static void alertBuilderQuit(final Activity activity, final Class<Activity> quitCalss){
+	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitCalss){
 		final DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
 			
 			@Override
@@ -168,7 +168,6 @@ public class C_subWindow {
 	public static void alertMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
 			, boolean isOutsideCancel, final ClickAction click){
 		Resources res = context.getResources();
-		boolean isBigScreen = Utils.isBigScreen(context, Utils.LIMIT_DIP_WIDTH);
 		
 		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
@@ -176,6 +175,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
+		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -282,7 +282,6 @@ public class C_subWindow {
 	public static void dialogMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
 			, boolean isOutsideCancel, final ClickAction click){
 		Resources res = context.getResources();
-		boolean isBigScreen = Utils.isBigScreen(context, Utils.LIMIT_DIP_WIDTH);
 		
 		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
@@ -290,6 +289,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
+		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -412,7 +412,6 @@ public class C_subWindow {
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, final String[] strArray
 			, int[] selectedArray, final boolean isMult, boolean isOutsideCancel, final ClickAction click) {
 		Resources res = context.getResources();
-		boolean isBigScreen = Utils.isBigScreen(context, Utils.LIMIT_DIP_WIDTH);
 		
 		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
@@ -420,6 +419,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
+		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		LinearLayout linLayDetailHoriz;
@@ -584,7 +584,6 @@ public class C_subWindow {
 	public static void popupMenuUseButton(Context context, View view, int width, int height, String title, final String[][] strArray
 			, final ClickAction click){
 		Resources res = context.getResources();
-		boolean isBigScreen = Utils.isBigScreen(context, Utils.LIMIT_DIP_WIDTH);
 		
 		int itemWi;
 		LinearLayout.LayoutParams linLayPar;
@@ -592,6 +591,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
+		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		ScrollView scrollView;

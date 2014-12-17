@@ -100,7 +100,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.2
+ * @version 3.3.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -662,11 +662,7 @@ public class Utils {
 		}
 	}
 	
-	@SuppressLint("NewApi")
-	public static boolean isBigScreen(Context context, int limitDipWidth){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
-		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+	public static boolean isBigScreen(DisplayMetrics displayMetrics, int limitDipWidth){
 		int width = displayMetrics.widthPixels;
 		int height = displayMetrics.heightPixels;
 		int displayAbsWidth = width < height ? width : height;
@@ -674,6 +670,13 @@ public class Utils {
 			return false;
 		}
 		return true;
+	}
+	
+	public static boolean isBigScreen(Context context, int limitDipWidth){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		return isBigScreen(displayMetrics, limitDipWidth);
 	}
 	
 	public static void setTextSize(Context context, TextView textView, int unit, float size){
