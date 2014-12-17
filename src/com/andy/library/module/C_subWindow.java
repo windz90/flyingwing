@@ -501,11 +501,11 @@ public class C_subWindow {
 		int resource;
 		int[] viewId;
 		if(isMult){
-			resource = R.layout.list_item_multiple_choice;
+			resource = R.layout.list_item_multiple_choice_simple;
 			viewId = new int[]{R.id.multiText1};
 			listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		}else{
-			resource = R.layout.list_item_single_choice;
+			resource = R.layout.list_item_single_choice_simple;
 			viewId = new int[]{R.id.singleText1};
 			listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		}
