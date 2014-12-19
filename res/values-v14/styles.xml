@@ -15,7 +15,7 @@
 	<!-- Theme.AppCompat -->
 	<!-- Theme.AppCompat.Light -->
 	<!-- Theme.AppCompat.Light.DarkActionBar -->
-    <style name="CustomThemeToolbar" parent="Theme.AppCompat">
+    <style name="CustomThemeToolbar" parent="Theme.AppCompat.Light">
         <item name="windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
         <!-- android:fitsSystemWindows : StatusBar is hold space -->
@@ -33,8 +33,8 @@
         <item name="actionMenuTextColor">?android:attr/textColorPrimaryDisableOnly</item>
         <!-- android:textColorSecondary : Toolbar menu overflow icon color -->
         <item name="android:textColorSecondary">@color/abc_secondary_text_material_dark</item>
-        <!-- android:background : Toolbar and menu popup background -->
-        <!-- <item name="android:background"></item> -->
+        <!-- popupTheme : menu popup theme -->
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Dark</item>
         
         <!-- colorPrimary : default ActionBar(but not Toolbar) background -->
         <item name="colorPrimary">?attr/colorPrimary</item>
