@@ -16,7 +16,7 @@ import android.view.WindowManager;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.0
+ * @version 3.2.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -178,7 +178,7 @@ public class C_display {
 		}
 	}
 	
-	public static boolean isBigScreen(DisplayMetrics displayMetrics, int limitDipWidth){
+	public static boolean isFillScreen(DisplayMetrics displayMetrics, int limitDipWidth){
 		int displayAbsWidth = getAbsWidth(displayMetrics.widthPixels, displayMetrics.heightPixels);
 		if(displayAbsWidth / displayMetrics.density + 0.5f < limitDipWidth){
 			return false;
@@ -186,13 +186,13 @@ public class C_display {
 		return true;
 	}
 	
-	public static boolean isBigScreen(Context context, int flag, int limitDipWidth){
+	public static boolean isFillScreen(Context context, int flag, int limitDipWidth){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		return isBigScreen(displayMetrics, limitDipWidth);
+		return isFillScreen(displayMetrics, limitDipWidth);
 	}
 	
-	public static boolean isBigScreen(Context context, int limitDipWidth){
-		return isBigScreen(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, limitDipWidth);
+	public static boolean isFillScreen(Context context, int limitDipWidth){
+		return isFillScreen(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, limitDipWidth);
 	}
 	
 	public static int getWidthPixels(DisplayMetrics displayMetrics, boolean isAbs){

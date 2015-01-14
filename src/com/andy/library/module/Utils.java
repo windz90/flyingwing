@@ -100,15 +100,18 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.3
+ * @version 3.3.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 public class Utils {
 	
+	public static final int LIMIT_DIP_WIDTH_320 = 320;
+	public static final int LIMIT_DIP_WIDTH_360 = 360;
 	public static final int LIMIT_DIP_WIDTH_480 = 480;
 	public static final int LIMIT_DIP_WIDTH_540 = 540;
 	public static final int LIMIT_DIP_WIDTH_600 = 600;
+	public static final int LIMIT_DIP_WIDTH_720 = 720;
 	public static final int LIMIT_DIP_WIDTH = LIMIT_DIP_WIDTH_600;
 	public static final int SIZE_TEXT_S = 0;
 	public static final int SIZE_BULLET_S = 1;
@@ -662,7 +665,7 @@ public class Utils {
 		}
 	}
 	
-	public static boolean isBigScreen(DisplayMetrics displayMetrics, int limitDipWidth){
+	public static boolean isFillScreen(DisplayMetrics displayMetrics, int limitDipWidth){
 		int width = displayMetrics.widthPixels;
 		int height = displayMetrics.heightPixels;
 		int displayAbsWidth = width < height ? width : height;
@@ -672,11 +675,11 @@ public class Utils {
 		return true;
 	}
 	
-	public static boolean isBigScreen(Context context, int limitDipWidth){
+	public static boolean isFillScreen(Context context, int limitDipWidth){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		return isBigScreen(displayMetrics, limitDipWidth);
+		return isFillScreen(displayMetrics, limitDipWidth);
 	}
 	
 	public static void setTextSize(Context context, TextView textView, int unit, float size){
@@ -918,11 +921,11 @@ public class Utils {
 		setToast(context, text, Toast.LENGTH_SHORT);
 	}
 	
+	@SuppressLint("CommitPrefEdits")
 	public static SharedPreferences.Editor getNotYetCommitSharedPreferencesEditor(Context context, String SPname, String key, Object value
 			, boolean toggleMode){
 		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
 		SharedPreferences.Editor spEdit = sp.edit();
-		spEdit.commit();
 		if(toggleMode && sp.contains(key)){
 			spEdit.remove(key);
 		}else if(value != null){
@@ -950,10 +953,6 @@ public class Utils {
 		return getNotYetCommitSharedPreferencesEditor(context, SPname, key, value, false).commit();
 	}
 	
-	public static boolean removeSharedPreferences(Context context, String SPname, String key){
-		return putSharedPreferences(context, SPname, key, null, true);
-	}
-	
 	public static void putSharedPreferences(final Context context, final String SPname, final String key, final Object value
 			, final boolean toggleMode, final Handler handler){
 		final SharedPreferences.Editor spEdit = getNotYetCommitSharedPreferencesEditor(context, SPname, key, value, toggleMode);
@@ -978,6 +977,10 @@ public class Utils {
 	
 	public static void putSharedPreferences(Context context, String SPname, String key, Object value, Handler handler){
 		putSharedPreferences(context, SPname, key, value, false, handler);
+	}
+	
+	public static boolean removeSharedPreferences(Context context, String SPname, String key){
+		return putSharedPreferences(context, SPname, key, null, true);
 	}
 	
 	public static void removeSharedPreferences(Context context, String SPname, String key, Handler handler){
@@ -1549,6 +1552,20 @@ public class Utils {
 		if(streamUriList != null && streamUriList.size() > 0){
 			intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, streamUriList);
 		}
+		return intent;
+	}
+	
+	public static Intent getBackTaskIntent(Context context, Class<? extends Activity> targetCalss){
+		Intent intent = new Intent(context, targetCalss);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		return intent;
+	}
+	
+	public static Intent getBackDifferentTaskIntent(Context context, Class<? extends Activity> targetCalss){
+		Intent intent = new Intent(context, targetCalss);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		return intent;
 	}
 	

@@ -12,7 +12,7 @@
 	<string name="main6Tc">學員公告</string>
 	
 	<!-- 公用事件確認 -->
-	<string name="sendConfirm">是否執行？</string>
+	<string name="confirm">是否執行？</string>
 	<string name="yes">是</string>
 	<string name="no">否</string>
 	<string name="ok">確定</string>

@@ -1,9 +1,8 @@
 package com.andy.library.module.widget;
 
-import com.andy.library.R;
-
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -16,7 +15,7 @@ import android.widget.TextView;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.2
+ * @version 2.3.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -24,35 +23,36 @@ public class C_progressDialog{
 	
 	private static C_progressDialog progress;
 	
-	private Activity activity;
+	private Context context;
 	private Dialog dialog;
 	private LinearLayout linLay;
 	private TextView textView;
 	
-	public C_progressDialog(Activity activity, String message){
-		this.activity = activity;
+	public C_progressDialog(Context context, String message){
+		this.context = context;
 		
 		int itemWi;
 		LinearLayout.LayoutParams linLayPar;
 		
 		DisplayMetrics dm = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(dm);
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(dm);
 		
-		linLay = new LinearLayout(activity);
-		textView = new TextView(activity);
+		linLay = new LinearLayout(context);
+		textView = new TextView(context);
 		
 		itemWi = (int)(dm.widthPixels * 0.8f);
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 		linLay.setLayoutParams(linLayPar);
 		linLay.setOrientation(LinearLayout.HORIZONTAL);
-		linLay.setBackgroundResource(R.color.White);
+		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setGravity(Gravity.CENTER);
 		
-		ProgressBar loadingBar = new ProgressBar(activity);
+		ProgressBar loadingBar = new ProgressBar(context);
 		
 		linLayPar = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		textView.setLayoutParams(linLayPar);
-		textView.setTextColor(activity.getResources().getColor(R.color.WhiteGray));
+		textView.setTextColor(0xFFC0C0C0);
 		textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
 		
 		linLay.addView(loadingBar);
@@ -60,7 +60,7 @@ public class C_progressDialog{
 		
 		textView.setText(message);
 		
-		dialog = new Dialog(activity);
+		dialog = new Dialog(context);
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		dialog.setContentView(linLay);
 		dialog.setCanceledOnTouchOutside(false);
@@ -72,13 +72,17 @@ public class C_progressDialog{
 		windowLayPar.width = itemWi;
 //		dialog.getWindow().setBackgroundDrawableResource(R.color.Transparent);
 		dialog.getWindow().setAttributes(windowLayPar);
-		if(!activity.isFinishing()){
+		if(context instanceof Activity){
+			if(!((Activity)context).isFinishing()){
+				dialog.show();
+			}
+		}else{
 			dialog.show();
 		}
 	}
 	
-	public C_progressDialog(Activity activity){
-		this(activity, null);
+	public C_progressDialog(Context context){
+		this(context, null);
 	}
 	
 	public Dialog getDialog(){
@@ -93,26 +97,34 @@ public class C_progressDialog{
 		if(textView == null){
 			return;
 		}
-		activity.runOnUiThread(new Runnable() {
-			
-			@Override
-			public void run() {
-				textView.setText(message);
-			}
-		});
+		if(context instanceof Activity){
+			((Activity)context).runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					textView.setText(message);
+				}
+			});
+		}else{
+			textView.setText(message);
+		}
 	}
 	
 	public void appendMessage(final String message){
 		if(textView == null){
 			return;
 		}
-		activity.runOnUiThread(new Runnable() {
-			
-			@Override
-			public void run() {
-				textView.append(message);
-			}
-		});
+		if(context instanceof Activity){
+			((Activity)context).runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					textView.append(message);
+				}
+			});
+		}else{
+			textView.append(message);
+		}
 	}
 	
 	public String getMessage(){
@@ -128,19 +140,19 @@ public class C_progressDialog{
 			textView = null;
 			linLay = null;
 			dialog = null;
-			activity = null;
+			context = null;
 		}
 	}
 	
-	public static C_progressDialog getInstance(Activity activity, String message){
+	public static C_progressDialog getInstance(Context context, String message){
 		if(progress == null){
-			progress = new C_progressDialog(activity, message);
+			progress = new C_progressDialog(context, message);
 		}
 		return progress;
 	}
 	
-	public static C_progressDialog getInstance(Activity activity){
-		return getInstance(activity, null);
+	public static C_progressDialog getInstance(Context context){
+		return getInstance(context, null);
 	}
 	
 	public static boolean hasInstance(){

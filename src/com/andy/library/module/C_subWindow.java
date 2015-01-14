@@ -34,6 +34,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.ScrollView;
@@ -44,7 +45,7 @@ import com.andy.library.R;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.2
+ * @version 2.3.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -131,7 +132,7 @@ public class C_subWindow {
 	}
 	
 	public static void alertBuilderConfirm(final Context context, String title, final ClickAction clickAction){
-		alertBuilderConfirm(context, title, context.getString(R.string.sendConfirm), clickAction);
+		alertBuilderConfirm(context, title, context.getString(R.string.confirm), clickAction);
 	}
 	
 	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitCalss){
@@ -150,7 +151,7 @@ public class C_subWindow {
 		};
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
 		alertDialogBuilder.setTitle(activity.getString(R.string.quit));
-		alertDialogBuilder.setMessage(activity.getString(R.string.sendConfirm));
+		alertDialogBuilder.setMessage(activity.getString(R.string.confirm));
 		alertDialogBuilder.setPositiveButton(activity.getString(R.string.ok), click);
 		alertDialogBuilder.setNegativeButton(activity.getString(R.string.cancel), click);
 		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
@@ -175,7 +176,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -184,7 +185,7 @@ public class C_subWindow {
 		
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
-		linLay.setBackgroundResource(R.color.White);
+		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		
 		scrollView = new ScrollView(context);
@@ -205,15 +206,15 @@ public class C_subWindow {
 			button[i].setLayoutParams(linLayPar);
 			button[i].setPadding(0, 0, 0, 0);
 			button[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_custom_adapter);
+			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				button[i].setTextColor(colorList);
 			} catch (XmlPullParserException e) {
-				button[i].setTextColor(res.getColor(R.color.Black));
+				button[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			} catch (IOException e) {
-				button[i].setTextColor(res.getColor(R.color.Black));
+				button[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
 			button[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
@@ -243,7 +244,7 @@ public class C_subWindow {
 		windowLayPar.y = 0;
 		windowLayPar.width = width;
 		windowLayPar.height = height;
-		alertDialog.getWindow().setBackgroundDrawableResource(R.color.Transparent);
+		alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 		alertDialog.getWindow().setAttributes(windowLayPar);
 		if(context instanceof Activity){
 			if(!((Activity)context).isFinishing()){
@@ -289,7 +290,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -299,7 +300,7 @@ public class C_subWindow {
 		
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
-		linLay.setBackgroundResource(R.color.White);
+		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		
 		scrollView = new ScrollView(context);
@@ -320,7 +321,7 @@ public class C_subWindow {
 			textView.setLayoutParams(linLayPar);
 			textView.setPadding(space, 0, 0, 0);
 			textView.setGravity(Gravity.CENTER_VERTICAL);
-			textView.setTextColor(res.getColor(R.color.Black));
+			textView.setTextColor(res.getColor(android.R.color.black));
 			textView.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			textView.setText(title);
 			scrollLinLay.addView(textView);
@@ -336,15 +337,15 @@ public class C_subWindow {
 			button[i].setLayoutParams(linLayPar);
 			button[i].setPadding(0, 0, 0, 0);
 			button[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_custom_adapter);
+			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				button[i].setTextColor(colorList);
 			} catch (XmlPullParserException e) {
-				button[i].setTextColor(res.getColor(R.color.Black));
+				button[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			} catch (IOException e) {
-				button[i].setTextColor(res.getColor(R.color.Black));
+				button[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
 			button[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
@@ -371,7 +372,7 @@ public class C_subWindow {
 		windowLayPar.y = 0;
 		windowLayPar.width = width;
 		windowLayPar.height = height;
-		dialog.getWindow().setBackgroundDrawableResource(R.color.Transparent);
+		dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 		dialog.getWindow().setAttributes(windowLayPar);
 		if(context instanceof Activity){
 			if(!((Activity)context).isFinishing()){
@@ -409,8 +410,8 @@ public class C_subWindow {
 		dialogMenuUseButton(context, width, height, title, strArray, isOutsideCancel, click);
 	}
 	
-	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, final String[] strArray
-			, int[] selectedArray, final boolean isMult, boolean isOutsideCancel, final ClickAction click) {
+	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, int[] selectedArray, String title
+			, ListAdapter adp, final boolean isMult, boolean isOutsideCancel, final ClickAction click) {
 		Resources res = context.getResources();
 		
 		int itemWi, itemHe, space;
@@ -419,7 +420,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		LinearLayout linLayDetailHoriz;
@@ -427,7 +428,7 @@ public class C_subWindow {
 		
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
-		linLay.setBackgroundResource(R.color.White);
+		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		
 		space = (int)(5 * dm.density);
@@ -438,7 +439,7 @@ public class C_subWindow {
 			linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 			linLayDetailHoriz = new LinearLayout(context);
 			linLayDetailHoriz.setOrientation(LinearLayout.HORIZONTAL);
-			linLayDetailHoriz.setBackgroundResource(R.color.WhiteGray);
+			linLayDetailHoriz.setBackgroundColor(0xFFC0C0C0);
 			linLayDetailHoriz.setLayoutParams(linLayPar);
 			linLayDetailHoriz.setPadding(space, 0, space, 0);
 			linLayDetailHoriz.setGravity(Gravity.CENTER);
@@ -449,7 +450,7 @@ public class C_subWindow {
 				if(i == 0){
 					linLayPar = new LayoutParams(itemHe, itemHe - space * 2);
 					topView[i].setTag("left");
-					topView[i].setBackgroundResource(R.color.White);
+					topView[i].setBackgroundResource(android.R.color.white);
 				}else if(i == 1){
 					linLayPar = new LayoutParams((int)(itemWi - itemHe * 2 - space * 2), itemHe);
 					topView[i].setTag("center");
@@ -458,7 +459,7 @@ public class C_subWindow {
 				}
 				topView[i].setLayoutParams(linLayPar);
 				topView[i].setGravity(Gravity.CENTER);
-				topView[i].setTextColor(res.getColor(R.color.Black));
+				topView[i].setTextColor(res.getColor(android.R.color.black));
 				if(i == 1){
 					topView[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
 					TextPaint txtPaint = topView[i].getPaint();
@@ -493,30 +494,17 @@ public class C_subWindow {
 		listView.setFastScrollEnabled(true);
 		listView.setScrollingCacheEnabled(false);
 		listView.setCacheColorHint(0x00000000);
-		listView.setDivider(res.getDrawable(R.color.Gray));
+		listView.setDivider(new ColorDrawable(0xFF808080));
 		listView.setDividerHeight((int)(1 * dm.density));
 		
 		linLay.addView(listView);
 		
-		int resource;
-		int[] viewId;
 		if(isMult){
-			resource = R.layout.list_item_multiple_choice_simple;
-			viewId = new int[]{R.id.multiText1};
 			listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		}else{
-			resource = R.layout.list_item_single_choice_simple;
-			viewId = new int[]{R.id.singleText1};
 			listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		}
-		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
-		for(int i=0; i<strArray.length; i++){
-			Map<String, String> hashMap = new HashMap<String, String>();
-			hashMap.put("strArray", strArray[i]);
-			list.add(hashMap);
-		}
-		SimpleAdapter simpleAdapter = new SimpleAdapter(context, list, resource, new String[]{"strArray"}, viewId);
-		listView.setAdapter(simpleAdapter);
+		listView.setAdapter(adp);
 		for(int i=0; i<selectedArray.length; i++){
 			listView.setItemChecked(selectedArray[i], true);
 			if(!isMult){
@@ -534,7 +522,7 @@ public class C_subWindow {
 		windowLayPar.y = 0;
 		windowLayPar.width = width;
 		windowLayPar.height = height;
-		dialog.getWindow().setBackgroundDrawableResource(R.color.White);
+		dialog.getWindow().setBackgroundDrawableResource(android.R.color.white);
 		dialog.getWindow().setAttributes(windowLayPar);
 		if(context instanceof Activity){
 			if(!((Activity)context).isFinishing()){
@@ -557,11 +545,10 @@ public class C_subWindow {
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 				Bundle bundle = new Bundle();
 				bundle.putString("itemId", "" + position);
-				bundle.putString("itemTitle", strArray[position]);
+				bundle.putString("itemTitle", parent.getAdapter().getItem(position).toString());
 				bundle.putBoolean("itemStatus", listView.isItemChecked(position));
 				click.action(view, position, bundle);
 				if(!isMult){
@@ -571,8 +558,34 @@ public class C_subWindow {
 		});
 	}
 	
-	public static void dialogMenuUseListView(Context context, View topBar, String title, final String[] strArray, int[] selectedArray
-			, final boolean isMult, boolean isOutsideCancel, final ClickAction click) {
+	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, String[] strArray
+			, int[] selectedArray, int resourceId, int[] viewIdArray, boolean isMult, boolean isOutsideCancel, ClickAction click) {
+		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+		for(int i=0; i<strArray.length; i++){
+			Map<String, String> hashMap = new HashMap<String, String>();
+			hashMap.put("strArray", strArray[i]);
+			list.add(hashMap);
+		}
+		SimpleAdapter adp = new SimpleAdapter(context, list, resourceId, new String[]{"strArray"}, viewIdArray);
+		dialogMenuUseListView(context, topBar, width, height, selectedArray, title, adp, isMult, isOutsideCancel, click);
+	}
+	
+	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, String[] strArray
+			, int[] selectedArray, boolean isMult, boolean isOutsideCancel, ClickAction click) {
+		int resourceId;
+		int[] viewIdArray;
+		if(isMult){
+			resourceId = android.R.layout.simple_list_item_multiple_choice;
+			viewIdArray = new int[]{android.R.id.text1};
+		}else{
+			resourceId = android.R.layout.simple_list_item_single_choice;
+			viewIdArray = new int[]{android.R.id.text1};
+		}
+		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, resourceId, viewIdArray, isMult, isOutsideCancel, click);
+	}
+	
+	public static void dialogMenuUseListView(Context context, View topBar, String title, String[] strArray, int[] selectedArray
+			, boolean isMult, boolean isOutsideCancel, ClickAction click) {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
@@ -591,7 +604,7 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isBigScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
 		
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -603,7 +616,7 @@ public class C_subWindow {
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
-		linLay.setBackgroundResource(R.color.White);
+		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setLayoutParams(linLayPar);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		
@@ -621,7 +634,7 @@ public class C_subWindow {
 			textView = new TextView(context);
 			textView.setLayoutParams(linLayPar);
 			textView.setGravity(Gravity.CENTER);
-			textView.setTextColor(res.getColor(R.color.Black));
+			textView.setTextColor(res.getColor(android.R.color.black));
 			textView.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			textView.setText(title);
 			scrollLinLay.addView(textView);
@@ -632,15 +645,15 @@ public class C_subWindow {
 			button[i].setLayoutParams(linLayPar);
 			button[i].setPadding(0, 0, 0, 0);
 			button[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_custom_adapter);
+			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				button[i].setTextColor(colorList);
 			} catch (XmlPullParserException e) {
-				button[i].setTextColor(res.getColor(R.color.Black));
+				button[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			} catch (IOException e) {
-				button[i].setTextColor(res.getColor(R.color.Black));
+				button[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
 			button[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
