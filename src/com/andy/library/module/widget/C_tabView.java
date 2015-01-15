@@ -3,7 +3,7 @@ package com.andy.library.module.widget;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.PagerAdapter;
@@ -15,6 +15,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.FrameLayout;
@@ -22,16 +23,16 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.RadioGroup.OnCheckedChangeListener;
+import android.widget.RelativeLayout;
 
 /** 
  * Copyright 2014 Andy Lin. All rights reserved.
- * @version 1.0.1
+ * @version 1.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
-public class C_tabView extends LinearLayout{
+public class C_tabView extends LinearLayout {
 	
 	private int BASE_ID = 0x5FF;
 	
@@ -72,12 +73,13 @@ public class C_tabView extends LinearLayout{
 		public void onDismiss(C_tabView tabView, boolean isClickDismiss);
 	}
 	
-	public C_tabView(Activity activity){
-		super(activity);
-		mRes = activity.getResources();
+	public C_tabView(Context context){
+		super(context);
+		mRes = context.getResources();
 		
 		mDisplayMetrics = new DisplayMetrics();
-		activity.getWindowManager().getDefaultDisplay().getMetrics(mDisplayMetrics);
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
 		
 		LinearLayout relLayHorizScrollLinLay;
 		
@@ -90,7 +92,7 @@ public class C_tabView extends LinearLayout{
 		mItemWi = LayoutParams.MATCH_PARENT;
 		mItemHe = LayoutParams.WRAP_CONTENT;
 		mLinLayPar = new LayoutParams(mItemWi, mItemHe);
-		mRelLay = new RelativeLayout(activity);
+		mRelLay = new RelativeLayout(context);
 		mRelLay.setLayoutParams(mLinLayPar);
 		mRelLay.setGravity(Gravity.CENTER_VERTICAL);
 		this.addView(mRelLay);
@@ -99,7 +101,7 @@ public class C_tabView extends LinearLayout{
 		mItemHe = LayoutParams.WRAP_CONTENT;
 		mRelLayPar = new RelativeLayout.LayoutParams(mItemWi, mItemHe);
 		mRelLayPar.addRule(RelativeLayout.LEFT_OF, BASE_ID);
-		HorizontalScrollView relLayHorizScrollView = new HorizontalScrollView(activity){
+		HorizontalScrollView relLayHorizScrollView = new HorizontalScrollView(context){
 
 			@Override
 			public boolean onTouchEvent(MotionEvent ev) {
@@ -114,20 +116,20 @@ public class C_tabView extends LinearLayout{
 		
 		mItemWi = LayoutParams.MATCH_PARENT;
 		mItemHe = LayoutParams.MATCH_PARENT;
-		relLayHorizScrollLinLay = new LinearLayout(activity);
+		relLayHorizScrollLinLay = new LinearLayout(context);
 		relLayHorizScrollLinLay.setOrientation(LinearLayout.VERTICAL);
 		relLayHorizScrollLinLay.setLayoutParams(new FrameLayout.LayoutParams(mItemWi, mItemHe));
 		relLayHorizScrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		relLayHorizScrollView.addView(relLayHorizScrollLinLay);
 		
-		mRadioGroup = new RadioGroup(activity);
+		mRadioGroup = new RadioGroup(context);
 		mRadioGroup.setOrientation(LinearLayout.HORIZONTAL);
 		mRadioGroup.setGravity(Gravity.CENTER);
 		relLayHorizScrollLinLay.addView(mRadioGroup);
 		
 		mCustomPagerAdapter = new CustomPagerAdapter();
 		
-		mViewPager = new ViewPager(activity);
+		mViewPager = new ViewPager(context);
 		mViewPager.setAdapter(mCustomPagerAdapter);
 		this.addView(mViewPager);
 		
