@@ -30,7 +30,8 @@
         <!-- android:textColorPrimaryInverse : Toolbar title and menu inverse textColor -->
         <item name="android:textColorPrimaryInverse">@color/abc_primary_text_material_light</item>
         <!-- android:actionMenuTextColor : Menu textColor for API < 21 -->
-        <item name="actionMenuTextColor">?android:attr/textColorPrimaryDisableOnly</item>
+        <item name="actionMenuTextColor">@color/abc_primary_text_material_dark</item>
+        <item name="actionMenuTextAppearance">@style/ActionMenuTextAppearanceAppCompat</item>
         <!-- android:textColorSecondary : Toolbar menu overflow icon color -->
         <item name="android:textColorSecondary">@color/abc_secondary_text_material_dark</item>
         <!-- popupTheme : menu popup theme -->
@@ -68,6 +69,11 @@
         <item name="android:padding">12dip</item>
         <item name="android:scaleType">centerInside</item>
     </style>
+    
+	<style name="ActionMenuTextAppearanceAppCompat" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Menu">
+		<item name="android:textSize">16sp</item>
+		<item name="android:textStyle">normal</item>
+	</style>
 	
 	<!-- CustomActionBar -->
 	
