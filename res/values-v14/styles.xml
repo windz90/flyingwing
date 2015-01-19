@@ -18,25 +18,24 @@
     <style name="CustomThemeToolbar" parent="Theme.AppCompat.Light">
         <item name="windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
-        <!-- android:fitsSystemWindows : StatusBar is hold space -->
-        <item name="android:fitsSystemWindows">true</item>
+        <!-- android:fitsSystemWindows : StatusBar and NavigationBar is hold space, But material style dialog text padding not work -->
+        <!-- <item name="android:fitsSystemWindows">true</item> -->
+        
+        <item name="android:textAllCaps">false</item>
         
         <!-- Toolbar styles -->
         <item name="toolbarStyle">@style/ToolbarStyle</item>
         <item name="toolbarNavigationButtonStyle">@style/ToolbarNavigationButtonStyle</item>
         
-        <!-- android:textColorPrimary : Toolbar title and menu textColor -->
-        <item name="android:textColorPrimary">@color/abc_primary_text_material_dark</item>
-        <!-- android:textColorPrimaryInverse : Toolbar title and menu inverse textColor -->
-        <item name="android:textColorPrimaryInverse">@color/abc_primary_text_material_light</item>
+        <!-- Action Bar Styles -->
+        <item name="actionButtonStyle">@style/Widget.AppCompat.Light.ActionButton</item>
+        <item name="actionOverflowButtonStyle">@style/ActionOverflowButtonStyleAppCompat</item>
+        <item name="actionOverflowMenuStyle">@style/Widget.AppCompat.Light.PopupMenu.Overflow</item>
         <!-- android:actionMenuTextColor : Menu textColor for API < 21 -->
-        <item name="actionMenuTextColor">@color/abc_primary_text_material_dark</item>
+        <item name="actionMenuTextColor">@color/abc_primary_text_material_light</item>
         <item name="actionMenuTextAppearance">@style/ActionMenuTextAppearanceAppCompat</item>
-        <!-- android:textColorSecondary : Toolbar menu overflow icon color -->
-        <item name="android:textColorSecondary">@color/abc_secondary_text_material_dark</item>
-        <!-- popupTheme : menu popup theme -->
-        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Dark</item>
         
+        <!-- Color palette -->
         <!-- colorPrimary : default ActionBar(but not Toolbar) background -->
         <item name="colorPrimary">?attr/colorPrimary</item>
         <!-- colorPrimaryDark : StatusBar background(getWindow().setStatusBarColor()) -->
@@ -59,9 +58,11 @@
     
     <style name="ToolbarStyle" parent="@style/Widget.AppCompat.Toolbar">
         <item name="android:minHeight">@dimen/toolbarHeight</item>
-        <item name="android:paddingRight">5dip</item>
+        <item name="android:paddingRight">0dip</item>
         <item name="contentInsetStart">0dip</item>
         <item name="contentInsetEnd">0dip</item>
+        <!-- popupTheme : menu popup theme -->
+        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
     </style>
     
     <style name="ToolbarNavigationButtonStyle" parent="@style/Widget.AppCompat.Toolbar.Button.Navigation">
@@ -70,6 +71,13 @@
         <item name="android:scaleType">centerInside</item>
     </style>
     
+	<style name="ActionOverflowButtonStyleAppCompat" parent="@style/Widget.AppCompat.Light.ActionButton.Overflow">
+	    <!-- <item name="android:src"></item> -->
+	    <item name="android:background">?android:attr/actionBarItemBackground</item>
+	    <item name="android:paddingLeft">12dip</item>
+	    <item name="android:paddingRight">12dip</item>
+	</style>
+	
 	<style name="ActionMenuTextAppearanceAppCompat" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Menu">
 		<item name="android:textSize">16sp</item>
 		<item name="android:textStyle">normal</item>
@@ -149,7 +157,6 @@
 	<style name="ActionOverflowButtonStyle" parent="android:Widget.Holo.ActionButton.Overflow">
 		<!-- <item name="android:src"></item> -->
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
-		<!-- <item name="android:contentDescription"></item> -->
 	</style>
 	
 	<style name="ActionMenuTextAppearance" parent="android:TextAppearance.Holo.Widget.ActionBar.Menu">

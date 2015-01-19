@@ -2,10 +2,9 @@
 <CheckedTextView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/singleText1"
     android:layout_width="match_parent"
-    android:layout_height="?android:attr/listPreferredItemHeightSmall"
-    android:textAppearance="?android:attr/textAppearanceListItemSmall"
-    android:textColor="@android:color/black"
+    android:layout_height="64dip"
+    android:textSize="14sp"
     android:gravity="center_vertical"
     android:checkMark="?android:attr/listChoiceIndicatorSingle"
-    android:paddingLeft="?android:attr/listPreferredItemPaddingLeft"
-    android:paddingRight="?android:attr/listPreferredItemPaddingRight"/>
+    android:paddingLeft="6dip"
+    android:paddingRight="6dip"/>
