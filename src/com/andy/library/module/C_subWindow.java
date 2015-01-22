@@ -45,7 +45,7 @@ import com.andy.library.R;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.3
+ * @version 2.3.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -295,7 +295,7 @@ public class C_subWindow {
 		LinearLayout linLay;
 		ScrollView scrollView;
 		LinearLayout scrollLinLay;
-		final Button[] button = new Button[strArray.length + 1];
+		final Button[] buttons = new Button[strArray.length + 1];
 		TextView textView;
 		
 		linLay = new LinearLayout(context);
@@ -332,33 +332,33 @@ public class C_subWindow {
 		
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 		linLayPar.setMargins(space, 0, space, 0);
-		for(int i=0; i<button.length; i++){
-			button[i] = new Button(context);
-			button[i].setLayoutParams(linLayPar);
-			button[i].setPadding(0, 0, 0, 0);
-			button[i].setGravity(Gravity.CENTER);
+		for(int i=0; i<buttons.length; i++){
+			buttons[i] = new Button(context);
+			buttons[i].setLayoutParams(linLayPar);
+			buttons[i].setPadding(0, 0, 0, 0);
+			buttons[i].setGravity(Gravity.CENTER);
 			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
-				button[i].setTextColor(colorList);
+				buttons[i].setTextColor(colorList);
 			} catch (XmlPullParserException e) {
-				button[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			} catch (IOException e) {
-				button[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
-			button[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
-			if(i < button.length - 1){
-				button[i].setText(strArray[i][1]);
+			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+			if(i < buttons.length - 1){
+				buttons[i].setText(strArray[i][1]);
 			}else{
-				button[i].setText(res.getString(R.string.cancel));
+				buttons[i].setText(res.getString(R.string.cancel));
 			}
-			button[i].setEllipsize(TruncateAt.END);
-			button[i].setMaxLines(2);
-			scrollLinLay.addView(button[i]);
+			buttons[i].setEllipsize(TruncateAt.END);
+			buttons[i].setMaxLines(2);
+			scrollLinLay.addView(buttons[i]);
 			
-			TextPaint textPaint = button[i].getPaint();
+			TextPaint textPaint = buttons[i].getPaint();
 			textPaint.setFakeBoldText(true);
 		}
 		
@@ -382,13 +382,13 @@ public class C_subWindow {
 			dialog.show();
 		}
 		
-		for(int i=0; i<button.length; i++){
+		for(int i=0; i<buttons.length; i++){
 			final int count = i;
-			button[i].setOnClickListener(new OnClickListener() {
+			buttons[i].setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
-					if(count < button.length - 1){
+					if(count < buttons.length - 1){
 						Bundle bundle = new Bundle();
 						bundle.putString("itemId", strArray[count][0]);
 						bundle.putString("itemTitle", strArray[count][1]);
@@ -433,10 +433,11 @@ public class C_subWindow {
 		
 		space = (int)(5 * dm.density);
 		if(topBar == null){
-			TextView[] topView = new TextView[3];
+			TextView[] topViews = new TextView[3];
 			
 			itemWi = width;
 			linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
+			linLayPar.setMargins(space, 0, space, 0);
 			linLayDetailHoriz = new LinearLayout(context);
 			linLayDetailHoriz.setOrientation(LinearLayout.HORIZONTAL);
 			linLayDetailHoriz.setBackgroundColor(0xFFC0C0C0);
@@ -444,32 +445,33 @@ public class C_subWindow {
 			linLayDetailHoriz.setPadding(space, 0, space, 0);
 			linLayDetailHoriz.setGravity(Gravity.CENTER);
 			
-			for(int i=0; i<topView.length; i++){
+			itemWi = (int)(80 * dm.density);
+			for(int i=0; i<topViews.length; i++){
 				itemHe = (int)(61.5f * 1.0f * dm.density);
-				topView[i] = new TextView(context);
+				topViews[i] = new TextView(context);
 				if(i == 0){
-					linLayPar = new LayoutParams(itemHe, itemHe - space * 2);
-					topView[i].setTag("left");
-					topView[i].setBackgroundResource(android.R.color.white);
+					linLayPar = new LayoutParams(itemWi, itemHe - space * 2);
+					topViews[i].setTag("left");
+					topViews[i].setBackgroundResource(android.R.color.white);
 				}else if(i == 1){
-					linLayPar = new LayoutParams((int)(itemWi - itemHe * 2 - space * 2), itemHe);
-					topView[i].setTag("center");
+					linLayPar = new LayoutParams(linLayDetailHoriz.getLayoutParams().width - itemWi * 2 - space * 2, itemHe);
+					topViews[i].setTag("center");
 				}else{
-					linLayPar = new LayoutParams(itemHe, itemHe - space * 2);
+					linLayPar = new LayoutParams(itemWi, itemHe - space * 2);
 				}
-				topView[i].setLayoutParams(linLayPar);
-				topView[i].setGravity(Gravity.CENTER);
-				topView[i].setTextColor(res.getColor(android.R.color.black));
+				topViews[i].setLayoutParams(linLayPar);
+				topViews[i].setGravity(Gravity.CENTER);
+				topViews[i].setTextColor(res.getColor(android.R.color.black));
 				if(i == 1){
-					topView[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
-					TextPaint txtPaint = topView[i].getPaint();
+					topViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
+					TextPaint txtPaint = topViews[i].getPaint();
 					txtPaint.setFakeBoldText(true);
 				}else{
-					topView[i].setTextSize(Utils.getTextSize(Utils.SIZE_TEXT, isBigScreen));
+					topViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TEXT, isBigScreen));
 				}
-				topView[i].setEllipsize(TruncateAt.END);
-				topView[i].setMaxLines(2);
-				linLayDetailHoriz.addView(topView[i]);
+				topViews[i].setEllipsize(TruncateAt.END);
+				topViews[i].setMaxLines(2);
+				linLayDetailHoriz.addView(topViews[i]);
 			}
 			
 			topBar = linLayDetailHoriz;
@@ -522,7 +524,7 @@ public class C_subWindow {
 		windowLayPar.y = 0;
 		windowLayPar.width = width;
 		windowLayPar.height = height;
-		dialog.getWindow().setBackgroundDrawableResource(android.R.color.white);
+		dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 		dialog.getWindow().setAttributes(windowLayPar);
 		if(context instanceof Activity){
 			if(!((Activity)context).isFinishing()){
@@ -589,8 +591,14 @@ public class C_subWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		int width = (int)(dm.widthPixels * 0.79f);
-		int height = (int)(dm.heightPixels * 0.7f);
+		int width, height;
+		if(dm.widthPixels < dm.heightPixels){
+			width = (int)(dm.widthPixels * 0.79f);
+			height = (int)(dm.widthPixels * 0.95f);
+		}else{
+			width = (int)(dm.heightPixels * 0.79f);
+			height = (int)(dm.heightPixels * 0.95f);
+		}
 		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, isMult, isOutsideCancel, click);
 	}
 	
@@ -610,7 +618,7 @@ public class C_subWindow {
 		ScrollView scrollView;
 		LinearLayout scrollLinLay;
 		TextView textView;
-		Button[] button = new Button[strArray.length];
+		Button[] buttons = new Button[strArray.length];
 		
 		itemWi = width;
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
@@ -640,29 +648,29 @@ public class C_subWindow {
 			scrollLinLay.addView(textView);
 		}
 		
-		for(int i=0; i<button.length; i++){
-			button[i] = new Button(context);
-			button[i].setLayoutParams(linLayPar);
-			button[i].setPadding(0, 0, 0, 0);
-			button[i].setGravity(Gravity.CENTER);
+		for(int i=0; i<buttons.length; i++){
+			buttons[i] = new Button(context);
+			buttons[i].setLayoutParams(linLayPar);
+			buttons[i].setPadding(0, 0, 0, 0);
+			buttons[i].setGravity(Gravity.CENTER);
 			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
-				button[i].setTextColor(colorList);
+				buttons[i].setTextColor(colorList);
 			} catch (XmlPullParserException e) {
-				button[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			} catch (IOException e) {
-				button[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
-			button[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
-			button[i].setText(strArray[i][1]);
-			button[i].setEllipsize(TruncateAt.END);
-			button[i].setMaxLines(2);
-			scrollLinLay.addView(button[i]);
+			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+			buttons[i].setText(strArray[i][1]);
+			buttons[i].setEllipsize(TruncateAt.END);
+			buttons[i].setMaxLines(2);
+			scrollLinLay.addView(buttons[i]);
 			
-			TextPaint textPaint = button[i].getPaint();
+			TextPaint textPaint = buttons[i].getPaint();
 			textPaint.setFakeBoldText(true);
 		}
 		
@@ -682,9 +690,9 @@ public class C_subWindow {
 			popupWindow.showAsDropDown(view);
 		}
 		
-		for(int i=0; i<button.length; i++){
+		for(int i=0; i<buttons.length; i++){
 			final int count = i;
-			button[i].setOnClickListener(new OnClickListener() {
+			buttons[i].setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
