@@ -27,14 +27,19 @@
 	<string name="open">開啟</string>
 	<string name="close">關閉</string>
 	<string name="quit">結束本程式</string>
+	<string name="launching">啟動中</string>
+	<string name="initialize">初始化</string>
 	<string name="loading">載入中</string>
+	<string name="uploading">上傳中</string>
+	<string name="connecting">連線中</string>
 	<string name="needWait">本次執行可能較為耗時，請耐心等候</string>
-	<string name="startAPP">開啟APP</string>
 	<string name="noData">沒有資料</string>
 	<string name="noSearchResults">沒有搜尋結果</string>
+	<string name="noAppItem">沒有可選程式</string>
 	<string name="outOfMemoryError">所需記憶體不足</string>
 	<string name="connectionFail">連線未成功</string>
 	<string name="noNetworkConnection">沒有網路連線</string>
+	<string name="otherError">未知的錯誤</string>
 	<string name="unknownError">不明錯誤</string>
 	<string name="geoPointDataNull">沒有緯經度資料，無法定位</string>
 </resources>

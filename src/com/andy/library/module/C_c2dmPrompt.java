@@ -47,7 +47,7 @@ public class C_c2dmPrompt extends Activity {
 			}
 		};
 		
-		msgAlert.setPositiveButton(getResources().getString(R.string.startAPP), dialogClick);
+		msgAlert.setPositiveButton(getResources().getString(R.string.open), dialogClick);
 		msgAlert.setNegativeButton(getResources().getString(R.string.exit), dialogClick);
 		msgAlert.show();
 	}
