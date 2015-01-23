@@ -41,7 +41,9 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.content.ClipData;
 import android.content.ContentProviderOperation;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
@@ -56,6 +58,7 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.Theme;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
@@ -81,6 +84,8 @@ import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.telephony.TelephonyManager;
@@ -100,7 +105,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.4
+ * @version 3.3.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -470,17 +475,20 @@ public class Utils {
 			if(bufferSize < 8192){
 				bufferSize = 8192;
 			}
-			ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
-			while(fileChannelRead.read(byteBuffer) != -1){
-				byteBuffer.flip();
-				fileChannelWrite.write(byteBuffer);
-				byteBuffer.clear();
+			try {
+				ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
+				while(fileChannelRead.read(byteBuffer) != -1){
+					byteBuffer.flip();
+					fileChannelWrite.write(byteBuffer);
+					byteBuffer.clear();
+				}
+			} finally {
+				fileChannelRead.close();
+				fileInputStream.close();
+				fileChannelWrite.close();
+				fileOutputStream.close();
 			}
 			
-			fileChannelRead.close();
-			fileInputStream.close();
-			fileChannelWrite.close();
-			fileOutputStream.close();
 			return file.isFile();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -501,12 +509,15 @@ public class Utils {
 			if(bufferSize < 8192){
 				bufferSize = 8192;
 			}
-			byte[] buffer = new byte[bufferSize];
-			while(randomAccessFileRead.read(buffer) != -1){
-				randomAccessFileWrite.write(buffer);
+			try {
+				byte[] buffer = new byte[bufferSize];
+				while(randomAccessFileRead.read(buffer) != -1){
+					randomAccessFileWrite.write(buffer);
+				}
+			} finally {
+				randomAccessFileRead.close();
+				randomAccessFileWrite.close();
 			}
-			randomAccessFileRead.close();
-			randomAccessFileWrite.close();
 			return file.isFile();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -532,24 +543,27 @@ public class Utils {
 			if(bufferSize < 8192){
 				bufferSize = 8192;
 			}
-			while(progress < fileChannelRead.size()){
-				if(fileChannelRead.size() - progress < bufferSize){
-					bufferSize = fileChannelRead.size() - progress;
+			try {
+				while(progress < fileChannelRead.size()){
+					if(fileChannelRead.size() - progress < bufferSize){
+						bufferSize = fileChannelRead.size() - progress;
+					}
+					mappedByteBufferRead = fileChannelRead.map(FileChannel.MapMode.READ_ONLY, progress, bufferSize);
+					mappedByteBufferWrite = fileChannelWrite.map(FileChannel.MapMode.READ_WRITE, progress, bufferSize);
+					mappedByteBufferWrite.put(mappedByteBufferRead);
+					progress = progress + bufferSize;
+					mappedByteBufferRead.clear();
+					mappedByteBufferWrite.clear();
 				}
-				mappedByteBufferRead = fileChannelRead.map(FileChannel.MapMode.READ_ONLY, progress, bufferSize);
-				mappedByteBufferWrite = fileChannelWrite.map(FileChannel.MapMode.READ_WRITE, progress, bufferSize);
-				mappedByteBufferWrite.put(mappedByteBufferRead);
-				progress = progress + bufferSize;
-				mappedByteBufferRead.clear();
-				mappedByteBufferWrite.clear();
+			} finally {
+				mappedByteBufferRead = null;
+				mappedByteBufferWrite = null;
+				fileChannelRead.close();
+				fileInputStream.close();
+				fileChannelWrite.close();
+				randomAccessFile.close();
 			}
 			
-			mappedByteBufferRead = null;
-			mappedByteBufferWrite = null;
-			fileChannelRead.close();
-			fileInputStream.close();
-			fileChannelWrite.close();
-			randomAccessFile.close();
 			return file.isFile();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -1464,8 +1478,8 @@ public class Utils {
 			, String text, Uri streamUri){
 		PackageManager packageManager = context.getPackageManager();
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
-		List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		if(resolveInfoList != null && resolveInfoList.size() > 0){
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+		if(listResolveInfo != null && listResolveInfo.size() > 0){
 			intent = new Intent(Intent.ACTION_SEND);
 			intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			intent.setType(intentType);
@@ -1476,7 +1490,7 @@ public class Utils {
 			intent.putExtra(Intent.EXTRA_TEXT, text);
 			intent.putExtra(Intent.EXTRA_STREAM, streamUri);
 		}else{
-			Utils.setToast(context, packageName + " Not installed", Toast.LENGTH_SHORT);
+			Utils.setToast(context, packageName + " Not installed");
 			Uri uriMarket = Uri.parse("market://details?id=" + packageName);
 			intent = new Intent(Intent.ACTION_VIEW, uriMarket);
 			intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
@@ -1569,11 +1583,116 @@ public class Utils {
 		return intent;
 	}
 	
-	public static void contentSelection(Activity activity, String intentType, String title, int requestCode){
-		Intent intent = new Intent();
+	@SuppressLint("InlinedApi")
+	public static void callContentSelection(final Activity activity, String intentType, boolean allowMultiple, final int requestCode
+			, final String title, String failInfo){
+		final Intent intent = new Intent();
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+			intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+		}else{
+			intent.setAction(Intent.ACTION_GET_CONTENT);
+		}
 		intent.setType(intentType);
-		intent.setAction(Intent.ACTION_GET_CONTENT);
-		activity.startActivityForResult(Intent.createChooser(intent, title), requestCode);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
+			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
+		}
+		PackageManager packageManager = activity.getPackageManager();
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.GET_ACTIVITIES);
+		if(listResolveInfo != null && listResolveInfo.size() > 0){
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					if(title == null){
+						activity.startActivityForResult(intent, requestCode);
+					}else{
+						activity.startActivityForResult(Intent.createChooser(intent, title), requestCode);
+					}
+				}
+			}).start();
+		}else{
+			Utils.setToast(activity, failInfo);
+		}
+	}
+	
+	public static void callContentSelection(Activity activity, String intentType, boolean allowMultiple, int requestCode){
+		callContentSelection(activity, intentType, allowMultiple, requestCode, null, "No application");
+	}
+	
+	public static void callImageCrop(final Activity activity, Uri uriSrc, Uri uriDst, int aspectX, int aspectY, int outputX, int outputY
+			, String outputFormat, boolean circleCrop, boolean noFaceDetection, boolean returnData, final int requestCode, String failInfo){
+		final Intent intent = new Intent("com.android.camera.action.CROP");
+		intent.putExtra("crop", "true");
+		// 設置剪裁圖片來源
+		intent.setDataAndType(uriSrc, "image/*");
+		// 設置剪裁圖片輸出路徑
+		if(!returnData && uriDst != null){
+			intent.putExtra(MediaStore.EXTRA_OUTPUT, uriDst);
+		}
+		
+		// 設置裁剪框的的寬高比
+		if(aspectX > 0){
+			intent.putExtra("aspectX", aspectX);
+		}
+		if(aspectY > 0){
+			intent.putExtra("aspectY", aspectY);
+		}
+		
+		// 固定裁剪後圖片的寬高值
+		if(outputX > 0){
+			intent.putExtra("outputX", outputX);
+		}
+		if(outputY > 0){
+			intent.putExtra("outputY", outputY);
+		}
+		
+		// 設置剪裁後圖片格式 Bitmap.CompressFormat
+		intent.putExtra("outputFormat", outputFormat);
+		// 圓形裁剪框
+		intent.putExtra("circleCrop", circleCrop);
+		// 取消人臉識別
+		intent.putExtra("noFaceDetection", noFaceDetection);
+		// 是否直接返回圖片
+		intent.putExtra("return-data", returnData);
+		
+		PackageManager packageManager = activity.getPackageManager();
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.GET_ACTIVITIES);
+		if(listResolveInfo != null && listResolveInfo.size() > 0){
+			new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					activity.startActivityForResult(intent, requestCode);
+				}
+			}).start();
+		}else{
+			Utils.setToast(activity, failInfo);
+		}
+	}
+	
+	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, int aspectX, int aspectY, int outputX, int outputY
+			, String outputFormat, boolean circleCrop, boolean noFaceDetection, boolean returnData, int requestCode){
+		callImageCrop(activity, uriSrc, uriDst, aspectX, aspectY, outputX, outputY, outputFormat, circleCrop, noFaceDetection, returnData, requestCode
+				, "No application");
+	}
+	
+	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, String outputFormat, boolean circleCrop, boolean noFaceDetection
+			, boolean returnData, int requestCode){
+		callImageCrop(activity, uriSrc, uriDst, 0, 0, 0, 0, outputFormat, circleCrop, noFaceDetection, returnData, requestCode);
+	}
+	
+	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, boolean circleCrop, boolean noFaceDetection
+			, boolean returnData, int requestCode){
+		callImageCrop(activity, uriSrc, uriDst, 0, 0, 0, 0, Bitmap.CompressFormat.PNG.toString(), circleCrop, noFaceDetection, returnData
+				, requestCode);
+	}
+	
+	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, String outputFormat, boolean returnData, int requestCode){
+		callImageCrop(activity, uriSrc, uriDst, 0, 0, 0, 0, outputFormat, false, false, returnData, requestCode);
+	}
+	
+	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, boolean returnData, int requestCode){
+		callImageCrop(activity, uriSrc, uriDst, 0, 0, 0, 0, Bitmap.CompressFormat.PNG.toString(), false, false, returnData, requestCode);
 	}
 	
 	public static void callGoogleMapsNavigation(Context context, String sLatit, String sLongit, String dLatit, String dLongit){
@@ -1595,6 +1714,110 @@ public class Utils {
 		 */
 		Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri);
 		context.startActivity(intent);
+	}
+	
+	public static String queryFilePathFromUri(Context context, Uri uri){
+		String path = null;
+		Cursor cursor = null;
+		try {
+			String[] projection = new String[]{MediaStore.MediaColumns.DATA};
+			cursor = context.getContentResolver().query(uri, projection, null, null, null);
+			if(cursor != null && cursor.moveToFirst()){
+				int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+				path = cursor.getString(columnIndex);
+				cursor.close();
+			}
+		} catch (Exception e) {
+			System.out.println(e);
+		} finally {
+			if(cursor != null){
+				cursor.close();
+			}
+		}
+		return path;
+	}
+	
+	@SuppressLint("NewApi")
+	public static String[] getFilesPathFromUri(Context context, Intent resultIntent){
+		Uri[] uris = getResultIntentUris(resultIntent);
+		String[] paths = new String[uris.length];
+		for(int i=0; i<uris.length; i++){
+			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
+				if(uris[i].getScheme().equals("content")){
+					paths[i] = queryFilePathFromUri(context, uris[i]);
+				}else{
+					paths[i] = uris[i].getPath();
+				}
+				continue;
+			}
+			
+			if(!DocumentsContract.isDocumentUri(context, uris[i])){
+				paths[i] = queryFilePathFromUri(context, uris[i]);
+				continue;
+			}
+			
+			String authority = uris[i].getAuthority();
+			String docId = DocumentsContract.getDocumentId(uris[i]);
+			if(authority.equals("com.android.providers.downloads.documents")){
+				uris[i] = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(docId));
+				paths[i] = queryFilePathFromUri(context, uris[i]);
+				continue;
+			}
+			
+			String[] divide = docId.split(":");
+			String type = divide[0];
+			if(authority.equals("com.android.externalstorage.documents")){
+				if(type.equals("primary")){
+					paths[i] = Environment.getExternalStorageDirectory() + File.separator + divide[1];
+				}
+			}else if(authority.equals("com.android.providers.media.documents")){
+				if(type.equals("image")){
+					uris[i] = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
+					paths[i] = queryFilePathFromUri(context, uris[i]);
+				}else if(type.equals("audio")){
+					uris[i] = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
+					paths[i] = queryFilePathFromUri(context, uris[i]);
+				}else if(type.equals("audio")){
+					uris[i] = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
+					paths[i] = queryFilePathFromUri(context, uris[i]);
+				}
+			}
+		}
+		return paths;
+	}
+	
+	@SuppressLint("NewApi")
+	public static Uri[] getUrisWithPath(Context context, Intent resultIntent){
+		Uri[] uris = getResultIntentUris(resultIntent);
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
+			return uris;
+		}
+		
+		for(int i=0; i<uris.length; i++){
+			if(DocumentsContract.isDocumentUri(context, uris[i])){
+				int takeFlags = resultIntent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+				context.getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
+			}
+		}
+		return uris;
+	}
+	
+	@SuppressLint("NewApi")
+	public static Uri[] getResultIntentUris(Intent resultIntent){
+		Uri[] uris;
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
+			ClipData clipData = resultIntent.getClipData();
+			if(clipData == null || clipData.getItemCount() == 0){
+				return null;
+			}
+			uris = new Uri[clipData.getItemCount()];
+			for(int i=0; i<uris.length; i++){
+				uris[i] = clipData.getItemAt(i).getUri();
+			}
+		}else{
+			uris = new Uri[]{resultIntent.getData()};
+		}
+		return uris;
 	}
 	
 	// 取得螢幕亮度模式

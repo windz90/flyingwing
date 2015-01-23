@@ -32,7 +32,7 @@ import android.widget.TextView;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.0.2
+ * @version 3.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -538,10 +538,20 @@ public class C_customAdapter extends BaseAdapter{
 			return checkImage(bitmap, imageName);
 		}
 		view.setTag(itemURL);
-		bitmap = C_imageProcessor.getImageAsyncLoadWriteLocal(context, itemURL, limitSize, 100, imageName, new DownLoadComplete() {
+		bitmap = C_imageProcessor.getImageAsync(context, itemURL, limitSize, 100, imageName, new DownLoadComplete() {
 			
 			@Override
-			public void loadedImage(String streamURL, Bitmap bitmap) {
+			public void cacheImage(String streamURL, Bitmap bitmap) {
+				remoteLoadedImage(streamURL, bitmap);
+			}
+
+			@Override
+			public void localLoadedImage(String streamURL, Bitmap bitmap) {
+				remoteLoadedImage(streamURL, bitmap);
+			}
+			
+			@Override
+			public void remoteLoadedImage(String streamURL, Bitmap bitmap) {
 				ImageView imageViewByTag = (ImageView)adapterView.findViewWithTag(streamURL);
 				if(imageViewByTag != null){
 					if(bitmap != null){

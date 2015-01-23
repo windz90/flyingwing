@@ -58,7 +58,7 @@ import android.os.Message;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.2
+ * @version 3.4.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -131,11 +131,11 @@ public class C_networkAccess{
 	}
 	
 	/**
-	 * HttpURLConnection Encapsulation layer<br>
 	 * @param context
 	 * @param httpUrl
 	 * @param objectArray
 	 * @param isSkipDataRead 若為true，完成連線後須自行調用HttpURLConnection.disconnect()斷開連線
+	 * @param handler
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
@@ -148,15 +148,20 @@ public class C_networkAccess{
 		return connectionResult;
 	}
 	
+	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray, Handler handler){
+		return connectUseHttpURLConnection(context, httpUrl, objectArray, false, handler);
+	}
+	
 	/**
-	 * HttpURLConnection Encapsulation Layer<br>
 	 * String key : map.get("0");</br>
 	 * String value : map.get("1");</br>
-	 * InputStream is : map.get("2");</br>
+	 * String MIME Type : map.get("2");</br>
+	 * InputStream is : map.get("3");</br>
 	 * @param context
 	 * @param httpUrl
 	 * @param contentList
 	 * @param isSkipDataRead 若為true，完成連線後須自行調用HttpURLConnection.disconnect()斷開連線
+	 * @param handler
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, List<Map<String, Object>> contentList
@@ -168,12 +173,18 @@ public class C_networkAccess{
 			objectArray[i][0] = map.get("0");
 			objectArray[i][1] = map.get("1");
 			objectArray[i][2] = map.get("2");
+			objectArray[i][3] = map.get("3");
 		}
 		return connectUseHttpURLConnection(context, httpUrl, objectArray, isSkipDataRead, handler);
 	}
 	
+	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, List<Map<String, Object>> contentList
+			, Handler handler){
+		return connectUseHttpURLConnection(context, httpUrl, contentList, false, handler);
+	}
+	
 	/**
-	 * HttpURLConnection MultiPort Encapsulation Layer<br>
+	 * HttpURLConnection MultiPort
 	 * @param context
 	 * @param httpUrl
 	 * @param objectArray
@@ -257,15 +268,7 @@ public class C_networkAccess{
 		return httpURLConnection;
 	}
 	
-	/**
-	 * HttpURLConnection Request Implement Layer<br>
-	 * @param httpUrl
-	 * @param objectArray
-	 * @param requestRangeIndex
-	 * @return
-	 */
-	public static HttpURLConnection connectUseHttpURLConnectionImplementRequest(String httpUrl, Object[][] objectArray
-			, String requestRangeIndex){
+	public static HttpURLConnection connectUseHttpURLConnectionImplementRequest(String httpUrl, Object[][] objectArray, String requestRangeIndex){
 		String requestType = "";
 		try {
 			URL url = new URL(httpUrl);
@@ -320,7 +323,7 @@ public class C_networkAccess{
 	}
 	
 	private static HttpURLConnection useHttpURLConnectionPost(URL httpUrl, Object[][] objectArray, String requestRangeIndex){
-		String twoHyphens = "--";
+		String hyphens = "--";
 		String boundary = "*****abcde*****";
 		String breakLine = "\r\n";
 		try {
@@ -348,33 +351,38 @@ public class C_networkAccess{
 			}
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
 			String charsetName = Charset.forName("UTF-8").displayName();
-			String key = "", value = "";
 			for(int i=0; i<objectArray.length; i++){
-				if(objectArray[i][0] != null) key = objectArray[i][0].toString();
-				if(objectArray[i][1] != null) value = objectArray[i][1].toString();
-				dataOutputStream.writeBytes(twoHyphens + boundary + breakLine);
-				if(objectArray[i].length > 2){
-					int progress;
-					byte[] buffer = new byte[1024];
-					InputStream is = (InputStream)objectArray[i][2];
-					dataOutputStream.writeBytes("Content-Disposition: form-data");
-					dataOutputStream.write(("; name=\"" + key + "\"").getBytes(charsetName));
-					dataOutputStream.write(("; filename=\"" + value + "\"").getBytes(charsetName));
-					dataOutputStream.writeBytes(breakLine + breakLine);
-					while((progress = is.read(buffer)) != -1){
-						dataOutputStream.write(buffer, 0, progress);
+				dataOutputStream.writeBytes(hyphens + boundary + breakLine);
+				if(objectArray[i].length == 2){
+					dataOutputStream.write(("Content-Disposition: form-data;" + 
+							" name=\"" + (String)objectArray[i][0] + "\"").getBytes(charsetName));
+					dataOutputStream.writeBytes(breakLine);
+					dataOutputStream.writeBytes(breakLine);
+					
+					dataOutputStream.write(((String)objectArray[i][1]).getBytes(charsetName));
+				}else if(objectArray[i].length == 4){
+					dataOutputStream.write(("Content-Disposition: form-data;" + 
+							" name=\"" + (String)objectArray[i][0] + "\";" + 
+							" filename=\"" + (String)objectArray[i][1] + "\"").getBytes(charsetName));
+					dataOutputStream.writeBytes(breakLine);
+					dataOutputStream.write(("Content-Type: " + (String)objectArray[i][2]).getBytes(charsetName));
+					dataOutputStream.writeBytes(breakLine);
+					dataOutputStream.writeBytes(breakLine);
+					
+					if(objectArray[i][3] != null && objectArray[i][3] instanceof InputStream){
+						InputStream is = (InputStream)objectArray[i][3];
+						int progress;
+						byte[] buffer = new byte[1024 * 8];
+						while((progress = is.read(buffer)) != -1){
+							dataOutputStream.write(buffer, 0, progress);
+						}
+						dataOutputStream.flush();
+						is.close();
 					}
-					dataOutputStream.flush();
-					is.close();
-				}else{
-					dataOutputStream.writeBytes("Content-Disposition: form-data");
-					dataOutputStream.write(("; name=\"" + key + "\"").getBytes(charsetName));
-					dataOutputStream.writeBytes(breakLine + breakLine);
-					dataOutputStream.write(value.getBytes(charsetName));
 				}
 				dataOutputStream.writeBytes(breakLine);
 			}
-			dataOutputStream.writeBytes(twoHyphens + boundary + twoHyphens);
+			dataOutputStream.writeBytes(hyphens + boundary + hyphens);
 			dataOutputStream.flush();
 			dataOutputStream.close();
 			return httpURLConnection;
@@ -387,22 +395,11 @@ public class C_networkAccess{
 	}
 	
 	/**
-	 * HttpClient Encapsulation Layer<br>
-	 * HttpGet
-	 * @param context
-	 * @param httpUrl
-	 * @return
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, Handler handler){
-		return connectUseHttpClient(context, httpUrl, null, null, false, handler);
-	}
-	
-	/**
-	 * HttpClient Encapsulation Layer<br>
 	 * HttpGet
 	 * @param context
 	 * @param httpUrl
 	 * @param isSkipDataRead
+	 * @param handler
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, boolean isSkipDataRead, Handler handler){
@@ -410,28 +407,46 @@ public class C_networkAccess{
 	}
 	
 	/**
-	 * HttpClient Encapsulation Layer<br>
+	 * HttpGet
+	 * @param context
+	 * @param httpUrl
+	 * @param handler
+	 * @return
+	 */
+	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, Handler handler){
+		return connectUseHttpClient(context, httpUrl, null, null, false, handler);
+	}
+	
+	/**
 	 * HttpPost UrlEncodedFormEntity
 	 * @param context
 	 * @param httpUrl
 	 * @param httpPostData
+	 * @param handler
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData, Handler handler){
 		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, handler);
 	}
 	
+	/**
+	 * HttpPost UrlEncodedFormEntity
+	 * @param context
+	 * @param httpUrl
+	 * @param httpPostData
+	 * @return
+	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData){
 		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, null);
 	}
 	
 	/**
-	 * HttpClient Encapsulation Layer<br>
 	 * HttpPost UrlEncodedFormEntity
 	 * @param context
 	 * @param httpUrl
 	 * @param httpPostData
 	 * @param isSkipDataRead
+	 * @param handler
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData
@@ -440,29 +455,29 @@ public class C_networkAccess{
 	}
 	
 	/**
-	 * HttpClient Encapsulation Layer<br>
-	 * HttpPost InputStreamEntity
-	 * @param context
-	 * @param httpUrl
-	 * @param is
-	 * @return
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, Handler handler){
-		return connectUseHttpClient(context, httpUrl, null, is, false, handler);
-	}
-	
-	/**
-	 * HttpClient Encapsulation Layer<br>
 	 * HttpPost InputStreamEntity
 	 * @param context
 	 * @param httpUrl
 	 * @param is
 	 * @param isSkipDataRead
+	 * @param handler
 	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, boolean isSkipDataRead
 			, Handler handler){
 		return connectUseHttpClient(context, httpUrl, null, is, isSkipDataRead, handler);
+	}
+	
+	/**
+	 * HttpPost InputStreamEntity
+	 * @param context
+	 * @param httpUrl
+	 * @param is
+	 * @param handler
+	 * @return
+	 */
+	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, Handler handler){
+		return connectUseHttpClient(context, httpUrl, null, is, false, handler);
 	}
 	
 	private static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData
@@ -475,14 +490,6 @@ public class C_networkAccess{
 		return connectionResult;
 	}
 	
-	/**
-	 * HttpClient Implement Layer<br>
-	 * @param httpUrl
-	 * @param httpPost
-	 * @param connectionResult
-	 * @param isSkipDataRead
-	 * @return
-	 */
 	public static ConnectionResult connectUseHttpClientImplementConnection(String httpUrl, HttpPost httpPost
 			, ConnectionResult connectionResult, boolean isSkipDataRead, Handler handler){
 		HttpResponse httpResponse = null;
@@ -624,7 +631,7 @@ public class C_networkAccess{
 		httpPost.addHeader("Content-Type", "application/octet-stream");
 		
 		int progress;
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[1024 * 8];
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			try {

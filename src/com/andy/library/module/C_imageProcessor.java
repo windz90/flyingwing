@@ -45,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.6
+ * @version 3.4.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -58,7 +58,9 @@ public class C_imageProcessor {
 	private static final String SAMPLE_WORD = "_SampleSize";
 	
 	public interface DownLoadComplete{
-		public void loadedImage(String streamURL, Bitmap bitmap);
+		public void cacheImage(String streamURL, Bitmap bitmap);
+		public void localLoadedImage(String streamURL, Bitmap bitmap);
+		public void remoteLoadedImage(String streamURL, Bitmap bitmap);
 		public void loadFail(String streamURL);
 	}
 	
@@ -228,9 +230,13 @@ public class C_imageProcessor {
 		imageName = imageName.replace(File.separator, "_");
 		try {
 			FileOutputStream fileOutStream = context.openFileOutput(imageName, Context.MODE_PRIVATE);
-			bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
-			fileOutStream.flush();
-			fileOutStream.close();
+			try {
+				bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
+				fileOutStream.flush();
+			} finally {
+				fileOutStream.close();
+				fileOutStream = null;
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -316,9 +322,13 @@ public class C_imageProcessor {
 		file = new File(insidePath + path + imageName);
 		try {
 			FileOutputStream fileOutStream = new FileOutputStream(file, false);
-			bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
-			fileOutStream.flush();
-			fileOutStream.close();
+			try {
+				bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
+				fileOutStream.flush();
+			} finally {
+				fileOutStream.close();
+				fileOutStream = null;
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -450,9 +460,13 @@ public class C_imageProcessor {
 			file = new File(sdCardPath + directory + imageName);
 			try {
 				FileOutputStream fileOutStream = new FileOutputStream(file, false);
-				bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
-				fileOutStream.flush();
-				fileOutStream.close();
+				try {
+					bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
+					fileOutStream.flush();
+				} finally {
+					fileOutStream.close();
+					fileOutStream = null;
+				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -594,9 +608,13 @@ public class C_imageProcessor {
 	public static void writeImageFile(File file, Bitmap bitmap, int quality){
 		try {
 			FileOutputStream fileOutStream = new FileOutputStream(file, false);
-			bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
-			fileOutStream.flush();
-			fileOutStream.close();
+			try {
+				bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
+				fileOutStream.flush();
+			} finally {
+				fileOutStream.close();
+				fileOutStream = null;
+			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -837,91 +855,28 @@ public class C_imageProcessor {
 		return -1;
 	}
 	
-	public static Bitmap getImageAsyncLoad(Context context, final String streamURL, final float specifiedSize, final DownLoadComplete complete){
-		if(streamURL == null || streamURL.trim().length() == 0){
-			return null;
-		}
-		
-		Bitmap bitmap = getBufferBitmap(streamURL, SAMPLE_WORD, getBufferSample(streamURL, SAMPLE_WORD, specifiedSize));
-		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
-        if(bitmap != null){
-            return bitmap;
-        }
-		
-		final Handler handler = new Handler(new Callback() {
-			
-			@Override
-			public boolean handleMessage(Message msg) {
-				if(msg.what == 0 && complete != null){
-					complete.loadedImage(streamURL, (Bitmap)msg.obj);
-				}else if(msg.what == 1 && complete != null){
-					complete.loadFail(streamURL);
-				}
-				return false;
-			}
-		});
-		Runnable runnableLoad = new Runnable() {
-			
-			@Override
-			public void run() {
-				try {
-					byte[] byteArray = loadStream(streamURL);
-					InputStream is = new ByteArrayInputStream(byteArray);
-					int scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
-					try {
-						is.reset();
-					} catch (IOException e1) {
-						try {
-							is.close();
-							is = null;
-						} catch (IOException e2) {}
-						is = new ByteArrayInputStream(byteArray);
-						System.out.println(e1);
-					}
-					Bitmap bitmap;
-					try {
-						bitmap = getAgileBitmap(is, scale);
-					} finally {
-						is.close();
-						is = null;
-					}
-					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
-					setBufferBitmap(bitmap, streamURL, SAMPLE_WORD, scale);
-					Message msg = new Message();
-					msg.obj = bitmap;
-					handler.sendMessage(msg);
-				} catch (IOException e) {
-					handler.sendEmptyMessage(1);
-					if(IMAGESETTING.isPrintLoadStreamException){System.out.println(e);}
-				}
-			}
-		};
-		
-		if(isConnect(context)){
-			EXECUTOR_SERVICE.submit(runnableLoad);
-		}
-		return null;
-	}
-	
-	public static Bitmap getImageAsyncLoadWriteLocal(final Context context, final String streamURL, final float specifiedSize, final int quality
+	public static Bitmap getImageAsync(final Context context, final String streamURL, final float specifiedSize, final int quality
 			, final String imageName, final DownLoadComplete complete){
 		if(streamURL == null || streamURL.trim().length() == 0){
+			if(complete != null){
+				complete.loadFail(streamURL);
+			}
 			return null;
 		}
 		
-		final Handler handlerLoad = new Handler(new Callback() {
+		final Handler handlerDownload = new Handler(new Callback() {
 			
 			@Override
 			public boolean handleMessage(Message msg) {
 				if(msg.what == 0 && complete != null){
-					complete.loadedImage(streamURL, (Bitmap)msg.obj);
-				}else if(msg.what == 1 && complete != null){
 					complete.loadFail(streamURL);
+				}else if(msg.what == 1 && complete != null){
+					complete.remoteLoadedImage(streamURL, (Bitmap)msg.obj);
 				}
 				return false;
 			}
 		});
-		final Runnable runnableLoad = new Runnable() {
+		final Runnable runnableDownload = new Runnable() {
 			
 			@Override
 			public void run() {
@@ -958,10 +913,11 @@ public class C_imageProcessor {
 					}
 					
 					Message msg = new Message();
+					msg.what = 1;
 					msg.obj = bitmap;
-					handlerLoad.sendMessage(msg);
-				} catch (IOException e) {
-					handlerLoad.sendEmptyMessage(1);
+					handlerDownload.sendMessage(msg);
+				} catch (Exception e) {
+					handlerDownload.sendEmptyMessage(0);
 					if(IMAGESETTING.isPrintLoadStreamException){System.out.println(e);}
 				}
 			}
@@ -972,17 +928,20 @@ public class C_imageProcessor {
 			@Override
 			public boolean handleMessage(Message msg) {
 				if(isConnect(context)){
-					EXECUTOR_SERVICE.submit(runnableLoad);
+					EXECUTOR_SERVICE.submit(runnableDownload);
 				}
 				return false;
 			}
 		});
-		return getImageAsyncLocal(context, streamURL, specifiedSize, imageName, complete, handlerNone);
+		return getImageAsyncLocalOnly(context, streamURL, specifiedSize, imageName, complete, handlerNone);
 	}
 	
-	public static Bitmap getImageAsyncLocal(final Context context, final String streamURL, final float specifiedSize, String imageName
+	public static Bitmap getImageAsyncLocalOnly(final Context context, final String streamURL, final float specifiedSize, String imageName
 			, final DownLoadComplete complete, final Handler handlerNone){
 		if(streamURL == null || streamURL.trim().length() == 0){
+			if(complete != null){
+				complete.loadFail(streamURL);
+			}
 			return null;
 		}
 		if(imageName == null){
@@ -996,6 +955,9 @@ public class C_imageProcessor {
 		Bitmap bitmap = getBufferBitmap(imageNameCopy, SAMPLE_WORD, getBufferSample(imageNameCopy, SAMPLE_WORD, specifiedSize));
 		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
 		if(bitmap != null){
+			if(complete != null){
+				complete.cacheImage(streamURL, bitmap);
+			}
 			return bitmap;
 		}
 		
@@ -1004,7 +966,7 @@ public class C_imageProcessor {
 			@Override
 			public boolean handleMessage(Message msg) {
 				if(complete != null){
-					complete.loadedImage(streamURL, (Bitmap)msg.obj);
+					complete.localLoadedImage(streamURL, (Bitmap)msg.obj);
 				}
 				return false;
 			}
@@ -1034,7 +996,7 @@ public class C_imageProcessor {
 					setBufferBitmap(bitmap, imageNameCopy, SAMPLE_WORD, scale);
 				} catch (FileNotFoundException e) {
 //					System.out.println(e);
-				} catch (IOException e) {
+				} catch (Exception e) {
 //					System.out.println(e);
 				}
 				
@@ -1049,6 +1011,79 @@ public class C_imageProcessor {
 			}
 		});
 		threadRead.start();
+		return null;
+	}
+	
+	public static Bitmap getImageAsyncRemoteOnly(Context context, final String streamURL, final float specifiedSize, final DownLoadComplete complete){
+		if(streamURL == null || streamURL.trim().length() == 0){
+			if(complete != null){
+				complete.loadFail(streamURL);
+			}
+			return null;
+		}
+		
+		Bitmap bitmap = getBufferBitmap(streamURL, SAMPLE_WORD, getBufferSample(streamURL, SAMPLE_WORD, specifiedSize));
+		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
+        if(bitmap != null){
+			if(complete != null){
+				complete.cacheImage(streamURL, bitmap);
+			}
+            return bitmap;
+        }
+		
+		final Handler handlerDownload = new Handler(new Callback() {
+			
+			@Override
+			public boolean handleMessage(Message msg) {
+				if(msg.what == 0 && complete != null){
+					complete.loadFail(streamURL);
+				}else if(msg.what == 1 && complete != null){
+					complete.remoteLoadedImage(streamURL, (Bitmap)msg.obj);
+				}
+				return false;
+			}
+		});
+		Runnable runnableDownload = new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					byte[] byteArray = loadStream(streamURL);
+					InputStream is = new ByteArrayInputStream(byteArray);
+					int scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+					try {
+						is.reset();
+					} catch (IOException e1) {
+						try {
+							is.close();
+							is = null;
+						} catch (IOException e2) {}
+						is = new ByteArrayInputStream(byteArray);
+						System.out.println(e1);
+					}
+					Bitmap bitmap;
+					try {
+						bitmap = getAgileBitmap(is, scale);
+					} finally {
+						is.close();
+						is = null;
+					}
+					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
+					setBufferBitmap(bitmap, streamURL, SAMPLE_WORD, scale);
+					Message msg = new Message();
+					msg.what = 1;
+					msg.obj = bitmap;
+					handlerDownload.sendMessage(msg);
+				} catch (Exception e) {
+					handlerDownload.sendEmptyMessage(0);
+					if(IMAGESETTING.isPrintLoadStreamException){System.out.println(e);}
+				}
+			}
+		};
+		
+		if(isConnect(context)){
+			EXECUTOR_SERVICE.submit(runnableDownload);
+		}
 		return null;
 	}
 	
@@ -1083,18 +1118,19 @@ public class C_imageProcessor {
 		}
 		Bitmap bitmap = null;
 		try {
-			try {
-				// BitmapFactory.decodeStream調用JNI>>nativeDecodeAsset()匯入圖片，避開JAVA層createBitmap的記憶體佔用
-				bitmap = BitmapFactory.decodeStream(is, null, options);
-			} finally {
-				is.close();
-				is = null;
-			}
-		} catch (IOException e) {
-//			System.out.println(e);
+			// BitmapFactory.decodeStream調用JNI>>nativeDecodeAsset()匯入圖片，避開JAVA層createBitmap的記憶體佔用
+			bitmap = BitmapFactory.decodeStream(is, null, options);
 		} catch (OutOfMemoryError e) {
 			bitmap = null;
 			System.out.println(e);
+		} finally {
+			if(is != null){
+				try {
+					is.close();
+				} catch (IOException e) {
+					is = null;
+				}
+			}
 		}
 		return bitmap;
 	}
@@ -1148,36 +1184,38 @@ public class C_imageProcessor {
 				int pixelByte = (bitmap.getRowBytes() * bitmap.getHeight()) / bitmap.getWidth() / bitmap.getHeight();
 				size = pixelByte * (long)bufferWidth * (long)bufferHeight;
 			}
-			MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, size);
-			bitmap.copyPixelsToBuffer(mappedByteBuffer);
-			bitmap.recycle();
-			bitmap = null;
-			System.gc();
-			
-			if(newWidth > 0 && newHeight > 0){
-				/*
-				 * Bitmap CreateType
-				 * 1.
-				 * Bitmap.createBitmap(display, width, height, config)
-				 * Bitmap.createBitmap(width, height, config)
-				 * 2.
-				 * Bitmap.createBitmap(display, colors, offset, stride, width, height, config)
-				 * Bitmap.createBitmap(colors, offset, stride, width, height, config)
-				 * Bitmap.createBitmap(display, colors, width, height, config)
-				 * Bitmap.createBitmap(colors, width, height, config)
-				 * 3.
-				 * Bitmap.createBitmap(source, x, y, width, height, m, filter);
-				 * Bitmap.createBitmap(source, x, y, width, height)
-				 * Bitmap.createBitmap(src)
-				 */
-				bitmap = Bitmap.createBitmap(newWidth, newHeight, config);
-				mappedByteBuffer.position(0);
-				bitmap.copyPixelsFromBuffer(mappedByteBuffer);
+			try {
+				MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, size);
+				bitmap.copyPixelsToBuffer(mappedByteBuffer);
+				bitmap.recycle();
+				bitmap = null;
+				System.gc();
+				
+				if(newWidth > 0 && newHeight > 0){
+					/*
+					 * Bitmap CreateType
+					 * 1.
+					 * Bitmap.createBitmap(display, width, height, config)
+					 * Bitmap.createBitmap(width, height, config)
+					 * 2.
+					 * Bitmap.createBitmap(display, colors, offset, stride, width, height, config)
+					 * Bitmap.createBitmap(colors, offset, stride, width, height, config)
+					 * Bitmap.createBitmap(display, colors, width, height, config)
+					 * Bitmap.createBitmap(colors, width, height, config)
+					 * 3.
+					 * Bitmap.createBitmap(source, x, y, width, height, m, filter);
+					 * Bitmap.createBitmap(source, x, y, width, height)
+					 * Bitmap.createBitmap(src)
+					 */
+					bitmap = Bitmap.createBitmap(newWidth, newHeight, config);
+					mappedByteBuffer.position(0);
+					bitmap.copyPixelsFromBuffer(mappedByteBuffer);
+				}
+				mappedByteBuffer = null;
+			} finally {
+				fileChannel.close();
+				randomAccessFile.close();
 			}
-			mappedByteBuffer = null;
-			fileChannel.close();
-			randomAccessFile.close();
-			tempFile.delete();
 		} catch (FileNotFoundException e) {
 			System.out.println(e);
 		} catch (IOException e) {
@@ -1186,8 +1224,11 @@ public class C_imageProcessor {
 			System.out.println(e);
 		} catch (OutOfMemoryError e) {
 			bitmap = null;
-			tempFile = null;
 			System.out.println(e);
+		} finally {
+			if(tempFile != null){
+				tempFile.delete();
+			}
 		}
 		return bitmap;
 	}
