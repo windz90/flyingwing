@@ -105,7 +105,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.5
+ * @version 3.3.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -870,11 +870,12 @@ public class Utils {
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		int visibleHe = displayMetrics.heightPixels - getStatusBarHeight(context.getResources(), 0);
+		int visibleHe = displayMetrics.heightPixels - getStatusBarHeight(0);
 		return visibleHe;
 	}
 	
-	public static int getStatusBarHeight(Resources res, int defValue){
+	public static int getStatusBarHeight(int defValue){
+		Resources res = Resources.getSystem();
 		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
 		if(resourceId > 0){
 			return res.getDimensionPixelSize(resourceId);
@@ -2430,29 +2431,6 @@ public class Utils {
 		point.set(x / 2, y / 2);
 	}
 	
-	public static void clearViewGroup(ViewGroup viewGroup, boolean isIndicatesGC){
-		List<View> list = new ArrayList<View>();
-		Utils.getViewGroupAllView(viewGroup, list);
-		View view;
-		for(int i=0; i<list.size(); i++){
-			view = list.get(i);
-			if(view != null){
-				Utils.clearViewInsideDrawable(view, true, true, false);
-				view.clearFocus();
-			}
-		}
-		view = null;
-		list.clear();
-		list = null;
-		if(isIndicatesGC){
-			System.gc();
-		}
-	}
-	
-	public static void activityFinishClear(Activity activity, boolean isIndicatesGC){
-		clearViewGroup((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
-	}
-	
 	public static void getViewGroupAllView(View view, List<View> list){
 		list.add(view);
 		if(view instanceof ViewGroup){
@@ -2467,6 +2445,57 @@ public class Utils {
 				}
 			}
 		}
+	}
+	
+	public static List<View> getViewGroupAllView(View view){
+		List<View> list = new ArrayList<View>();
+		getViewGroupAllView(view, list);
+		return list;
+	}
+	
+	public static List<View> findViewByClass(View view, Class<?> targetClass, boolean isPrintClassName){
+		List<View> list = new ArrayList<View>();
+		List<View> listMatch = new ArrayList<View>();
+		getViewGroupAllView(view, list);
+		int size = list.size();
+		for(int i=0; i<size; i++){
+			if(isPrintClassName){
+				System.out.println(i + " " + list.get(i).getClass().getName());
+			}
+			if(targetClass.isInstance(list.get(i))){
+				listMatch.add(list.get(i));
+			}
+		}
+		list.clear();
+		list = null;
+		return listMatch;
+	}
+	
+	public static List<View> findViewByClass(View view, Class<?> targetClass){
+		return findViewByClass(view, targetClass, false);
+	}
+	
+	public static void clearViewGroup(ViewGroup viewGroup, boolean isIndicatesGC){
+		List<View> list = new ArrayList<View>();
+		getViewGroupAllView(viewGroup, list);
+		View view;
+		for(int i=0; i<list.size(); i++){
+			view = list.get(i);
+			if(view != null){
+				clearViewInsideDrawable(view, true, true, false);
+				view.clearFocus();
+			}
+		}
+		view = null;
+		list.clear();
+		list = null;
+		if(isIndicatesGC){
+			System.gc();
+		}
+	}
+	
+	public static void activityFinishClear(Activity activity, boolean isIndicatesGC){
+		clearViewGroup((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
 	}
 	
 	@SuppressWarnings("deprecation")
