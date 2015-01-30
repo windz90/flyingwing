@@ -20,7 +20,6 @@ import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.DisplayMetrics;
@@ -45,17 +44,19 @@ import com.andy.library.R;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.4
+ * @version 2.3.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 public class C_subWindow {
 	
+	public static boolean sIsInstanceShow;
+	
 	public interface ClickAction{
 		public void action(View v, int clickIndex, Bundle bundle);
 	}
 	
-	public static void alertBuilderOnlyMessage(Context context, String title, String message, final DialogInterface.OnClickListener click) {
+	public static void alertBuilderMessage(Context context, String title, String message, final DialogInterface.OnClickListener click) {
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
@@ -64,7 +65,9 @@ public class C_subWindow {
 			
 			@Override
 			public void onCancel(DialogInterface dialog) {
-				click.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
+				if(click != null){
+					click.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
+				}
 			}
 		});
 		if(context instanceof Activity){
@@ -76,28 +79,141 @@ public class C_subWindow {
 		}
 	}
 	
-	public static void alertBuilderOnlyMessage(Context context, String message, DialogInterface.OnClickListener click) {
-		alertBuilderOnlyMessage(context, null, message, click);
+	public static void alertBuilderMessage(Context context, String message, DialogInterface.OnClickListener click) {
+		alertBuilderMessage(context, null, message, click);
 	}
 	
-	public static void alertBuilderOnlyMessage(Context context, String message) {
-		DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-			}
-		};
-		alertBuilderOnlyMessage(context, null, message, click);
+	public static void alertBuilderMessage(Context context, String title, String message) {
+		alertBuilderMessage(context, title, message, null);
 	}
 	
-	public static void alertBuilderOnlyMessage(Context context, String title, String message) {
-		DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
-
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
+	public static void alertBuilderMessage(Context context, String message) {
+		alertBuilderMessage(context, null, message, null);
+	}
+	
+	public static void popupMessage(Context context, final View view, boolean isSetLocation, int gravity, int x, int y, int width, int height
+			, String[] strArray, final ClickAction clickAction){
+		Resources res = context.getResources();
+		
+		int space;
+		LinearLayout.LayoutParams linLayPar;
+		
+		DisplayMetrics dm = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(dm);
+		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		
+		LinearLayout linLay;
+		ScrollView scrollView;
+		LinearLayout scrollLinLay;
+		View viewSpace;
+		TextView[] textViews = new TextView[4];
+		
+		space = (int)(5 * dm.density);
+		linLayPar = new LayoutParams(width, LayoutParams.WRAP_CONTENT);
+		linLay = new LinearLayout(context);
+		linLay.setOrientation(LinearLayout.VERTICAL);
+		linLay.setLayoutParams(linLayPar);
+		linLay.setPadding(space, space, space, space);
+		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
+		
+		linLayPar = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+		scrollView = new ScrollView(context);
+		scrollView.setLayoutParams(linLayPar);
+		linLay.addView(scrollView);
+		
+		scrollLinLay = new LinearLayout(context);
+		scrollLinLay.setOrientation(LinearLayout.VERTICAL);
+		scrollLinLay.setLayoutParams(linLayPar);
+		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
+		scrollView.addView(scrollLinLay);
+		
+		linLayPar = new LayoutParams(LayoutParams.MATCH_PARENT, res.getDimensionPixelSize(R.dimen.dip10));
+		viewSpace = new View(context);
+		viewSpace.setLayoutParams(linLayPar);
+		
+		linLayPar = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+		for(int i=0; i<textViews.length; i++){
+			textViews[i] = new TextView(context);
+			textViews[i].setLayoutParams(linLayPar);
+			if(i < 2){
+				textViews[i].setGravity(Gravity.CENTER_VERTICAL);
 			}
-		};
-		alertBuilderOnlyMessage(context, title, message, click);
+			textViews[i].setTextColor(res.getColor(android.R.color.black));
+			if(i == 0){
+				textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+			}else if(i == 1){
+				textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
+			}else{
+				textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TEXT, isBigScreen));
+			}
+			if(i < 2){
+				textViews[i].getPaint().setFakeBoldText(true);
+				textViews[i].setEllipsize(TruncateAt.END);
+				textViews[i].setMaxLines(2);
+			}
+			
+			if(i < strArray.length && !TextUtils.isEmpty(strArray[i])){
+				textViews[i].setText(strArray[i]);
+			}else{
+				textViews[i].setVisibility(View.GONE);
+			}
+		}
+		
+		scrollLinLay.addView(textViews[0]);
+		scrollLinLay.addView(textViews[1]);
+		scrollLinLay.addView(viewSpace);
+		scrollLinLay.addView(textViews[2]);
+		scrollLinLay.addView(textViews[3]);
+		
+		if((textViews[0].getVisibility() == View.GONE && textViews[1].getVisibility() == View.GONE) || 
+				(textViews[2].getVisibility() == View.GONE && textViews[3].getVisibility() == View.GONE)){
+			viewSpace.setVisibility(View.GONE);
+		}
+		
+		PopupWindow popupWindow = new PopupWindow(context);
+		popupWindow.setWidth(width);
+		popupWindow.setHeight(height);
+		popupWindow.setFocusable(true);
+		popupWindow.setOutsideTouchable(true);
+		popupWindow.setBackgroundDrawable(res.getDrawable(android.R.drawable.alert_light_frame));
+		popupWindow.setContentView(linLay);
+		if(context instanceof Activity){
+			if(!((Activity)context).isFinishing()){
+				if(isSetLocation){
+					popupWindow.showAtLocation(view, gravity, x, y);
+				}else{
+					popupWindow.showAsDropDown(view);
+				}
+			}
+		}else if(isSetLocation){
+			popupWindow.showAtLocation(view, gravity, x, y);
+		}else{
+			popupWindow.showAsDropDown(view);
+		}
+		
+		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+			
+			@Override
+			public void onDismiss() {
+				if(clickAction != null){
+					clickAction.action(view, 0, null);
+				}
+			}
+		});
+	}
+	
+	public static void popupMessage(Context context, View view, boolean isSetLocation, int gravity, int x, int y, String[] strArray
+			, ClickAction clickAction){
+		popupMessage(context, view, isSetLocation, gravity, x, y, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, strArray, clickAction);
+	}
+	
+	public static void popupMessage(Context context, View view, int width, int height, String[] strArray, ClickAction clickAction){
+		popupMessage(context, view, false, Gravity.NO_GRAVITY, 0, 0, width, height, strArray, clickAction);
+	}
+	
+	public static void popupMessage(Context context, View view, String[] strArray, ClickAction clickAction){
+		popupMessage(context, view, false, Gravity.NO_GRAVITY, 0, 0, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, strArray, clickAction);
 	}
 	
 	public static void alertBuilderConfirm(final Context context, String title, String message, final ClickAction clickAction){
@@ -107,7 +223,9 @@ public class C_subWindow {
 			public void onClick(DialogInterface dialog, int which) {
 				// DialogInterface.BUTTON_POSITIVE
 				// DialogInterface.BUTTON_NEGATIVE
-				clickAction.action(null, which, null);
+				if(clickAction != null){
+					clickAction.action(null, which, null);
+				}
 			}
 		};
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
@@ -167,7 +285,7 @@ public class C_subWindow {
 	}
 	
 	public static void alertMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
-			, boolean isOutsideCancel, final ClickAction click){
+			, boolean isOutsideCancel, final ClickAction clickAction){
 		Resources res = context.getResources();
 		
 		int itemWi, itemHe, space;
@@ -218,13 +336,12 @@ public class C_subWindow {
 				e.printStackTrace();
 			}
 			button[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
-			button[i].setText(strArray[i][1]);
+			button[i].getPaint().setFakeBoldText(true);
 			button[i].setEllipsize(TruncateAt.END);
 			button[i].setMaxLines(2);
 			scrollLinLay.addView(button[i]);
 			
-			TextPaint textPaint = button[i].getPaint();
-			textPaint.setFakeBoldText(true);
+			button[i].setText(strArray[i][1]);
 		}
 		
 		DialogInterface.OnClickListener onClick = new DialogInterface.OnClickListener() {
@@ -260,10 +377,12 @@ public class C_subWindow {
 				
 				@Override
 				public void onClick(View v) {
-					Bundle bundle = new Bundle();
-					bundle.putString("itemId", strArray[count][0]);
-					bundle.putString("itemTitle", strArray[count][1]);
-					click.action(v, count, bundle);
+					if(clickAction != null){
+						Bundle bundle = new Bundle();
+						bundle.putString("itemId", strArray[count][0]);
+						bundle.putString("itemTitle", strArray[count][1]);
+						clickAction.action(v, count, bundle);
+					}
 					alertDialog.dismiss();
 				}
 			});
@@ -281,7 +400,7 @@ public class C_subWindow {
 	}
 	
 	public static void dialogMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
-			, boolean isOutsideCancel, final ClickAction click){
+			, boolean isOutsideCancel, final ClickAction clickAction){
 		Resources res = context.getResources();
 		
 		int itemWi, itemHe, space;
@@ -323,11 +442,10 @@ public class C_subWindow {
 			textView.setGravity(Gravity.CENTER_VERTICAL);
 			textView.setTextColor(res.getColor(android.R.color.black));
 			textView.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
-			textView.setText(title);
+			textView.getPaint().setFakeBoldText(true);
 			scrollLinLay.addView(textView);
 			
-			TextPaint textPaint = textView.getPaint();
-			textPaint.setFakeBoldText(true);
+			textView.setText(title);
 		}
 		
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
@@ -349,17 +467,16 @@ public class C_subWindow {
 				e.printStackTrace();
 			}
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+			buttons[i].getPaint().setFakeBoldText(true);
+			buttons[i].setEllipsize(TruncateAt.END);
+			buttons[i].setMaxLines(2);
+			scrollLinLay.addView(buttons[i]);
+			
 			if(i < buttons.length - 1){
 				buttons[i].setText(strArray[i][1]);
 			}else{
 				buttons[i].setText(res.getString(R.string.cancel));
 			}
-			buttons[i].setEllipsize(TruncateAt.END);
-			buttons[i].setMaxLines(2);
-			scrollLinLay.addView(buttons[i]);
-			
-			TextPaint textPaint = buttons[i].getPaint();
-			textPaint.setFakeBoldText(true);
 		}
 		
 		final Dialog dialog = new Dialog(context);
@@ -388,11 +505,11 @@ public class C_subWindow {
 				
 				@Override
 				public void onClick(View v) {
-					if(count < buttons.length - 1){
+					if(clickAction != null && count < strArray.length - 1){
 						Bundle bundle = new Bundle();
 						bundle.putString("itemId", strArray[count][0]);
 						bundle.putString("itemTitle", strArray[count][1]);
-						click.action(v, count, bundle);
+						clickAction.action(v, count, bundle);
 					}
 					dialog.dismiss();
 				}
@@ -411,7 +528,7 @@ public class C_subWindow {
 	}
 	
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, int[] selectedArray, String title
-			, ListAdapter adp, final boolean isMult, boolean isOutsideCancel, final ClickAction click) {
+			, ListAdapter adp, final boolean isMult, boolean isOutsideCancel, final ClickAction clickAction) {
 		Resources res = context.getResources();
 		
 		int itemWi, itemHe, space;
@@ -464,8 +581,7 @@ public class C_subWindow {
 				topViews[i].setTextColor(res.getColor(android.R.color.black));
 				if(i == 1){
 					topViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
-					TextPaint txtPaint = topViews[i].getPaint();
-					txtPaint.setFakeBoldText(true);
+					topViews[i].getPaint().setFakeBoldText(true);
 				}else{
 					topViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TEXT, isBigScreen));
 				}
@@ -548,11 +664,13 @@ public class C_subWindow {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-				Bundle bundle = new Bundle();
-				bundle.putString("itemId", "" + position);
-				bundle.putString("itemTitle", parent.getAdapter().getItem(position).toString());
-				bundle.putBoolean("itemStatus", listView.isItemChecked(position));
-				click.action(view, position, bundle);
+				if(clickAction != null){
+					Bundle bundle = new Bundle();
+					bundle.putString("itemId", "" + position);
+					bundle.putString("itemTitle", parent.getAdapter().getItem(position).toString());
+					bundle.putBoolean("itemStatus", listView.isItemChecked(position));
+					clickAction.action(view, position, bundle);
+				}
 				if(!isMult){
 					dialog.dismiss();
 				}
@@ -603,7 +721,7 @@ public class C_subWindow {
 	}
 	
 	public static void popupMenuUseButton(Context context, View view, int width, int height, String title, final String[][] strArray
-			, final ClickAction click){
+			, final ClickAction clickAction){
 		Resources res = context.getResources();
 		
 		int itemWi;
@@ -665,22 +783,20 @@ public class C_subWindow {
 				e.printStackTrace();
 			}
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
-			buttons[i].setText(strArray[i][1]);
+			buttons[i].getPaint().setFakeBoldText(true);
 			buttons[i].setEllipsize(TruncateAt.END);
 			buttons[i].setMaxLines(2);
 			scrollLinLay.addView(buttons[i]);
 			
-			TextPaint textPaint = buttons[i].getPaint();
-			textPaint.setFakeBoldText(true);
+			buttons[i].setText(strArray[i][1]);
 		}
 		
-		ColorDrawable colorDrawable = new ColorDrawable(0x00000000);
 		final PopupWindow popupWindow = new PopupWindow(context);
 		popupWindow.setWidth(width);
 		popupWindow.setHeight(height);
 		popupWindow.setFocusable(true);
 		popupWindow.setOutsideTouchable(true);
-		popupWindow.setBackgroundDrawable(colorDrawable);
+		popupWindow.setBackgroundDrawable(new ColorDrawable(0x00000000));
 		popupWindow.setContentView(linLay);
 		if(context instanceof Activity){
 			if(!((Activity)context).isFinishing()){
@@ -696,10 +812,12 @@ public class C_subWindow {
 				
 				@Override
 				public void onClick(View v) {
-					Bundle bundle = new Bundle();
-					bundle.putString("itemId", strArray[count][0]);
-					bundle.putString("itemTitle", strArray[count][1]);
-					click.action(v, count, bundle);
+					if(clickAction != null && count < strArray.length - 1){
+						Bundle bundle = new Bundle();
+						bundle.putString("itemId", strArray[count][0]);
+						bundle.putString("itemTitle", strArray[count][1]);
+						clickAction.action(v, count, bundle);
+					}
 					popupWindow.dismiss();
 				}
 			});

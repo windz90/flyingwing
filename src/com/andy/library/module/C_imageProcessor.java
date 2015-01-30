@@ -45,7 +45,7 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.7
+ * @version 3.4.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1283,7 +1283,7 @@ public class C_imageProcessor {
 		return clearPaint;
 	}
 	
-	public static void setPaintColorFilter(Paint paint, float baseRed, float baseGreen, float baseBlue, float baseAlpha
+	public static ColorMatrix getColorMatrix(float baseRed, float baseGreen, float baseBlue, float baseAlpha
 			, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
 		ColorMatrix colorMatrix = new ColorMatrix();
 		// 設定顏色矩陣R, G, B, A, offset
@@ -1292,9 +1292,14 @@ public class C_imageProcessor {
 				, 0, baseGreen, 0, 0, offsetGreen// sumGreen
 				, 0, 0, baseBlue, 0, offsetBlue// sumBlue
 				, 0, 0, 0, baseAlpha, offsetAlpha};// sumAlpha
-		// 設定筆色效果
 		colorMatrix.set(color);
-		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+		return colorMatrix;
+	}
+	
+	public static void setPaintColorFilter(Paint paint, float baseRed, float baseGreen, float baseBlue, float baseAlpha
+			, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
+		paint.setColorFilter(new ColorMatrixColorFilter(getColorMatrix(baseRed, baseGreen, baseBlue, baseAlpha, offsetRed, offsetGreen, offsetBlue
+				, offsetAlpha)));
 	}
 	
 	public static void setPaintColorFilter(Paint paint, float offsetRed, float offsetGreen, float offsetBlue, float offsetAlpha){
@@ -1306,30 +1311,27 @@ public class C_imageProcessor {
 	}
 	
 	/**
-	 * 設定畫筆顏色亮度
-	 * @param paint
+	 * 設定顏色亮度
 	 * @param brightnessValue
 	 */
-	public static void setPaintBrightness(Paint paint, float brightnessValue){
-		setPaintColorFilter(paint, 1.0f, 1.0f, 1.0f, 1.0f, brightnessValue, brightnessValue, brightnessValue, 0);
+	public static ColorMatrix setBrightness(float brightnessValue){
+		return getColorMatrix(1.0f, 1.0f, 1.0f, 1.0f, brightnessValue, brightnessValue, brightnessValue, 0);
 	}
 	
 	/**
-	 * 設定畫筆顏色對比
-	 * @param paint
+	 * 設定顏色對比
 	 * @param contrastValue
 	 */
-	public static void setPaintContrast(Paint paint, float contrastValue){
+	public static ColorMatrix setContrast(float contrastValue){
 		final float offset = 127.5f * (1.0f - contrastValue);
-		setPaintColorFilter(paint, contrastValue, contrastValue, contrastValue, 1.0f, offset, offset, offset, 0);
+		return getColorMatrix(contrastValue, contrastValue, contrastValue, 1.0f, offset, offset, offset, 0);
 	}
 	
 	/**
-	 * 設定畫筆顏色飽和
-	 * @param paint
+	 * 設定顏色飽和
 	 * @param saturationValue
 	 */
-	public static void setPaintSaturation(Paint paint, float saturationValue){
+	public static ColorMatrix setSaturation(float saturationValue){
 		// R = 0.3086, G = 0.6094, B = 0.0820
 		// R = 0.213, G = 0.715, B = 0.072
 		// colorMatrix.setSaturation(saturationValue);
@@ -1344,7 +1346,70 @@ public class C_imageProcessor {
 				, R, G, B + saturationValue, 0, 0
 				, 0, 0, 0, 1, 0};
 		colorMatrix.set(color);
-		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+		return colorMatrix;
+	}
+	
+	/**
+	 * 設定顏色色相（色調）旋轉
+	 * @param hueDegreesOffsetValue
+	 */
+	public static ColorMatrix setHueRotate(float hueDegreesOffsetValue){
+		ColorMatrix colorMatrix = new ColorMatrix();
+		colorMatrix.setRotate(0, hueDegreesOffsetValue);
+		colorMatrix.setRotate(1, hueDegreesOffsetValue);
+		colorMatrix.setRotate(2, hueDegreesOffsetValue);
+		return colorMatrix;
+	}
+	
+	/**
+	 * 設定顏色反相（負片、互補色）
+	 * @param offsetRed
+	 * @param offsetGreen
+	 * @param offsetBlue
+	 */
+	public static ColorMatrix setInverting(){
+		return getColorMatrix(-1.0f, -1.0f, -1.0f, 1.0f, 255, 255, 255, 0);
+	}
+	
+	/**
+	 * 設定顏色高低互補色
+	 * @param offsetRed
+	 * @param offsetGreen
+	 * @param offsetBlue
+	 */
+	public static ColorMatrix setComplementaryHighLowColor(float offsetRed, float offsetGreen, float offsetBlue
+			, float offsetAlpha){
+		float[] colors = new float[]{offsetRed, offsetGreen, offsetBlue};
+		Arrays.sort(colors);
+		float sumValue = colors[0] + colors[2];
+		return getColorMatrix(1.0f, 1.0f, 1.0f, 1.0f, sumValue - offsetRed, sumValue - offsetGreen, sumValue - offsetBlue, offsetAlpha);
+	}
+	
+	/**
+	 * 設定畫筆顏色亮度
+	 * @param paint
+	 * @param brightnessValue
+	 */
+	public static void setPaintBrightness(Paint paint, float brightnessValue){
+		paint.setColorFilter(new ColorMatrixColorFilter(setBrightness(brightnessValue)));
+	}
+	
+	/**
+	 * 設定畫筆顏色對比
+	 * @param paint
+	 * @param contrastValue
+	 */
+	public static void setPaintContrast(Paint paint, float contrastValue){
+		paint.setColorFilter(new ColorMatrixColorFilter(setContrast(contrastValue)));
+	}
+	
+	/**
+	 * 設定畫筆顏色飽和
+	 * @param paint
+	 * @param saturationValue
+	 */
+	public static void setPaintSaturation(Paint paint, float saturationValue){
+		paint.setColorFilter(new ColorMatrixColorFilter(setSaturation(saturationValue)));
 	}
 	
 	/**
@@ -1353,11 +1418,7 @@ public class C_imageProcessor {
 	 * @param hueDegreesOffsetValue
 	 */
 	public static void setPaintHueRotate(Paint paint, float hueDegreesOffsetValue){
-		ColorMatrix colorMatrix = new ColorMatrix();
-		colorMatrix.setRotate(0, hueDegreesOffsetValue);
-		colorMatrix.setRotate(1, hueDegreesOffsetValue);
-		colorMatrix.setRotate(2, hueDegreesOffsetValue);
-		paint.setColorFilter(new ColorMatrixColorFilter(colorMatrix));
+		paint.setColorFilter(new ColorMatrixColorFilter(setHueRotate(hueDegreesOffsetValue)));
 	}
 	
 	/**
@@ -1368,7 +1429,7 @@ public class C_imageProcessor {
 	 * @param offsetBlue
 	 */
 	public static void setPaintInverting(Paint paint){
-		setPaintColorFilter(paint, -1.0f, -1.0f, -1.0f, 1.0f, 255, 255, 255, 0);
+		paint.setColorFilter(new ColorMatrixColorFilter(setInverting()));
 	}
 	
 	/**
@@ -1380,11 +1441,7 @@ public class C_imageProcessor {
 	 */
 	public static void setPaintComplementaryHighLowColor(Paint paint, float offsetRed, float offsetGreen, float offsetBlue
 			, float offsetAlpha){
-		float[] colors = new float[]{offsetRed, offsetGreen, offsetBlue};
-		Arrays.sort(colors);
-		float sumValue = colors[0] + colors[2];
-		setPaintColorFilter(paint, 1.0f, 1.0f, 1.0f, 1.0f, sumValue - offsetRed, sumValue - offsetGreen, sumValue - offsetBlue
-				, offsetAlpha);
+		paint.setColorFilter(new ColorMatrixColorFilter(setComplementaryHighLowColor(offsetRed, offsetGreen, offsetBlue, offsetAlpha)));
 	}
 	
 	/**
