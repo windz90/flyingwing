@@ -13,26 +13,85 @@
 	<color name="Cyan">#FF00FFFF</color>
 	<color name="Purple">#FFFF00FF</color>
 	
-	<color name="Black55">#55000000</color>
-	<color name="BlackAA">#AA000000</color>
-	<color name="Black40">#40000000</color>
-	<color name="Black80">#80000000</color>
-	<color name="BlackC0">#C0000000</color>
-	<color name="Black33">#33000000</color>
-	<color name="Black66">#66000000</color>
-	<color name="Black99">#99000000</color>
-	<color name="BlackCC">#CC000000</color>
-	<color name="White66">#66FFFFFF</color>
-	<color name="WhiteCC">#CCFFFFFF</color>
-	<color name="Gray66">#66808080</color>
-	<color name="GrayCC">#CC808080</color>
+	<color name="Red55">#FF550000</color>
+	<color name="RedAA">#FFAA0000</color>
+	<color name="Red40">#FF400000</color>
+	<color name="Red80">#FF800000</color>
+	<color name="RedC0">#FFC00000</color>
+	<color name="Red33">#FF330000</color>
+	<color name="Red66">#FF660000</color>
+	<color name="Red99">#FF990000</color>
+	<color name="RedCC">#FFCC0000</color>
 	
-	<color name="Red9C">#FF9C0000</color>
-	<color name="Green9C">#FF009C00</color>
-	<color name="Blue9C">#FF00009C</color>
-	<color name="Yellow9C9C00">#FF9C9C00</color>
-	<color name="Cyan009C9C">#FF009C9C</color>
-	<color name="Purple9C009C">#FF9C009C</color>
+	<color name="Green55">#FF005500</color>
+	<color name="GreenAA">#FF00AA00</color>
+	<color name="Green40">#FF004000</color>
+	<color name="Green80">#FF008000</color>
+	<color name="GreenC0">#FF00C000</color>
+	<color name="Green33">#FF003300</color>
+	<color name="Green66">#FF006600</color>
+	<color name="Green99">#FF009900</color>
+	<color name="GreenCC">#FF00CC00</color>
+	
+	<color name="Blue55">#FF000055</color>
+	<color name="BlueAA">#FF0000AA</color>
+	<color name="Blue40">#FF000040</color>
+	<color name="Blue80">#FF000080</color>
+	<color name="BlueC0">#FF0000C0</color>
+	<color name="Blue33">#FF000033</color>
+	<color name="Blue66">#FF000066</color>
+	<color name="Blue99">#FF000099</color>
+	<color name="BlueCC">#FF0000CC</color>
+	
+	<color name="Yellow55">#FF555500</color>
+	<color name="YellowAA">#FFAAAA00</color>
+	<color name="Yellow40">#FF404000</color>
+	<color name="Yellow80">#FF808000</color>
+	<color name="YellowC0">#FFC0C000</color>
+	<color name="Yellow33">#FF333300</color>
+	<color name="Yellow66">#FF666600</color>
+	<color name="Yellow99">#FF999900</color>
+	<color name="YellowCC">#FFCCCC00</color>
+	
+	<color name="Cyan55">#FF005555</color>
+	<color name="CyanAA">#FF00AAAA</color>
+	<color name="Cyan40">#FF004040</color>
+	<color name="Cyan80">#FF008080</color>
+	<color name="CyanC0">#FF00C0C0</color>
+	<color name="Cyan33">#FF003333</color>
+	<color name="Cyan66">#FF006666</color>
+	<color name="Cyan99">#FF009999</color>
+	<color name="CyanCC">#FF00CCCC</color>
+	
+	<color name="Purple55">#FF550055</color>
+	<color name="PurpleAA">#FFAA00AA</color>
+	<color name="Purple40">#FF400040</color>
+	<color name="Purple80">#FF800080</color>
+	<color name="PurpleC0">#FFC000C0</color>
+	<color name="Purple33">#FF330033</color>
+	<color name="Purple66">#FF660066</color>
+	<color name="Purple99">#FF990099</color>
+	<color name="PurpleCC">#FFCC00CC</color>
+	
+	<color name="BlackAlpha55">#55000000</color>
+	<color name="BlackAlphaAA">#AA000000</color>
+	<color name="BlackAlpha40">#40000000</color>
+	<color name="BlackAlpha80">#80000000</color>
+	<color name="BlackAlphaC0">#C0000000</color>
+	<color name="BlackAlpha33">#33000000</color>
+	<color name="BlackAlpha66">#66000000</color>
+	<color name="BlackAlpha99">#99000000</color>
+	<color name="BlackAlphaCC">#CC000000</color>
+	
+	<color name="WhiteAlpha55">#55FFFFFF</color>
+	<color name="WhiteAlphaAA">#AAFFFFFF</color>
+	<color name="WhiteAlpha40">#40FFFFFF</color>
+	<color name="WhiteAlpha80">#80FFFFFF</color>
+	<color name="WhiteAlphaC0">#C0FFFFFF</color>
+	<color name="WhiteAlpha33">#33FFFFFF</color>
+	<color name="WhiteAlpha66">#66FFFFFF</color>
+	<color name="WhiteAlpha99">#99FFFFFF</color>
+	<color name="WhiteAlphaCC">#CCFFFFFF</color>
 	
 	<color name="Orange">#FFFF8000</color>
 	<color name="OrangeRed">#FFFF4000</color>

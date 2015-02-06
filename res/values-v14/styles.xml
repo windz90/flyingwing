@@ -122,9 +122,9 @@
 	<!-- android:Widget.DeviceDefault.ActionBar -->
 	<!-- android:Widget.DeviceDefault.Light.ActionBar -->
 	<style name="ActionBarStyle" parent="android:Widget.Holo.Light.ActionBar">
-		<item name="android:background">@color/Blue9C</item>
+		<item name="android:background">@color/Blue99</item>
 		<item name="android:backgroundStacked">@color/BlackGray</item>
-		<item name="android:backgroundSplit">@color/Blue9C</item>
+		<item name="android:backgroundSplit">@color/Blue99</item>
 		<item name="android:divider">?android:attr/dividerVertical</item>
 		<item name="android:displayOptions">useLogo|showHome|showTitle|showCustom</item>
 		<item name="android:icon">@drawable/ic_launcher</item>

@@ -108,7 +108,7 @@ public class TabRecord extends TabActivity {
 	private void selectedTabAction(TabHost tabHost, int tabNum, boolean isSelect){
 		LinearLayout tabhostLinLay = (LinearLayout)tabHost.getTabWidget().getChildAt(tabNum).findViewById(R.id.tabhostLinLay);
 		ImageView tabhostImg = (ImageView)tabHost.getTabWidget().getChildAt(tabNum).findViewById(R.id.tabhostImg);
-		tabhostLinLay.setBackgroundResource(R.color.BlackCC);
+		tabhostLinLay.setBackgroundResource(R.color.BlackAlphaCC);
 		
 		switch (tabNum) {
 		case 0:

@@ -36,7 +36,7 @@
 		   		    android:layout_width="wrap_content"
 				    android:layout_height="wrap_content"
 				    android:gravity="center_vertical|left"
-				    android:textColor="@color/Red9C"
+				    android:textColor="@color/Red99"
 				    android:textSize="15sp"/>
 				<LinearLayout
 				    android:id="@+id/cadpCalendarDayTxtLinLay"
