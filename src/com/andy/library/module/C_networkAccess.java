@@ -58,11 +58,11 @@ import android.os.Message;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.3
+ * @version 3.4.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
-public class C_networkAccess{
+public class C_networkAccess {
 	
 	public static final int SPLIT_AUTO_MAX_QUANTITY = 0;
 	public static final int SPLIT_BY_QUANTITY = 1;
@@ -76,7 +76,7 @@ public class C_networkAccess{
 	private static final String REQUEST_POST = "POST";
 	private static final NetworkSetting NETWORKSETTING = new NetworkSetting();
 	
-	public static class NetworkSetting{
+	public static class NetworkSetting {
 		private int connectTimeout = 20000;
 		private int readTimeout = 65000;
 		private int bufferSize = 8192;
@@ -153,10 +153,10 @@ public class C_networkAccess{
 	}
 	
 	/**
-	 * String key : map.get("0");</br>
-	 * String value : map.get("1");</br>
-	 * String MIME Type : map.get("2");</br>
-	 * InputStream is : map.get("3");</br>
+	 * String key : map.get("0");<br>
+	 * String value : map.get("1");<br>
+	 * String MIME Type : map.get("2");<br>
+	 * InputStream is : map.get("3");<br>
 	 * @param context
 	 * @param httpUrl
 	 * @param contentList
@@ -178,6 +178,17 @@ public class C_networkAccess{
 		return connectUseHttpURLConnection(context, httpUrl, objectArray, isSkipDataRead, handler);
 	}
 	
+	/**
+	 * String key : map.get("0");<br>
+	 * String value : map.get("1");<br>
+	 * String MIME Type : map.get("2");<br>
+	 * InputStream is : map.get("3");<br>
+	 * @param context
+	 * @param httpUrl
+	 * @param contentList
+	 * @param handler
+	 * @return
+	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, List<Map<String, Object>> contentList
 			, Handler handler){
 		return connectUseHttpURLConnection(context, httpUrl, contentList, false, handler);
@@ -188,7 +199,7 @@ public class C_networkAccess{
 	 * @param context
 	 * @param httpUrl
 	 * @param objectArray
-	 * @param requestRangeIndex
+	 * @param requestRangeIndex 連線後要求回傳的內容區間
 	 * @param isSkipDataRead 若為true，完成連線後須自行調用HttpURLConnection.disconnect()斷開連線
 	 * @return
 	 */
@@ -200,6 +211,17 @@ public class C_networkAccess{
 		return null;
 	}
 	
+	/**
+	 * HttpURLConnection MultiPort
+	 * @param context
+	 * @param httpUrl
+	 * @param objectArray
+	 * @param requestRangeIndex 連線後要求回傳的內容區間
+	 * @param isSkipDataRead
+	 * @param connectionResult
+	 * @param handler
+	 * @return
+	 */
 	private static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, String requestRangeIndex, boolean isSkipDataRead, ConnectionResult connectionResult, Handler handler){
 		HttpURLConnection httpURLConnection = connectUseHttpURLConnectionImplementRequest(httpUrl, objectArray
@@ -876,7 +898,7 @@ public class C_networkAccess{
 		return isConnect;
 	}
 	
-	public static class ConnectionResult{
+	public static class ConnectionResult {
 		
 		private int responseCode;
 		private String responseMessage;
@@ -1001,13 +1023,13 @@ public class C_networkAccess{
 		}
 	}
 	
-	public static class MultiPortManager{
+	public static class MultiPortManager {
 		
 		private boolean[] portStatusArray;
 		private long[][] portLengthArray;
 		private Object[] portContentArray;
 		
-		public interface MultiPortDownLoadComplete{
+		public interface MultiPortDownLoadComplete {
 			public void connectFail(HttpURLConnection httpURLConnection);
 			public void connected(HttpURLConnection httpURLConnection);
 			public void loadFail(HttpURLConnection httpURLConnection);
