@@ -48,7 +48,7 @@ public class C_tabView extends LinearLayout {
 	private OnDismissListener mOnDismissListener;
 	private Drawable mLeftDrawable, mMiddleDrawable, mRightDrawable;
 	private int mItemWi, mItemHe, mMinHeight, mMaxHeight;
-	private boolean mIsDynamicControl;
+	private boolean mDynamicControl;
 	private Resources mRes;
 	private LinearLayout.LayoutParams mLinLayPar;
 	private RelativeLayout.LayoutParams mRelLayPar;
@@ -141,7 +141,7 @@ public class C_tabView extends LinearLayout {
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				if(!(mIsDynamicControl && getCurrentContentView() instanceof DynamicResizeControl)){
+				if(!(mDynamicControl && getCurrentContentView() instanceof DynamicResizeControl)){
 					if(mOnTabBarTouchListener != null){
 						return mOnTabBarTouchListener.onTouch(v, event);
 					}
@@ -283,7 +283,7 @@ public class C_tabView extends LinearLayout {
 	}
 	
 	public void setTabBarDynamicResizeControl(boolean isDynamicControl){
-		mIsDynamicControl = isDynamicControl;
+		mDynamicControl = isDynamicControl;
 	}
 	
 	public void setTabBarDynamicResizeControl(int minHeight, int maxHeight, boolean isDynamicControl){
@@ -292,7 +292,7 @@ public class C_tabView extends LinearLayout {
 	}
 	
 	public boolean isTabBarDynamicResizeControl(){
-		return mIsDynamicControl;
+		return mDynamicControl;
 	}
 	
 	@SuppressWarnings("deprecation")

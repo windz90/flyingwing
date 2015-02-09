@@ -65,7 +65,7 @@ public class C_pullToRefresh {
 	private OnTouchListener mOnTouchListener;
 	private GestureDetector mGestureDetector;
 	private OnScrollListener mOnScrollListener;
-	private boolean mIsFirstVisibleItemToTop;
+	private boolean mFirstVisibleItemToTop;
 	private int mProgressWidth;
 	private int mPullFlag = NONE, mProgressFlag = NONE;
 	private String mPullText, mRefreshText;
@@ -319,7 +319,7 @@ public class C_pullToRefresh {
 			if(listAdapter instanceof HeaderViewListAdapter){
 				listAdapter = ((HeaderViewListAdapter)listAdapter).getWrappedAdapter();
 			}
-			// 提高對Android 4.2以下的相容性，校正設定順序，先設定header再設定adapter，避免舊版拋出IllegalStateException
+			// 提升對Android 4.2以下的相容性，校正設定順序，先設定header再設定adapter，避免舊版拋出IllegalStateException
 			mListView.setAdapter(null);
 			mListView.addHeaderView(mProgressLayout, null, false);
 			mListView.setAdapter(listAdapter);
@@ -396,9 +396,9 @@ public class C_pullToRefresh {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
 				if(view.getChildCount() > 0){
-					mIsFirstVisibleItemToTop = view.getFirstVisiblePosition() == 0 && view.getChildAt(0).getTop() == 0;
+					mFirstVisibleItemToTop = view.getFirstVisiblePosition() == 0 && view.getChildAt(0).getTop() == 0;
 				}else{
-					mIsFirstVisibleItemToTop = view.getFirstVisiblePosition() == 0;
+					mFirstVisibleItemToTop = view.getFirstVisiblePosition() == 0;
 				}
 				
 				if(mOnScrollListener != null){
@@ -433,7 +433,7 @@ public class C_pullToRefresh {
 				if(e1 == null || e2 == null){
 					return false;
 				}
-				if(!mIsFirstVisibleItemToTop || mProgressBar.getVisibility() == View.VISIBLE || isRefreshing){
+				if(!mFirstVisibleItemToTop || mProgressBar.getVisibility() == View.VISIBLE || isRefreshing){
 					return false;
 				}
 				if(e2.getY() <= e1.getY()){
@@ -501,7 +501,7 @@ public class C_pullToRefresh {
 				if(mProgressBar.getVisibility() == View.GONE){
 					isRefreshing = false;
 					onScrollListener.onScrollStateChanged(mListView, OnScrollListener.SCROLL_STATE_TOUCH_SCROLL);
-					if(mIsFirstVisibleItemToTop && mActionBarRefreshInfoView instanceof TextView){
+					if(mFirstVisibleItemToTop && mActionBarRefreshInfoView instanceof TextView){
 						((TextView)mActionBarRefreshInfoView).setText(mPullText);
 					}
 				}
