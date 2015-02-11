@@ -14,7 +14,7 @@
     </style>
 
     <!-- Application theme. -->
-    <style name="AppTheme" parent="CustomThemeToolbar">
+    <style name="AppTheme" parent="CustomTheme">
         <!-- All customizations that are NOT specific to a particular API-level can go here. -->
     </style>
 

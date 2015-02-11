@@ -10,72 +10,88 @@
 		<!-- API 14 theme customizations can go here. -->
 	</style>
 	
-	<!-- CustomToolbar -->
+	<style name="CustomTheme" parent="CustomAppCompatBase"/>
+	
+	<!-- CustomAppCompatBase -->
 	
 	<!-- Theme.AppCompat -->
 	<!-- Theme.AppCompat.Light -->
 	<!-- Theme.AppCompat.Light.DarkActionBar -->
-    <style name="CustomThemeToolbar" parent="Theme.AppCompat.Light">
-        <item name="windowActionBar">false</item>
-        <item name="android:windowNoTitle">true</item>
-        <!-- android:fitsSystemWindows : StatusBar and NavigationBar is hold space, But material style dialog text padding not work -->
-        <!-- <item name="android:fitsSystemWindows">true</item> -->
-        
-        <item name="android:textAllCaps">false</item>
-        
-        <!-- Toolbar styles -->
-        <item name="toolbarStyle">@style/ToolbarStyle</item>
-        <item name="toolbarNavigationButtonStyle">@style/ToolbarNavigationButtonStyle</item>
-        
-        <!-- Action Bar Styles -->
-        <item name="actionButtonStyle">@style/Widget.AppCompat.Light.ActionButton</item>
-        <item name="actionOverflowButtonStyle">@style/ActionOverflowButtonStyleAppCompat</item>
-        <item name="actionOverflowMenuStyle">@style/Widget.AppCompat.Light.PopupMenu.Overflow</item>
-        <!-- android:actionMenuTextColor : Menu textColor for API < 21 -->
-        <item name="actionMenuTextColor">@color/abc_primary_text_material_light</item>
-        <item name="actionMenuTextAppearance">@style/ActionMenuTextAppearanceAppCompat</item>
-        
-        <!-- Color palette -->
-        <!-- colorPrimary : default ActionBar(but not Toolbar) background -->
-        <item name="colorPrimary">?attr/colorPrimary</item>
-        <!-- colorPrimaryDark : StatusBar background(getWindow().setStatusBarColor()) -->
-        <item name="colorPrimaryDark">?attr/colorPrimaryDark</item>
-        <!-- android:navigationBarColor : NavigationBar background(getWindow().setNavigationBarColor()) -->
-        <!-- <item name="android:navigationBarColor"></item> -->
-        <!-- colorAccent : widgets checked tint -->
-        <item name="colorAccent">?attr/colorAccent</item>
-        <item name="colorControlNormal">?android:attr/textColorSecondary</item>
-        <item name="colorControlActivated">?attr/colorControlActivated</item>
-        <item name="colorControlHighlight">?attr/colorControlHighlight</item>
-        <item name="colorButtonNormal">?attr/colorButtonNormal</item>
-        <item name="colorSwitchThumbNormal">?attr/colorSwitchThumbNormal</item>
-        
-        <!-- android:windowTranslucentStatus : StatusBar translucent -->
-        <!-- <item name="android:windowTranslucentStatus"></item> -->
-        <!-- android:windowTranslucentNavigation : NavigationBar translucent -->
-        <!-- <item name="android:windowTranslucentNavigation"></item> -->
-    </style>
-    
-    <style name="ToolbarStyle" parent="@style/Widget.AppCompat.Toolbar">
-        <item name="android:minHeight">@dimen/toolbarHeight</item>
-        <item name="android:paddingRight">0dip</item>
-        <item name="contentInsetStart">0dip</item>
-        <item name="contentInsetEnd">0dip</item>
-        <!-- popupTheme : menu popup theme -->
-        <item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
-    </style>
-    
-    <style name="ToolbarNavigationButtonStyle" parent="@style/Widget.AppCompat.Toolbar.Button.Navigation">
-        <item name="android:minWidth">0dip</item>
-        <item name="android:padding">12dip</item>
-        <item name="android:scaleType">centerInside</item>
-    </style>
-    
+	<style name="CustomAppCompatBase" parent="Theme.AppCompat.Light">
+		<!-- No ActionBar -->
+		<item name="windowActionBar">false</item>
+		<item name="android:windowNoTitle">true</item>
+		
+		<!-- android:fitsSystemWindows : StatusBar and NavigationBar is hold space, But material style dialog text padding not work -->
+		<!-- <item name="android:fitsSystemWindows">true</item> -->
+		
+		<!-- android:windowTranslucentStatus : StatusBar is translucent -->
+		<!-- <item name="android:windowTranslucentStatus">true</item> -->
+		<!-- android:windowTranslucentNavigation : NavigationBar is translucent -->
+		<!-- <item name="android:windowTranslucentNavigation">true</item> -->
+		
+		<item name="android:textAllCaps">false</item>
+		
+		<!-- Toolbar styles -->
+		<item name="toolbarStyle">@style/ToolbarStyleAppCompat</item>
+		<item name="toolbarNavigationButtonStyle">@style/ToolbarNavigationButtonStyleAppCompat</item>
+		
+		<!-- Action Bar Styles -->
+		<item name="actionButtonStyle">@style/ActionButtonStyleAppCompat</item>
+		<item name="actionOverflowButtonStyle">@style/ActionOverflowButtonStyleAppCompat</item>
+		<item name="actionOverflowMenuStyle">@style/Widget.AppCompat.Light.PopupMenu.Overflow</item>
+		<!-- android:actionMenuTextColor : Menu textColor for API < 21 -->
+		<item name="actionMenuTextColor">@color/abc_primary_text_material_light</item>
+		<item name="actionMenuTextAppearance">@style/ActionMenuTextAppearanceAppCompat</item>
+		
+		<!-- Color palette -->
+		<!-- colorPrimary : default ActionBar(but not Toolbar) background -->
+		<item name="colorPrimary">?attr/colorPrimary</item>
+		<!-- colorPrimaryDark : StatusBar background(getWindow().setStatusBarColor()) -->
+		<item name="colorPrimaryDark">?attr/colorPrimaryDark</item>
+		<!-- colorAccent : widgets checked tint -->
+		<item name="colorAccent">?attr/colorAccent</item>
+		
+		<item name="colorControlNormal">?android:attr/textColorSecondary</item>
+		<item name="colorControlActivated">?attr/colorControlActivated</item>
+		
+		<item name="colorControlHighlight">?attr/colorControlHighlight</item>
+		<item name="colorButtonNormal">?attr/colorButtonNormal</item>
+		<item name="colorSwitchThumbNormal">?attr/colorSwitchThumbNormal</item>
+	</style>
+	
+	<style name="ToolbarStyleAppCompat" parent="@style/Widget.AppCompat.Toolbar">
+		<item name="android:minHeight">@dimen/toolbarHeight</item>
+		<item name="android:paddingRight">0dip</item>
+		<item name="contentInsetStart">0dip</item>
+		<item name="contentInsetEnd">0dip</item>
+		<!-- popupTheme : menu popup theme -->
+		<item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
+	</style>
+	
+	<style name="ToolbarNavigationButtonStyleAppCompat" parent="@style/Widget.AppCompat.Toolbar.Button.Navigation">
+		<item name="android:minWidth">0dip</item>
+		<item name="android:padding">12dip</item>
+		<item name="android:scaleType">centerInside</item>
+	</style>
+	
+	<style name="ActionButtonStyleAppCompat" parent="@style/Widget.AppCompat.Light.ActionButton">
+		<item name="android:background">?android:attr/actionBarItemBackground</item>
+		<item name="android:minWidth">@dimen/abc_action_button_min_width_material</item>
+		<item name="android:minHeight">?android:attr/actionBarSize</item>
+		<item name="android:paddingLeft">10dip</item>
+		<item name="android:paddingRight">10dip</item>
+		<item name="android:gravity">center</item>
+		<item name="android:scaleType">center</item>
+		<item name="android:maxLines">2</item>
+		<item name="textAllCaps">false</item>
+	</style>
+	
 	<style name="ActionOverflowButtonStyleAppCompat" parent="@style/Widget.AppCompat.Light.ActionButton.Overflow">
-	    <!-- <item name="android:src"></item> -->
-	    <item name="android:background">?android:attr/actionBarItemBackground</item>
-	    <item name="android:paddingLeft">12dip</item>
-	    <item name="android:paddingRight">12dip</item>
+		<!-- <item name="android:src"></item> -->
+		<item name="android:background">?android:attr/actionBarItemBackground</item>
+		<item name="android:paddingLeft">12dip</item>
+		<item name="android:paddingRight">12dip</item>
 	</style>
 	
 	<style name="ActionMenuTextAppearanceAppCompat" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Menu">
@@ -83,7 +99,7 @@
 		<item name="android:textStyle">normal</item>
 	</style>
 	
-	<!-- CustomActionBar -->
+	<!-- CustomHoloBase -->
 	
 	<!-- android:Theme -->
 	<!-- android:Theme.Light -->
@@ -91,7 +107,7 @@
 	<!-- android:Theme.Holo.Light.DarkActionBar -->
 	<!-- android:Theme.DeviceDefault -->
 	<!-- android:Theme.DeviceDefault.Light.DarkActionBar -->
-	<style name="CustomThemeActionBar" parent="android:Theme.Holo.Light.DarkActionBar">
+	<style name="CustomHoloBase" parent="android:Theme.Holo.Light.DarkActionBar">
 		<item name="android:windowActionBar">true</item>
 		<item name="android:windowActionBarOverlay">false</item>
 		<item name="android:actionBarStyle">@style/ActionBarStyle</item>
@@ -147,9 +163,9 @@
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
 		<item name="android:minWidth">?android:attr/actionBarSize</item>
 		<item name="android:minHeight">?android:attr/actionBarSize</item>
-		<item name="android:gravity">center</item>
 		<item name="android:paddingLeft">10dip</item>
 		<item name="android:paddingRight">10dip</item>
+		<item name="android:gravity">center</item>
 		<item name="android:scaleType">center</item>
 		<item name="android:maxLines">2</item>
 	</style>
@@ -187,7 +203,7 @@
 	</style>
 	
 	<style name="PopupMenuTextAppearance" parent="android:TextAppearance">
-	    <item name="android:textColor">?android:attr/textColorPrimary</item>
+		<item name="android:textColor">?android:attr/textColorPrimary</item>
 		<item name="android:textSize">16sp</item>
 		<item name="android:textStyle">normal</item>
 		<item name="android:textAllCaps">false</item>
@@ -221,7 +237,7 @@
 	</style>
 	
 	<style name="SpinnerDropDownItemStyle" parent="android:Widget.DropDownItem.Spinner">
-	    <item name="android:textAppearance">@style/DropDownItemTextAppearance</item>
+		<item name="android:textAppearance">@style/DropDownItemTextAppearance</item>
 	</style>
 	
 	<style name="DropDownItemTextAppearance" parent="android:TextAppearance.Widget.DropDownItem">
