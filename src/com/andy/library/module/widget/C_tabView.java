@@ -28,7 +28,7 @@ import android.widget.RelativeLayout;
 
 /** 
  * Copyright 2014 Andy Lin. All rights reserved.
- * @version 1.0.2
+ * @version 1.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -302,17 +302,21 @@ public class C_tabView extends LinearLayout {
 		mList.add(location, new View[]{headButton, contentView});
 		mCustomPagerAdapter.notifyDataSetChanged();
 		
-		View view;
 		int size = mList.size();
-		for(int i=0; i<size; i++){
-			view = mList.get(i)[0];
-			if(i == 0){
-				view.setBackgroundDrawable(mLeftDrawable);
-			}else if(i == size-1){
-				view.setBackgroundDrawable(mRightDrawable);
-			}else{
-				view.setBackgroundDrawable(mMiddleDrawable);
+		if(size > 1){
+			View view;
+			for(int i=0; i<size; i++){
+				view = mList.get(i)[0];
+				if(i == 0){
+					view.setBackgroundDrawable(mLeftDrawable);
+				}else if(i == size-1){
+					view.setBackgroundDrawable(mRightDrawable);
+				}else{
+					view.setBackgroundDrawable(mMiddleDrawable);
+				}
 			}
+		}else if(size == 1){
+			mList.get(0)[0].setBackgroundDrawable(mMiddleDrawable);
 		}
 		mRadioGroup.addView(headButton, location);
 		
@@ -538,8 +542,8 @@ public class C_tabView extends LinearLayout {
 	 * 
 	 * @param isClickDismiss must implements OnDismissListener
 	 * @param isDismissSelf<br>
-	 * true : Only dismiss inside tab, self hidden<br>
-	 * false : Dismiss all contain self
+	 * true : Dismiss all contain self<br>
+	 * false : Only dismiss inside tab, self hidden
 	 */
 	public void dismiss(boolean isClickDismiss, boolean isDismissSelf){
 		this.setVisibility(View.GONE);
