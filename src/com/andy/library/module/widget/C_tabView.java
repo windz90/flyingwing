@@ -258,6 +258,7 @@ public class C_tabView extends LinearLayout {
 		mMiddleDrawable = middleDrawable;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void setHeadButtonBackground(int leftId, int rightId, int middleId){
 		mLeftDrawable = mRes.getDrawable(leftId);
 		mRightDrawable = mRes.getDrawable(rightId);

@@ -91,6 +91,7 @@ public class C_subWindow {
 		alertBuilderMessage(context, null, message, null);
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static void popupMessage(Context context, final View view, boolean isSetLocation, int gravity, int x, int y, int width, int height
 			, String[] strArray, final ClickAction clickAction){
 		Resources res = context.getResources();

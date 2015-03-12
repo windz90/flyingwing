@@ -78,6 +78,7 @@ public class C_mapOverlay extends Overlay{
 		res = this.activity.getResources();
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	public void draw(Canvas canvas, MapView mapView, boolean shadow) {
 		// 設定投影及經緯度與畫布位置轉換
