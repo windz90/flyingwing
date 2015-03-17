@@ -1,5 +1,6 @@
 package com.andy.library.module;
 
+import java.net.HttpURLConnection;
 import java.util.concurrent.ExecutorService;
 
 import android.content.Context;
@@ -16,7 +17,7 @@ import com.andy.library.module.widget.C_progressDialog;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.0
+ * @version 3.2.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -59,6 +60,8 @@ public abstract class C_connectManager {
 		}
 		
 		public abstract ConnectionResult runConnectAction();
+		
+		public abstract HttpURLConnection runHttpURLConnection();
 	}
 	
 	public static class ConnectSetting {
@@ -151,6 +154,14 @@ public abstract class C_connectManager {
 		
 		public boolean isDialogDismiss(){
 			return mDialogDismiss;
+		}
+		
+		public void setSyncLock(boolean isSyncLock){
+			mSyncLock = isSyncLock;
+		}
+		
+		public boolean isSyncLock(){
+			return mSyncLock;
 		}
 		
 		public void setRunMode(int runMode){

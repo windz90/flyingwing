@@ -105,7 +105,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.6
+ * @version 3.3.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -255,7 +255,7 @@ public class Utils {
 	}
 	
 	public static String inputStreamToString(InputStream is, Charset charset){
-		return inputStreamToString(is, charset, 1024 * 128);
+		return inputStreamToString(is, charset, 1024 * 16);
 	}
 	
 	public static byte[] inputStreamToByteArray(InputStream is, int bufferSize){
@@ -298,7 +298,7 @@ public class Utils {
 	}
 	
 	public static byte[] inputStreamToByteArray(InputStream is){
-		return inputStreamToByteArray(is, 1024 * 128);
+		return inputStreamToByteArray(is, 1024 * 16);
 	}
 	
 	public static OutputStream byteArrayToOutputStream(byte[] byteArray, OutputStream os, int bufferSize){
@@ -337,7 +337,7 @@ public class Utils {
 	}
 	
 	public static OutputStream byteArrayToOutputStream(byte[] byteArray, OutputStream os){
-		return byteArrayToOutputStream(byteArray, os, 1024 * 128);
+		return byteArrayToOutputStream(byteArray, os, 1024 * 16);
 	}
 	
 	public static byte[] fileToByteArray(File file){
@@ -402,7 +402,7 @@ public class Utils {
 	}
 	
 	public static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os){
-		return inputStreamWriteOutputStream(is, os, 1024 * 128);
+		return inputStreamWriteOutputStream(is, os, 1024 * 16);
 	}
 	
 	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os, int bufferSize){
@@ -414,7 +414,7 @@ public class Utils {
 	}
 	
 	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os){
-		return ByteArrayWriteOutStream(byteArray, os, 1024 * 128);
+		return ByteArrayWriteOutStream(byteArray, os, 1024 * 16);
 	}
 	
 	public static boolean writeSDCardFile(InputStream is, String directory, String fileName, int bufferSize){
@@ -443,7 +443,7 @@ public class Utils {
 	}
 	
 	public static boolean writeSDCardFile(InputStream is, String directory, String fileName){
-		return writeSDCardFile(is, directory, fileName, 1024 * 128);
+		return writeSDCardFile(is, directory, fileName, 1024 * 16);
 	}
 	
 	public static byte[] readSDCardFile(String directory, String fileName){
@@ -625,7 +625,7 @@ public class Utils {
 	}
 	
 	/**
-	 * 反射類別資料，包含ClassLoader、extends Superclass、implements Interface、Field、Constructor、Method、InnerClass
+	 * 反射類別資料，包含ClassLoader、DeclaringClass、EnclosingClass、extends Superclass、EnumConstant、implements Interface、Field、Constructor、Method、InnerClass
 	 * @param class1 Instance or Class.forName("className")
 	 * @return
 	 */
@@ -634,48 +634,82 @@ public class Utils {
 		info = class1.getName();
 		Log.v("ClassName", info);
 		
-		info = class1.getClassLoader().getClass().getName();
-		Log.v("Reflection ClassLoader", info);
-		
-		info = class1.getEnclosingClass().getName();
-		Log.i("Reflection OuterClass", info);
-		
-		info = class1.getSuperclass().getName();
-		Log.v("Reflection extends Superclass", info);
-		
-		Log.i("Reflection implements Interface", "****Interface****");
-		Class<?>[] interfaceArray = class1.getInterfaces();
-		for(int i=0; i<interfaceArray.length; i++){
-			info = interfaceArray[i].getName();
-			Log.v("Interface", info);
+		ClassLoader classLoader = class1.getClassLoader();
+		if(classLoader != null){
+			info = classLoader.getClass().getName();
+			Log.v("ClassLoader", info);
 		}
 		
-		Log.i("Reflection Field", "****Field****");
-		Field[] fieldArray = class1.getDeclaredFields();
-		for(int i=0; i<fieldArray.length; i++){
-			info = fieldArray[i].toGenericString();
-			Log.v("Field", info);
+		Class<?> classMember = class1.getDeclaringClass();
+		if(classMember != null){
+			info = classMember.getName();
+			Log.v("MemberClass", info);
 		}
 		
-		Log.i("Reflection Constructor", "****Constructor****");
-		Constructor<?>[] constructorArray = class1.getDeclaredConstructors();
-		for(int i=0; i<constructorArray.length; i++){
-			info = constructorArray[i].toGenericString();
-			Log.v("Constructor", info);
+		Class<?> classOuter = class1.getEnclosingClass();
+		if(classOuter != null){
+			info = classOuter.getName();
+			Log.v("OuterClass", info);
 		}
 		
-		Log.i("Reflection Method", "****Method****");
-		Method[] methodArray = class1.getDeclaredMethods();
-		for(int i=0; i<methodArray.length; i++){
-			info = methodArray[i].toGenericString();
-			Log.v("Method", info);
+		Class<?> classSuper = class1.getSuperclass();
+		if(classSuper != null){
+			info = classSuper.getName();
+			Log.v("extends Superclass", info);
 		}
 		
-		Log.i("Reflection InnerClass", "****InnerClass****");
-		Class<?>[] classArray = class1.getDeclaredClasses();
-		for(int i=0; i<classArray.length; i++){
-			info = classArray[i].getName();
-			Log.v("InnerClass", info);
+		Class<?>[] interfaces = class1.getInterfaces();
+		if(interfaces.length > 0){
+			Log.i("Reflection implements Interface", "**** Interface count:" + interfaces.length + " ****");
+			for(int i=0; i<interfaces.length; i++){
+				info = interfaces[i].getName();
+				Log.v("Interface", info);
+			}
+		}
+		
+		Object[] enumConstants = class1.getEnumConstants();
+		if(enumConstants != null && enumConstants.length > 0){
+			Log.i("Reflection Enum Constant", "**** Enum Constant count:" + enumConstants.length + " ****");
+			for(int i=0; i<enumConstants.length; i++){
+				info = enumConstants[i].getClass().getName();
+				Log.v("Enum Constant", info);
+			}
+		}
+		
+		Field[] fields = class1.getDeclaredFields();
+		if(fields.length > 0){
+			Log.i("Reflection Field", "**** Field count:" + fields.length + " ****");
+			for(int i=0; i<fields.length; i++){
+				info = fields[i].toGenericString();
+				Log.v("Field", info);
+			}
+		}
+		
+		Constructor<?>[] constructors = class1.getDeclaredConstructors();
+		if(constructors.length > 0){
+			Log.i("Reflection Constructor", "**** Constructor count:" + constructors.length + " ****");
+			for(int i=0; i<constructors.length; i++){
+				info = constructors[i].toGenericString();
+				Log.v("Constructor", info);
+			}
+		}
+		
+		Method[] methods = class1.getDeclaredMethods();
+		if(methods.length > 0){
+			Log.i("Reflection Method", "**** Method count:" + methods.length + " ****");
+			for(int i=0; i<methods.length; i++){
+				info = methods[i].toGenericString();
+				Log.v("Method", info);
+			}
+		}
+		
+		Class<?>[] classes = class1.getDeclaredClasses();
+		if(classes.length > 0){
+			Log.i("Reflection InnerClass", "**** InnerClass count:" + classes.length + " ****");
+			for(int i=0; i<classes.length; i++){
+				info = classes[i].getName();
+				Log.v("InnerClass", info);
+			}
 		}
 	}
 	

@@ -1,6 +1,5 @@
 package com.andy.library.module;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -45,71 +44,71 @@ import android.os.Handler.Callback;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.8
+ * @version 3.4.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 public class C_imageProcessor {
 	
 	private static final ImageSetting IMAGESETTING = new ImageSetting();
-	private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(IMAGESETTING.threadPoolSum);
+	private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(IMAGESETTING.mThreadPoolSum);
 	private static final Map<String, SoftReference<Bitmap>> BUFFER_MAP = new HashMap<String, SoftReference<Bitmap>>();
 	private static final Map<String, String> SAMPLE_MAP = new HashMap<String, String>();
 	private static final String SAMPLE_WORD = "_SampleSize";
 	
-	public interface DownLoadComplete{
+	public interface DownLoadComplete {
 		public void cacheImage(String streamURL, Bitmap bitmap);
 		public void localLoadedImage(String streamURL, Bitmap bitmap);
 		public void remoteLoadedImage(String streamURL, Bitmap bitmap);
 		public void loadFail(String streamURL);
 	}
 	
-	public static class ImageSetting{
-		private Bitmap.Config bitmapConfig = Bitmap.Config.ARGB_8888;
-		private boolean inNativeAlloc = true;
-		private boolean isPrintLoadStreamException = true;
-		private int inputBufferSize = 1024;
-		private int threadPoolSum = 3;
+	public static class ImageSetting {
+		private Bitmap.Config mBitmapConfig = Bitmap.Config.ARGB_8888;
+		private boolean mInNativeAlloc = true;
+		private boolean mPrintLoadStreamException = true;
+		private int mBufferSize = 1024 * 16;
+		private int mThreadPoolSum = 3;
 	}
 	
 	public static void setBitmapConfig(Bitmap.Config bitmapConfig){
-		C_imageProcessor.IMAGESETTING.bitmapConfig = bitmapConfig;
+		C_imageProcessor.IMAGESETTING.mBitmapConfig = bitmapConfig;
 	}
 	
 	public static Bitmap.Config getBitmapConfig(){
-		return IMAGESETTING.bitmapConfig;
+		return IMAGESETTING.mBitmapConfig;
 	}
 	
 	public static void setInNativeAlloc(boolean inNativeAlloc){
-		C_imageProcessor.IMAGESETTING.inNativeAlloc = inNativeAlloc;
+		C_imageProcessor.IMAGESETTING.mInNativeAlloc = inNativeAlloc;
 	}
 	
 	public static boolean getInNativeAlloc(){
-		return IMAGESETTING.inNativeAlloc;
+		return IMAGESETTING.mInNativeAlloc;
 	}
 	
 	public static void setPrintLoadStreamException(boolean isPrintLoadStreamException){
-		C_imageProcessor.IMAGESETTING.isPrintLoadStreamException = isPrintLoadStreamException;
+		C_imageProcessor.IMAGESETTING.mPrintLoadStreamException = isPrintLoadStreamException;
 	}
 	
 	public static boolean getIsPrintLoadStreamException(){
-		return IMAGESETTING.isPrintLoadStreamException;
+		return IMAGESETTING.mPrintLoadStreamException;
 	}
 	
 	public static void setInputBufferSize(int inputBufferSize){
-		C_imageProcessor.IMAGESETTING.inputBufferSize = inputBufferSize;
+		C_imageProcessor.IMAGESETTING.mBufferSize = inputBufferSize;
 	}
 	
 	public static int getInputBufferSize(){
-		return IMAGESETTING.inputBufferSize;
+		return IMAGESETTING.mBufferSize;
 	}
 	
 	public static void setThreadPoolSum(int threadPoolSum){
-		C_imageProcessor.IMAGESETTING.threadPoolSum = threadPoolSum;
+		C_imageProcessor.IMAGESETTING.mThreadPoolSum = threadPoolSum;
 	}
 	
 	public static int getThreadPoolSum(){
-		return IMAGESETTING.threadPoolSum;
+		return IMAGESETTING.mThreadPoolSum;
 	}
 	
 	public static Bitmap getRawBitmap(Resources res, int resource, int inSampleSize, boolean isUseBuffer){
@@ -702,13 +701,11 @@ public class C_imageProcessor {
 	}
 	
 	public static byte[] loadStream(String streamURL) throws IOException{
-		InputStream is = null;
 		streamURL = streamURL.replace(" ", "%20");
 		streamURL = streamURL.replace("\\(", "%28");
 		streamURL = streamURL.replace("\\)", "%29");
 		URL url = new URL(streamURL);
-		is = new BufferedInputStream(url.openStream(), IMAGESETTING.inputBufferSize);
-		return inputStreamToByteArray(is);
+		return inputStreamToByteArray(url.openStream(), IMAGESETTING.mBufferSize);
 	}
 	
 	public static boolean isConnect(Context context) {
@@ -768,7 +765,7 @@ public class C_imageProcessor {
 	}
 	
 	public static byte[] inputStreamToByteArray(InputStream is){
-		return inputStreamToByteArray(is, 1024 * 8);
+		return inputStreamToByteArray(is, IMAGESETTING.mBufferSize);
 	}
 	
 	public static void setBufferBitmap(Bitmap bitmap, String path, String sampleWord, int inSampleSize){
@@ -918,7 +915,7 @@ public class C_imageProcessor {
 					handlerDownload.sendMessage(msg);
 				} catch (Exception e) {
 					handlerDownload.sendEmptyMessage(0);
-					if(IMAGESETTING.isPrintLoadStreamException){System.out.println(e);}
+					if(IMAGESETTING.mPrintLoadStreamException){System.out.println(e);}
 				}
 			}
 		};
@@ -1076,7 +1073,7 @@ public class C_imageProcessor {
 					handlerDownload.sendMessage(msg);
 				} catch (Exception e) {
 					handlerDownload.sendEmptyMessage(0);
-					if(IMAGESETTING.isPrintLoadStreamException){System.out.println(e);}
+					if(IMAGESETTING.mPrintLoadStreamException){System.out.println(e);}
 				}
 			}
 		};
@@ -1096,7 +1093,7 @@ public class C_imageProcessor {
 		// 設定匯入後圖片的寬高縮小比例，預設1為原始寬高
 		options.inSampleSize = inSampleSize;
 		// 設定圖片ARGB屬性佔用記憶體空間，預設Bitmap.Config.ARGB_8888為各佔8Bit
-		options.inPreferredConfig = IMAGESETTING.bitmapConfig;
+		options.inPreferredConfig = IMAGESETTING.mBitmapConfig;
 		// 設定是否系統記憶體不足時先行回收部分的記憶體，但回收動作仍會佔用JVM的記憶體
 		options.inPurgeable = true;
 		options.inInputShareable = true;
@@ -1106,7 +1103,7 @@ public class C_imageProcessor {
 		}
 		try {
 			// 直接把不使用的記憶體歸給JVM，回收動作不佔用JVM的記憶體
-			BitmapFactory.Options.class.getField("inNativeAlloc").setBoolean(options, IMAGESETTING.inNativeAlloc);
+			BitmapFactory.Options.class.getField("inNativeAlloc").setBoolean(options, IMAGESETTING.mInNativeAlloc);
 		} catch (IllegalArgumentException e) {
 //			e.printStackTrace();
 		} catch (SecurityException e) {
