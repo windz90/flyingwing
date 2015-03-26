@@ -4,37 +4,12 @@
 		<item
 			android:id="@+id/menu1"
 			android:orderInCategory="1"
-			android:title="@string/main0Tc"
-			android:icon="@drawable/menu_icon01"/>
+			android:title="@string/app_name"
+			android:icon="@android:drawable/ic_menu_share"/>
 		<item
 			android:id="@+id/menu2"
 			android:orderInCategory="2"
-			android:title="@string/main1Tc"
-			android:icon="@drawable/menu_icon02"/>
-		<item
-			android:id="@+id/menu3"
-			android:orderInCategory="3"
-			android:title="@string/main2Tc"
-			android:icon="@drawable/menu_icon03"/>
-		<item
-			android:id="@+id/menu4"
-			android:orderInCategory="4"
-			android:title="@string/main3Tc"
-			android:icon="@drawable/menu_icon04"/>
-		<item
-			android:id="@+id/menu5"
-			android:orderInCategory="5"
-			android:title="@string/main4Tc"
-			android:icon="@drawable/menu_icon05"/>
-		<item
-			android:id="@+id/menu6"
-			android:orderInCategory="6"
-			android:title="@string/main5Tc"
-			android:icon="@drawable/menu_icon06"/>
-		<item
-			android:id="@+id/menu7"
-			android:orderInCategory="7"
-			android:title="@string/main6Tc"
-			android:icon="@drawable/menu_icon07"/>
+			android:title="@string/app_name"
+			android:icon="@android:drawable/ic_menu_preferences"/>
 	</group>
 </menu>

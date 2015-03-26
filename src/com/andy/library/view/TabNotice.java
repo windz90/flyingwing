@@ -57,7 +57,7 @@ public class TabNotice extends TabActivity {
 		tabWidget.setLayoutParams(relLayPar);
 		
 		tabWidget.setPadding(0, 0, 0, 3);
-		tabWidget.setBackgroundResource(R.drawable.back00);
+		tabWidget.setBackgroundResource(android.R.color.black);
 		
 //		intent = new Intent(this, TabNoticeBulletin.class);
 //		intent.putExtra("selectedTab", 0);
