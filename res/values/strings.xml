@@ -2,14 +2,6 @@
 <resources>
 	<!-- 首頁 -->
 	<string name="app_name">ModularTools</string>
-   	<string name="main0Tc">首頁</string>
-	<string name="main1Tc">開課查詢</string>
-	<string name="main1DataTc">課程資料</string>
-	<string name="main2Tc">看地圖找巨匠</string>
-	<string name="main3Tc">我的課表</string>
-	<string name="main4Tc">個人資料管理</string>
-	<string name="main5Tc">我的上課記錄</string>
-	<string name="main6Tc">學員公告</string>
 	
 	<!-- 公用事件確認 -->
 	<string name="confirm">是否執行？</string>
