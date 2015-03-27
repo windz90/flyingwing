@@ -105,7 +105,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.7
+ * @version 3.3.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1611,6 +1611,7 @@ public class Utils {
 		return intent;
 	}
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public static Intent getBackDifferentTaskIntent(Context context, Class<? extends Activity> targetCalss){
 		Intent intent = new Intent(context, targetCalss);
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1773,8 +1774,8 @@ public class Utils {
 	}
 	
 	@SuppressLint("NewApi")
-	public static String[] getFilesPathFromUri(Context context, Intent resultIntent){
-		Uri[] uris = getResultIntentUris(resultIntent);
+	public static String[] getFilesPathFromIntentUri(Context context, Intent intent){
+		Uri[] uris = getIntentUris(intent);
 		String[] paths = new String[uris.length];
 		for(int i=0; i<uris.length; i++){
 			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
@@ -1812,7 +1813,7 @@ public class Utils {
 				}else if(type.equals("audio")){
 					uris[i] = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
 					paths[i] = queryFilePathFromUri(context, uris[i]);
-				}else if(type.equals("audio")){
+				}else if(type.equals("video")){
 					uris[i] = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
 					paths[i] = queryFilePathFromUri(context, uris[i]);
 				}
@@ -1822,15 +1823,15 @@ public class Utils {
 	}
 	
 	@SuppressLint("NewApi")
-	public static Uri[] getUrisWithPath(Context context, Intent resultIntent){
-		Uri[] uris = getResultIntentUris(resultIntent);
+	public static Uri[] getIntentUrisWithPath(Context context, Intent intent){
+		Uri[] uris = getIntentUris(intent);
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
 			return uris;
 		}
 		
 		for(int i=0; i<uris.length; i++){
 			if(DocumentsContract.isDocumentUri(context, uris[i])){
-				int takeFlags = resultIntent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+				int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 				context.getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
 			}
 		}
@@ -1838,10 +1839,10 @@ public class Utils {
 	}
 	
 	@SuppressLint("NewApi")
-	public static Uri[] getResultIntentUris(Intent resultIntent){
+	public static Uri[] getIntentUris(Intent intent){
 		Uri[] uris;
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
-			ClipData clipData = resultIntent.getClipData();
+			ClipData clipData = intent.getClipData();
 			if(clipData == null || clipData.getItemCount() == 0){
 				return null;
 			}
@@ -1850,7 +1851,7 @@ public class Utils {
 				uris[i] = clipData.getItemAt(i).getUri();
 			}
 		}else{
-			uris = new Uri[]{resultIntent.getData()};
+			uris = new Uri[]{intent.getData()};
 		}
 		return uris;
 	}
@@ -1913,7 +1914,7 @@ public class Utils {
 	}
 	
 	// 控制鍵盤開關
-	public static void switchSoftInput(Context context, View view, boolean isShow){
+	public static void softInputSwitch(Context context, View view, boolean isShow){
 		InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
 		if(view != null){
 			if(isShow){
@@ -1924,7 +1925,7 @@ public class Utils {
 		}
 	}
 	
-	public static void switchSoftInput(Window window, boolean isShow){
+	public static void softInputSwitch(Window window, boolean isShow){
 		if(window != null){
 			if(isShow){
 				window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
@@ -1935,7 +1936,7 @@ public class Utils {
 	}
 	
 	// 自動切換鍵盤開關
-	public static void toggleSoftInput(Context context, View view){
+	public static void softInputToggle(Context context, View view){
 		InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
 		if(view != null){
 			imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
