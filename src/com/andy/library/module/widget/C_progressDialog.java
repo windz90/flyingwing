@@ -15,21 +15,21 @@ import android.widget.TextView;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.3
+ * @version 2.3.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
-public class C_progressDialog{
+public class C_progressDialog {
 	
-	private static C_progressDialog progress;
+	private static C_progressDialog sProgress;
 	
-	private Context context;
-	private Dialog dialog;
-	private LinearLayout linLay;
-	private TextView textView;
+	private Context mContext;
+	private Dialog mDialog;
+	private LinearLayout mLinLay;
+	private TextView mTextView;
 	
 	public C_progressDialog(Context context, String message){
-		this.context = context;
+		mContext = context;
 		
 		int itemWi;
 		LinearLayout.LayoutParams linLayPar;
@@ -38,47 +38,40 @@ public class C_progressDialog{
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		
-		linLay = new LinearLayout(context);
-		textView = new TextView(context);
+		mLinLay = new LinearLayout(context);
+		mTextView = new TextView(context);
 		
 		itemWi = (int)(dm.widthPixels * 0.8f);
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
-		linLay.setLayoutParams(linLayPar);
-		linLay.setOrientation(LinearLayout.HORIZONTAL);
-		linLay.setBackgroundResource(android.R.color.white);
-		linLay.setGravity(Gravity.CENTER);
+		mLinLay.setLayoutParams(linLayPar);
+		mLinLay.setOrientation(LinearLayout.HORIZONTAL);
+		mLinLay.setBackgroundResource(android.R.color.white);
+		mLinLay.setGravity(Gravity.CENTER);
 		
 		ProgressBar loadingBar = new ProgressBar(context);
 		
 		linLayPar = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		textView.setLayoutParams(linLayPar);
-		textView.setTextColor(0xFFC0C0C0);
-		textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+		mTextView.setLayoutParams(linLayPar);
+		mTextView.setTextColor(0xFFC0C0C0);
+		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
 		
-		linLay.addView(loadingBar);
-		linLay.addView(textView);
+		mLinLay.addView(loadingBar);
+		mLinLay.addView(mTextView);
 		
-		textView.setText(message);
+		mTextView.setText(message);
 		
-		dialog = new Dialog(context);
-		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		dialog.setContentView(linLay);
-		dialog.setCanceledOnTouchOutside(false);
+		mDialog = new Dialog(context);
+		mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		mDialog.setContentView(mLinLay);
+		mDialog.setCanceledOnTouchOutside(false);
 		
 		itemWi = (int)((dm.widthPixels / dm.heightPixels < 1 ? dm.widthPixels : dm.heightPixels) * 0.89f);
-		WindowManager.LayoutParams windowLayPar = dialog.getWindow().getAttributes();
+		WindowManager.LayoutParams windowLayPar = mDialog.getWindow().getAttributes();
 		windowLayPar.x = 0;
 		windowLayPar.y = 0;
 		windowLayPar.width = itemWi;
 //		dialog.getWindow().setBackgroundDrawableResource(R.color.Transparent);
-		dialog.getWindow().setAttributes(windowLayPar);
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				dialog.show();
-			}
-		}else{
-			dialog.show();
-		}
+		mDialog.getWindow().setAttributes(windowLayPar);
 	}
 	
 	public C_progressDialog(Context context){
@@ -86,119 +79,180 @@ public class C_progressDialog{
 	}
 	
 	public Dialog getDialog(){
-		return dialog;
+		return mDialog;
 	}
 	
 	public void setCancelable(boolean isCancel){
-		dialog.setCancelable(isCancel);
+		mDialog.setCancelable(isCancel);
 	}
 	
 	public void setMessage(final String message){
-		if(textView == null){
+		if(mTextView == null){
 			return;
 		}
-		if(context instanceof Activity){
-			((Activity)context).runOnUiThread(new Runnable() {
+		if(mContext instanceof Activity){
+			((Activity)mContext).runOnUiThread(new Runnable() {
 				
 				@Override
 				public void run() {
-					textView.setText(message);
+					mTextView.setText(message);
 				}
 			});
 		}else{
-			textView.setText(message);
+			mTextView.setText(message);
 		}
 	}
 	
 	public void appendMessage(final String message){
-		if(textView == null){
+		if(mTextView == null){
 			return;
 		}
-		if(context instanceof Activity){
-			((Activity)context).runOnUiThread(new Runnable() {
+		if(mContext instanceof Activity){
+			((Activity)mContext).runOnUiThread(new Runnable() {
 				
 				@Override
 				public void run() {
-					textView.append(message);
+					mTextView.append(message);
 				}
 			});
 		}else{
-			textView.append(message);
+			mTextView.append(message);
 		}
 	}
 	
 	public String getMessage(){
-		if(textView == null){
-			return null;
+		return mTextView == null ? null : mTextView.getText().toString();
+	}
+	
+	public boolean isShowing(){
+		return mDialog == null ? false : mDialog.isShowing();
+	}
+	
+	public void show(){
+		if(mDialog == null || mDialog.isShowing()){
+			return;
 		}
-		return textView.getText().toString();
+		if(mContext instanceof Activity){
+			((Activity)mContext).runOnUiThread(new Runnable() {
+				
+				@Override
+				public void run() {
+					if(!((Activity)mContext).isFinishing()){
+						mDialog.show();
+					}
+				}
+			});
+		}else{
+			mDialog.show();
+		}
+	}
+	
+	public void show(String message){
+		setMessage(message);
+		show();
+	}
+	
+	public void hide(){
+		if(mDialog != null){
+			mDialog.hide();
+		}
 	}
 	
 	public void dismiss(){
-		if(dialog != null){
-			dialog.dismiss();
-			textView = null;
-			linLay = null;
-			dialog = null;
-			context = null;
+		if(mDialog != null){
+			mDialog.dismiss();
+		}
+	}
+	
+	public void clear(){
+		if(mDialog != null){
+			mDialog.dismiss();
+			mTextView = null;
+			mLinLay = null;
+			mDialog = null;
+			mContext = null;
 		}
 	}
 	
 	public static C_progressDialog getInstance(Context context, String message){
-		if(progress == null){
-			progress = new C_progressDialog(context, message);
+		if(sProgress == null){
+			sProgress = new C_progressDialog(context, message);
+		}else{
+			sProgress.setMessage(message);
 		}
-		return progress;
+		return sProgress;
 	}
 	
 	public static C_progressDialog getInstance(Context context){
 		return getInstance(context, null);
 	}
 	
+	public static C_progressDialog getInstance(){
+		return sProgress;
+	}
+	
 	public static boolean hasInstance(){
-		return progress == null ? false : true;
-	}
-	
-	public static void setInstanceCancelable(boolean isCancel){
-		if(progress == null){
-			return;
-		}
-		progress.setCancelable(isCancel);
-	}
-	
-	public static void setInstanceMessage(String message){
-		if(progress == null){
-			return;
-		}
-		progress.setMessage(message);
-	}
-	
-	public static void appendInstanceMessage(String message){
-		if(progress == null){
-			return;
-		}
-		progress.appendMessage(message);
-	}
-	
-	public static String getInstanceMessage(){
-		if(progress == null){
-			return null;
-		}
-		return progress.getMessage();
+		return sProgress == null ? false : true;
 	}
 	
 	public static Dialog getInstanceDialog(){
-		if(progress == null){
-			return null;
+		return sProgress == null ? null : sProgress.getDialog();
+	}
+	
+	public static void setInstanceCancelable(boolean isCancel){
+		if(sProgress != null){
+			sProgress.setCancelable(isCancel);
 		}
-		return progress.getDialog();
+	}
+	
+	public static void setInstanceMessage(String message){
+		if(sProgress != null){
+			sProgress.setMessage(message);
+		}
+	}
+	
+	public static void appendInstanceMessage(String message){
+		if(sProgress != null){
+			sProgress.appendMessage(message);
+		}
+	}
+	
+	public static String getInstanceMessage(){
+		return sProgress == null ? null : sProgress.getMessage();
+	}
+	
+	public static boolean isInstanceShowing(){
+		return sProgress == null ? false : sProgress.isShowing();
+	}
+	
+	public static void showInstance(){
+		if(sProgress != null){
+			sProgress.show();
+		}
+	}
+	
+	public static void showInstance(String message){
+		if(sProgress != null){
+			sProgress.show(message);
+		}
+	}
+	
+	public static void hideInstance(){
+		if(sProgress != null){
+			sProgress.hide();
+		}
 	}
 	
 	public static void dismissInstance(){
-		if(progress == null){
-			return;
+		if(sProgress != null){
+			sProgress.dismiss();
 		}
-		progress.dismiss();
-		progress = null;
+	}
+	
+	public static void clearInstance(){
+		if(sProgress != null){
+			sProgress.clear();
+			sProgress = null;
+		}
 	}
 }

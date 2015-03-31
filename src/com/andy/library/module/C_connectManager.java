@@ -17,7 +17,7 @@ import com.andy.library.module.widget.C_progressDialog;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.1
+ * @version 3.2.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -265,12 +265,12 @@ public abstract class C_connectManager {
 		
 		if((setting.mRunMode == RUN_MODE_FOREGROUND_SINGLE_TAG || setting.mRunMode == RUN_MODE_BACKGROUND_ALLOW) && 
 				setting.mDialogShow){
-			C_progressDialog.getInstance(action.getContext(), setting.mHintText);
+			C_progressDialog.getInstance(action.getContext(), setting.mHintText).show();
 			C_progressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
 				
 				@Override
 				public void onCancel(DialogInterface dialog) {
-					C_progressDialog.dismissInstance();
+					C_progressDialog.clearInstance();
 					linstener.onCancelForegroundWait(dialog);
 				}
 			});
@@ -374,12 +374,12 @@ public abstract class C_connectManager {
 		}
 		
 		if((runMode == RUN_MODE_FOREGROUND_SINGLE_TAG || runMode == RUN_MODE_BACKGROUND_ALLOW) && isShow){
-			C_progressDialog.getInstance(action.getContext(), text);
+			C_progressDialog.getInstance(action.getContext(), text).show();
 			C_progressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
 				
 				@Override
 				public void onCancel(DialogInterface dialog) {
-					C_progressDialog.dismissInstance();
+					C_progressDialog.clearInstance();
 					linstener.onCancelForegroundWait(dialog);
 				}
 			});
@@ -449,14 +449,14 @@ public abstract class C_connectManager {
 	private static Message runModeHandle(Message msg, int runMode, boolean isDismiss){
 		// RUN_FOREGROUND_SINGLE_TAG若顯式Tag被使用者取消，後續不進行任何處理
 		if(runMode == RUN_MODE_FOREGROUND_SINGLE_TAG && msg.what != 0 && 
-				(!C_progressDialog.hasInstance() || !C_progressDialog.getInstanceDialog().isShowing())){
+				(!C_progressDialog.hasInstance() || !C_progressDialog.isInstanceShowing())){
 			msg.what = -1;
 			return msg;
 		}
 		if(runMode == RUN_MODE_FOREGROUND_SINGLE_TAG || runMode == RUN_MODE_BACKGROUND_ALLOW){
-			if(C_progressDialog.hasInstance() && C_progressDialog.getInstanceDialog().isShowing()){
+			if(C_progressDialog.hasInstance() && C_progressDialog.isInstanceShowing()){
 				if(isDismiss || msg.what == 0 || msg.what == C_networkAccess.CONNECTION_LOAD_FAIL){
-					C_progressDialog.dismissInstance();
+					C_progressDialog.clearInstance();
 				}
 			}
 		}
