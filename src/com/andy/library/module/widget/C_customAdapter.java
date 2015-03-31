@@ -3,11 +3,6 @@ package com.andy.library.module.widget;
 import java.util.List;
 import java.util.Map;
 
-import com.andy.library.R;
-import com.andy.library.module.C_imageProcessor;
-import com.andy.library.module.C_imageProcessor.DownLoadComplete;
-
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -30,13 +25,16 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.andy.library.R;
+import com.andy.library.module.C_imageProcessor;
+import com.andy.library.module.C_imageProcessor.DownLoadComplete;
+
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.0.3
+ * @version 3.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
-@TargetApi(16)
 public class C_customAdapter extends BaseAdapter{
 	
 	public static final int STYLE_SIMPLE_LIST = 1;
@@ -55,9 +53,8 @@ public class C_customAdapter extends BaseAdapter{
 	private Bitmap[] bitmapArray;
 	private AdapterView<?> adapterView;
 	private Handler handler;
-	private boolean choiceMode;
 	private boolean[] checkArray;
-	private int itemWidth, itemHeight, style;
+	private int itemWidth, itemHeight, style, status;
 	private LayoutInflater itemInflater;
 	private Resources res;
 	
@@ -191,12 +188,12 @@ public class C_customAdapter extends BaseAdapter{
 		return handler;
 	}
 	
-	public void setChoiceMode(boolean choiceMode){
-		this.choiceMode = choiceMode;
+	public void setStatus(int status){
+		this.status = status;
 	}
 	
-	public boolean getChoiceMode(){
-		return choiceMode;
+	public int getStatus(){
+		return status;
 	}
 	
 	public void setCheckedArray(boolean[] checkArray){
