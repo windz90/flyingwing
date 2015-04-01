@@ -15,6 +15,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
@@ -44,7 +45,7 @@ import com.andy.library.R;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.5
+ * @version 2.3.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -198,7 +199,7 @@ public class C_subWindow {
 			@Override
 			public void onDismiss() {
 				if(clickAction != null){
-					clickAction.action(view, 0, null);
+					clickAction.action(view, -1, null);
 				}
 			}
 		});
@@ -372,6 +373,16 @@ public class C_subWindow {
 			alertDialog.show();
 		}
 		
+		alertDialog.setOnDismissListener(new OnDismissListener() {
+			
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				if(clickAction != null){
+					clickAction.action(null, -1, null);
+				}
+			}
+		});
+		
 		for(int i=0; i<button.length; i++){
 			final int count = i;
 			button[i].setOnClickListener(new OnClickListener() {
@@ -391,13 +402,13 @@ public class C_subWindow {
 	}
 	
 	public static void alertMenuUseButton(final Context context, String title, final String[][] strArray, boolean isOutsideCancel
-			, final ClickAction click){
+			, final ClickAction clickAction){
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		int width = (int)(dm.widthPixels * 0.89f);
 		int height = LayoutParams.WRAP_CONTENT;
-		alertMenuUseButton(context, width, height, title, strArray, isOutsideCancel, click);
+		alertMenuUseButton(context, width, height, title, strArray, isOutsideCancel, clickAction);
 	}
 	
 	public static void dialogMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
@@ -500,6 +511,16 @@ public class C_subWindow {
 			dialog.show();
 		}
 		
+		dialog.setOnDismissListener(new OnDismissListener() {
+			
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				if(clickAction != null){
+					clickAction.action(null, -1, null);
+				}
+			}
+		});
+		
 		for(int i=0; i<buttons.length; i++){
 			final int count = i;
 			buttons[i].setOnClickListener(new OnClickListener() {
@@ -519,13 +540,13 @@ public class C_subWindow {
 	}
 	
 	public static void dialogMenuUseButton(final Context context, String title, final String[][] strArray, boolean isOutsideCancel
-			, final ClickAction click){
+			, final ClickAction clickAction){
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		int width = (int)(dm.widthPixels * 0.89f);
 		int height = LayoutParams.WRAP_CONTENT;
-		dialogMenuUseButton(context, width, height, title, strArray, isOutsideCancel, click);
+		dialogMenuUseButton(context, width, height, title, strArray, isOutsideCancel, clickAction);
 	}
 	
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, int[] selectedArray, String title
@@ -651,6 +672,16 @@ public class C_subWindow {
 			dialog.show();
 		}
 		
+		dialog.setOnDismissListener(new OnDismissListener() {
+			
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				if(clickAction != null){
+					clickAction.action(null, -1, null);
+				}
+			}
+		});
+		
 		if(topBar.findViewWithTag("left") instanceof View){
 			topBar.findViewWithTag("left").setOnClickListener(new OnClickListener() {
 				
@@ -680,7 +711,7 @@ public class C_subWindow {
 	}
 	
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, String[] strArray
-			, int[] selectedArray, int resourceId, int[] viewIdArray, boolean isMult, boolean isOutsideCancel, ClickAction click) {
+			, int[] selectedArray, int resourceId, int[] viewIdArray, boolean isMult, boolean isOutsideCancel, ClickAction clickAction) {
 		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
 		for(int i=0; i<strArray.length; i++){
 			Map<String, String> hashMap = new HashMap<String, String>();
@@ -688,11 +719,11 @@ public class C_subWindow {
 			list.add(hashMap);
 		}
 		SimpleAdapter adp = new SimpleAdapter(context, list, resourceId, new String[]{"strArray"}, viewIdArray);
-		dialogMenuUseListView(context, topBar, width, height, selectedArray, title, adp, isMult, isOutsideCancel, click);
+		dialogMenuUseListView(context, topBar, width, height, selectedArray, title, adp, isMult, isOutsideCancel, clickAction);
 	}
 	
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, String[] strArray
-			, int[] selectedArray, boolean isMult, boolean isOutsideCancel, ClickAction click) {
+			, int[] selectedArray, boolean isMult, boolean isOutsideCancel, ClickAction clickAction) {
 		int resourceId;
 		int[] viewIdArray;
 		if(isMult){
@@ -702,11 +733,12 @@ public class C_subWindow {
 			resourceId = android.R.layout.simple_list_item_single_choice;
 			viewIdArray = new int[]{android.R.id.text1};
 		}
-		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, resourceId, viewIdArray, isMult, isOutsideCancel, click);
+		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, resourceId, viewIdArray, isMult, isOutsideCancel
+				, clickAction);
 	}
 	
 	public static void dialogMenuUseListView(Context context, View topBar, String title, String[] strArray, int[] selectedArray
-			, boolean isMult, boolean isOutsideCancel, ClickAction click) {
+			, boolean isMult, boolean isOutsideCancel, ClickAction clickAction) {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
@@ -718,10 +750,10 @@ public class C_subWindow {
 			width = (int)(dm.heightPixels * 0.79f);
 			height = (int)(dm.heightPixels * 0.95f);
 		}
-		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, isMult, isOutsideCancel, click);
+		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, isMult, isOutsideCancel, clickAction);
 	}
 	
-	public static void popupMenuUseButton(Context context, View view, int width, int height, String title, final String[][] strArray
+	public static void popupMenuUseButton(Context context, final View view, int width, int height, String title, final String[][] strArray
 			, final ClickAction clickAction){
 		Resources res = context.getResources();
 		
@@ -807,6 +839,16 @@ public class C_subWindow {
 			popupWindow.showAsDropDown(view);
 		}
 		
+		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+			
+			@Override
+			public void onDismiss() {
+				if(clickAction != null){
+					clickAction.action(view, -1, null);
+				}
+			}
+		});
+		
 		for(int i=0; i<buttons.length; i++){
 			final int count = i;
 			buttons[i].setOnClickListener(new OnClickListener() {
@@ -825,12 +867,12 @@ public class C_subWindow {
 		}
 	}
 	
-	public static void popupMenuUseButton(Context context, View view, String title, final String[][] strArray, final ClickAction click){
+	public static void popupMenuUseButton(Context context, View view, String title, final String[][] strArray, final ClickAction clickAction){
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		int width = dm.widthPixels / 2;
 		int height = LayoutParams.WRAP_CONTENT;
-		popupMenuUseButton(context, view, width, height, title, strArray, click);
+		popupMenuUseButton(context, view, width, height, title, strArray, clickAction);
 	}
 }
