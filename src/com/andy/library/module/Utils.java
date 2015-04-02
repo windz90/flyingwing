@@ -105,7 +105,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.8
+ * @version 3.3.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -2030,8 +2030,8 @@ public class Utils {
 		// Log.i()，i代表information，在Logcat中輸出顏色是綠色，代表提示性的訊息
 		// Log.w()，w代表warning，在Logcat中輸出顏色是橘色，代表警告的訊息
 		// Log.e()，e代表error，在Logcat中輸出顏色是紅色，代表錯誤的訊息
-		Log.v("ActivityManager", "App的記憶體限制：" + activityManager.getMemoryClass() + "MB");
-		Log.v("ActivityManager", "largeHeapApp的記憶體限制：" + activityManager.getLargeMemoryClass() + "MB");
+		Log.v("ActivityManager", "AppProcess的記憶體限制：" + activityManager.getMemoryClass() + "MB");
+		Log.v("ActivityManager", "AppLargeHeapProcess的記憶體限制：" + activityManager.getLargeMemoryClass() + "MB");
 		Log.v("ActivityManager.MemoryInfo", "系統剩餘記憶體：" + (activityMemoryInfo.availMem >> 10) + "KB");
 		Log.v("ActivityManager.MemoryInfo", "系統目前是否執行低記憶體模式：" + activityMemoryInfo.lowMemory);
 		Log.v("ActivityManager.MemoryInfo", "系統記憶體低於" + (activityMemoryInfo.threshold >> 10) + "KB時執行低記憶體模式");
@@ -2040,18 +2040,24 @@ public class Utils {
 		}
 	}
 	
-	// 取得App記憶體資訊
-	public static void logAppMemoryHeap(){
-		Log.v("Debug", "AppNavtiveHeap已分配的記憶體剩餘量：" + (Debug.getNativeHeapFreeSize() >> 10) + "KB");
-		Log.v("Debug", "AppNavtiveHeap已分配的記憶體：" + (Debug.getNativeHeapSize() >> 10) + "KB");
-		Log.v("Debug", "AppNavtiveHeap已使用的記憶體：" + (Debug.getNativeHeapAllocatedSize() >> 10) + "KB");
+	/**
+	 *  取得此App process記憶體資訊<br>
+	 *  NavtiveHeap: C & C++ heap space<br>
+	 *  DalvikVMHeap: Java heap space
+	 */
+	public static void logProcessMemoryHeap(){
+		// C & C++ heap space
+		Log.v("Debug", "ProcessNavtiveHeap已分配的記憶體量：" + (Debug.getNativeHeapAllocatedSize() >> 10) + "KB");
+		Log.v("Debug", "ProcessNavtiveHeap已分配未使用的記憶體量：" + (Debug.getNativeHeapFreeSize() >> 10) + "KB");
+		Log.v("Debug", "ProcessNavtiveHeap目前的記憶體量：" + (Debug.getNativeHeapSize() >> 10) + "KB");
+		// Java heap space
 		Runtime runtime = Runtime.getRuntime();
-		Log.v("Runtime", "AppHeap已分配的記憶體剩餘量：" + (runtime.freeMemory() >> 10) + "KB");
-		Log.v("Runtime", "AppHeap已分配的記憶體：" + (runtime.totalMemory() >> 10) + "KB");
-		Log.v("Runtime", "AppHeap最大可分配的記憶體：" + (runtime.maxMemory() >> 10) + "KB");
+		Log.v("Runtime", "ProcessDalvikVMHeap已分配的記憶體量：" + (runtime.totalMemory() >> 10) + "KB");
+		Log.v("Runtime", "ProcessDalvikVMHeap已分配未使用的記憶體量：" + (runtime.freeMemory() >> 10) + "KB");
+		Log.v("Runtime", "ProcessDalvikVMHeap最大可分配的記憶體量：" + (runtime.maxMemory() >> 10) + "KB");
 	}
 	
-	// 取得App記憶體詳細資訊
+	// 取得此App記憶體詳細資訊
 	public static void logDebugMemoryInfo(){
 		Debug.MemoryInfo memoryInfo = new Debug.MemoryInfo();
 		Debug.getMemoryInfo(memoryInfo);
