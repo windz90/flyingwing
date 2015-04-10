@@ -174,11 +174,11 @@ public class C_subWindow {
 		}
 		
 		PopupWindow popupWindow = new PopupWindow(context);
+		popupWindow.setBackgroundDrawable(res.getDrawable(android.R.drawable.dialog_holo_light_frame));
 		popupWindow.setWidth(width);
 		popupWindow.setHeight(height);
 		popupWindow.setFocusable(true);
 		popupWindow.setOutsideTouchable(true);
-		popupWindow.setBackgroundDrawable(res.getDrawable(android.R.drawable.alert_light_frame));
 		popupWindow.setContentView(linLay);
 		if(context instanceof Activity){
 			if(!((Activity)context).isFinishing()){
@@ -301,7 +301,7 @@ public class C_subWindow {
 		LinearLayout linLay;
 		ScrollView scrollView;
 		LinearLayout scrollLinLay;
-		Button[] button = new Button[strArray.length];
+		Button[] buttons = new Button[strArray.length];
 		
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
@@ -321,29 +321,29 @@ public class C_subWindow {
 		itemHe = LayoutParams.WRAP_CONTENT;
 		linLayPar = new LayoutParams(itemWi, itemHe);
 		linLayPar.setMargins(space, 0, space, 0);
-		for(int i=0; i<button.length; i++){
-			button[i] = new Button(context);
-			button[i].setLayoutParams(linLayPar);
-			button[i].setPadding(0, 0, 0, 0);
-			button[i].setGravity(Gravity.CENTER);
+		for(int i=0; i<buttons.length; i++){
+			buttons[i] = new Button(context);
+			buttons[i].setLayoutParams(linLayPar);
+			buttons[i].setPadding(0, 0, 0, 0);
+			buttons[i].setGravity(Gravity.CENTER);
 			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
-				button[i].setTextColor(colorList);
+				buttons[i].setTextColor(colorList);
 			} catch (XmlPullParserException e) {
-				button[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			} catch (IOException e) {
-				button[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
-			button[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
-			button[i].getPaint().setFakeBoldText(true);
-			button[i].setEllipsize(TruncateAt.END);
-			button[i].setMaxLines(2);
-			scrollLinLay.addView(button[i]);
+			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+			buttons[i].getPaint().setFakeBoldText(true);
+			buttons[i].setEllipsize(TruncateAt.END);
+			buttons[i].setMaxLines(2);
+			scrollLinLay.addView(buttons[i]);
 			
-			button[i].setText(strArray[i][1]);
+			buttons[i].setText(strArray[i][1]);
 		}
 		
 		DialogInterface.OnClickListener onClick = new DialogInterface.OnClickListener() {
@@ -383,9 +383,9 @@ public class C_subWindow {
 			}
 		});
 		
-		for(int i=0; i<button.length; i++){
+		for(int i=0; i<buttons.length; i++){
 			final int count = i;
-			button[i].setOnClickListener(new OnClickListener() {
+			buttons[i].setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
