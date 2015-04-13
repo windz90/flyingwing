@@ -41,6 +41,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ClipData;
 import android.content.ContentProviderOperation;
 import android.content.ContentUris;
@@ -105,7 +106,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.9
+ * @version 3.3.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -730,6 +731,40 @@ public class Utils {
 		return isFillScreen(displayMetrics, limitDipWidth);
 	}
 	
+	public static int getVisibleHeightSP(Context context, String SPname){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, SPname);
+		return visibleHe;
+	}
+	
+	public static int getStatusBarHeightSP(Context context, String SPname){
+		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+		return sp.getInt(Utils.SP_KEY_STATUSBAR_HEIGHT, 0);
+	}
+	
+	public static int getVisibleHeight(DisplayMetrics displayMetrics){
+		int visibleHe = displayMetrics.heightPixels - getStatusBarHeight(0);
+		return visibleHe;
+	}
+	
+	public static int getVisibleHeight(Context context){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		return getVisibleHeight(displayMetrics);
+	}
+	
+	public static int getStatusBarHeight(int defValue){
+		Resources res = Resources.getSystem();
+		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
+		if(resourceId > 0){
+			return res.getDimensionPixelSize(resourceId);
+		}
+		return defValue;
+	}
+	
 	public static void setTextSize(Context context, TextView textView, int unit, float size){
 		DisplayMetrics dmWin = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
@@ -885,36 +920,6 @@ public class Utils {
 		FontMetrics fontMetrics = paint.getFontMetrics();
 		baselineY = (fontMetrics.bottom - fontMetrics.top) / 2 + fontMetrics.bottom;
 		return baselineY;
-	}
-	
-	public static int getVisibleHeightSP(Context context, String SPname){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
-		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, SPname);
-		return visibleHe;
-	}
-	
-	public static int getStatusBarHeightSP(Context context, String SPname){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
-		return sp.getInt(Utils.SP_KEY_STATUSBAR_HEIGHT, 0);
-	}
-	
-	public static int getVisibleHeight(Context context){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
-		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		int visibleHe = displayMetrics.heightPixels - getStatusBarHeight(0);
-		return visibleHe;
-	}
-	
-	public static int getStatusBarHeight(int defValue){
-		Resources res = Resources.getSystem();
-		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
-		if(resourceId > 0){
-			return res.getDimensionPixelSize(resourceId);
-		}
-		return defValue;
 	}
 	
 	public static TypedValue getAttribute(Context context, int attrResource){
@@ -2000,8 +2005,8 @@ public class Utils {
 		return wifiInfo.getMacAddress();
 	}
 	
-	// 判斷Activity是否在前端執行
-	public static boolean isRunningActivity(Context context){
+	// 判斷此Activity是否正在前端執行
+	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
 		@SuppressWarnings("deprecation")
@@ -2011,6 +2016,16 @@ public class Utils {
 		}else{
 			return false;
 		}
+	}
+	
+	public static boolean isRunningService(Context context, Class<?> serviceClass){
+		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		for(RunningServiceInfo runningServiceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)){
+			if(serviceClass.getName().equals(runningServiceInfo.service.getClassName())){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	// 取得系統記憶體資訊

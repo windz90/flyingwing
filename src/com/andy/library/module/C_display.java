@@ -11,12 +11,13 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.1
+ * @version 3.2.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -26,7 +27,7 @@ public class C_display {
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;
 	public static final int DISPLAY = 2;
 	
-	private static int visibleHe;
+	private static int sVisibleHe;
 	
 	public interface EventCallBack{
 		public void completed(int visibleHe);
@@ -127,13 +128,29 @@ public class C_display {
 		});
 	}
 	
-	public static int measureVisibleHeightForOnDraw(Activity activity){
+	public static int measureVisibleWidthForOnDraw(View view){
 		Rect rect = new Rect();
-		activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+		view.getWindowVisibleDisplayFrame(rect);
+//		rect.left = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getLeft();
+//		rect.right = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getRight();
+		return Math.abs(rect.left - rect.right);
+	}
+	
+	public static int measureVisibleWidthForOnDraw(Activity activity){
+		return measureVisibleWidthForOnDraw(activity.getWindow().getDecorView());
+	}
+	
+	public static int measureVisibleHeightForOnDraw(View view){
+		Rect rect = new Rect();
+		view.getWindowVisibleDisplayFrame(rect);
 //		rect.top = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
 //		rect.bottom = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getBottom();
-		visibleHe = Math.abs(rect.top - rect.bottom);
-		return visibleHe;
+		return Math.abs(rect.top - rect.bottom);
+	}
+	
+	public static int measureVisibleHeightForOnDraw(Activity activity){
+		sVisibleHe = measureVisibleHeightForOnDraw(activity.getWindow().getDecorView());
+		return sVisibleHe;
 	}
 	
 	public static int measureStatusBarHeightForOnDraw(Activity activity){
@@ -141,18 +158,23 @@ public class C_display {
 	}
 	
 	public static int getMeasureVisibleHeight(){
-		return visibleHe;
+		return sVisibleHe;
 	}
 	
 	public static int getMeasureStatusBarHeight(Context context){
-		return getHeightPixels(context, false) - visibleHe;
+		return getHeightPixels(context, false) - sVisibleHe;
 	}
 	
 	public static int getVisibleHeight(Context context){
-		return getHeightPixels(context, false) - getStatusBarHeight(context.getResources(), 0);
+		return getHeightPixels(context, false) - getStatusBarHeight(0);
 	}
 	
-	public static int getStatusBarHeight(Resources res, int defValue){
+	public static int getVisibleHeight(DisplayMetrics displayMetrics){
+		return getHeightPixels(displayMetrics, false) - getStatusBarHeight(0);
+	}
+	
+	public static int getStatusBarHeight(int defValue){
+		Resources res = Resources.getSystem();
 		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
 		if(resourceId > 0){
 			// displayMetricsFromResources
