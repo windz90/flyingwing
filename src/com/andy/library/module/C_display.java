@@ -17,7 +17,7 @@ import android.view.WindowManager;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.2
+ * @version 3.2.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -26,8 +26,6 @@ public class C_display {
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;
 	public static final int DISPLAY = 2;
-	
-	private static int sVisibleHe;
 	
 	public interface EventCallBack{
 		public void completed(int visibleHe);
@@ -149,20 +147,11 @@ public class C_display {
 	}
 	
 	public static int measureVisibleHeightForOnDraw(Activity activity){
-		sVisibleHe = measureVisibleHeightForOnDraw(activity.getWindow().getDecorView());
-		return sVisibleHe;
+		return measureVisibleHeightForOnDraw(activity.getWindow().getDecorView());
 	}
 	
 	public static int measureStatusBarHeightForOnDraw(Activity activity){
 		return getHeightPixels(activity, false) - measureVisibleHeightForOnDraw(activity);
-	}
-	
-	public static int getMeasureVisibleHeight(){
-		return sVisibleHe;
-	}
-	
-	public static int getMeasureStatusBarHeight(Context context){
-		return getHeightPixels(context, false) - sVisibleHe;
 	}
 	
 	public static int getVisibleHeight(Context context){
@@ -181,6 +170,39 @@ public class C_display {
 			return res.getDimensionPixelSize(resourceId);
 		}
 		return defValue;
+	}
+	
+	// 比較動態測量與查詢ResourceID取得的高度資料，返回大於零且較小的值
+	public static int compareVisibleHeight(int visibleDisplayFrameHe, int displayHe, int statusBarHe){
+		if(statusBarHe == 0){
+			if(visibleDisplayFrameHe == 0){
+				return displayHe;
+			}
+			return visibleDisplayFrameHe < displayHe ? visibleDisplayFrameHe : displayHe;
+		}
+		if(visibleDisplayFrameHe == 0){
+			return displayHe - statusBarHe;
+		}
+		return visibleDisplayFrameHe < displayHe - statusBarHe ? visibleDisplayFrameHe : displayHe - statusBarHe;
+	}
+	
+	public static int compareVisibleHeight(DisplayMetrics displayMetrics, View view){
+		int visibleDisplayFrameHe = measureVisibleHeightForOnDraw(view);
+		int displayHe = getHeightPixels(displayMetrics, false);
+		int statusBarHe = getStatusBarHeight(0);
+		return compareVisibleHeight(visibleDisplayFrameHe, displayHe, statusBarHe);
+	}
+	
+	public static int compareVisibleHeight(Activity activity, DisplayMetrics displayMetrics){
+		return compareVisibleHeight(displayMetrics, activity.getWindow().getDecorView());
+	}
+	
+	public static int compareVisibleHeight(Activity activity){
+		return compareVisibleHeight(getDisplayMetricsFromWindowManager(activity), activity.getWindow().getDecorView());
+	}
+	
+	public static int compareVisibleHeight(Context context, View view){
+		return compareVisibleHeight(getDisplayMetricsFromWindowManager(context), view);
 	}
 	
 	public static int getActionBarHeight(Context context, int defValue){

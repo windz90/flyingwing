@@ -32,8 +32,7 @@ public class First extends Activity {
 			
 			@Override
 			public void completed(int visibleHe) {
-				Utils.putSharedPreferences(First.this, Main.SP_NAME, Utils.SP_KEY_STATUSBAR_HEIGHT
-						, C_display.getMeasureStatusBarHeight(First.this), null);
+				Utils.putSharedPreferences(First.this, Main.SP_NAME, Utils.SP_KEY_STATUSBAR_HEIGHT, visibleHe, null);
 				
 				isGetVisibleHe = true;
 				if(isLoaded && isGetVisibleHe){

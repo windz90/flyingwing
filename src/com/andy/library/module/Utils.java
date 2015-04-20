@@ -106,7 +106,7 @@ import android.widget.Toast;
 
 /**
  * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.10
+ * @version 3.3.11
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -2006,16 +2006,51 @@ public class Utils {
 	}
 	
 	// 判斷此Activity是否正在前端執行
+	@Deprecated
 	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-		@SuppressWarnings("deprecation")
 		String runningClassName = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
 		if(context.getClass().getName().equals(runningClassName)){
 			return true;
 		}else{
 			return false;
 		}
+	}
+	
+	public static boolean isRunningApp(Context context, String packageName){
+		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
+			if(packageName.equals(runningAppProcessInfo.processName)){
+				return true;
+			}
+			for(String packageNameItem : runningAppProcessInfo.pkgList){
+				if(packageName.equals(packageNameItem)){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isRunningAppProcess(Context context, int processId){
+		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
+			if(processId == runningAppProcessInfo.pid){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isRunningAppProcess(Context context, String processName){
+		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
+			if(processName.equals(runningAppProcessInfo.processName)){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public static boolean isRunningService(Context context, Class<?> serviceClass){
@@ -2028,14 +2063,37 @@ public class Utils {
 		return false;
 	}
 	
-	// 取得系統記憶體資訊
+	// 列印所有執行中的AppProcess系統資訊
+	public static void logRunningAppProcessInfo(Context context){
+		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		List<RunningAppProcessInfo> runningAppProcessInfoList = activityManager.getRunningAppProcesses();
+		int size = runningAppProcessInfoList.size();
+		int[] pids = new int[size];
+		Log.v("RunningAppProcess", "Count:" + size);
+		
+		RunningAppProcessInfo runningAppProcessInfo;
+		Debug.MemoryInfo[] debugMemoryInfoArray;
+		for(int i=0; i<size; i++){
+			runningAppProcessInfo = runningAppProcessInfoList.get(i);
+			pids[i] = runningAppProcessInfo.pid;
+		}
+		for(int i=0; i<size; i++){
+			runningAppProcessInfo = runningAppProcessInfoList.get(i);
+			debugMemoryInfoArray = activityManager.getProcessMemoryInfo(pids);
+			Log.v("RunningAppProcess", "processName:" + runningAppProcessInfo.processName + 
+					" pid:" + runningAppProcessInfo.pid + " uid:" + runningAppProcessInfo.uid);
+			logDebugMemoryInfo(debugMemoryInfoArray[i]);
+		}
+	}
+	
+	// 列印系統記憶體資訊
 	@SuppressLint("NewApi")
 	public static void logActivityManagerMemoryInfo(Context context){
 		// ActivityManager.MemoryInfo：系统可用記憶體資訊
 		// ActivityManager.RecentTaskInfo：最近的任務資訊
 		// ActivityManager.RunningAppProcessInfo：正在執行的程式資訊
 		// ActivityManager.RunningServiceInfo：正在執行的服務資訊
-		// ActivityManager.RunningTaskInfo：正在运行的任務資訊
+		// ActivityManager.RunningTaskInfo：正在執行的任務資訊
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
 		ActivityManager.MemoryInfo activityMemoryInfo = new ActivityManager.MemoryInfo();
 		activityManager.getMemoryInfo(activityMemoryInfo);
@@ -2056,49 +2114,44 @@ public class Utils {
 	}
 	
 	/**
-	 *  取得此App process記憶體資訊<br>
+	 *  列印此App單一Process記憶體資訊<br>
 	 *  NavtiveHeap: C & C++ heap space<br>
 	 *  DalvikVMHeap: Java heap space
 	 */
 	public static void logProcessMemoryHeap(){
-		// C & C++ heap space
-		Log.v("Debug", "ProcessNavtiveHeap已分配的記憶體量：" + (Debug.getNativeHeapAllocatedSize() >> 10) + "KB");
-		Log.v("Debug", "ProcessNavtiveHeap已分配未使用的記憶體量：" + (Debug.getNativeHeapFreeSize() >> 10) + "KB");
-		Log.v("Debug", "ProcessNavtiveHeap目前的記憶體量：" + (Debug.getNativeHeapSize() >> 10) + "KB");
 		// Java heap space
 		Runtime runtime = Runtime.getRuntime();
 		Log.v("Runtime", "ProcessDalvikVMHeap已分配的記憶體量：" + (runtime.totalMemory() >> 10) + "KB");
 		Log.v("Runtime", "ProcessDalvikVMHeap已分配未使用的記憶體量：" + (runtime.freeMemory() >> 10) + "KB");
 		Log.v("Runtime", "ProcessDalvikVMHeap最大可分配的記憶體量：" + (runtime.maxMemory() >> 10) + "KB");
+		// C & C++ heap space
+		Log.v("Debug", "ProcessNavtiveHeap已分配的記憶體量：" + (Debug.getNativeHeapAllocatedSize() >> 10) + "KB");
+		Log.v("Debug", "ProcessNavtiveHeap已分配未使用的記憶體量：" + (Debug.getNativeHeapFreeSize() >> 10) + "KB");
+		Log.v("Debug", "ProcessNavtiveHeap目前的記憶體量：" + (Debug.getNativeHeapSize() >> 10) + "KB");
 	}
 	
-	// 取得此App記憶體詳細資訊
-	public static void logDebugMemoryInfo(){
-		Debug.MemoryInfo memoryInfo = new Debug.MemoryInfo();
-		Debug.getMemoryInfo(memoryInfo);
-		Log.v("Debug.MemoryInfo", "dalvikPrivateDirty:" + memoryInfo.dalvikPrivateDirty + "KB");
-		Log.v("Debug.MemoryInfo", "dalvikPss:" + memoryInfo.dalvikPss + "KB");
-		Log.v("Debug.MemoryInfo", "dalvikSharedDirty:" + memoryInfo.dalvikSharedDirty + "KB");
-		Log.v("Debug.MemoryInfo", "nativePrivateDirty:" + memoryInfo.nativePrivateDirty + "KB");
-		Log.v("Debug.MemoryInfo", "nativePss:" + memoryInfo.nativePss + "KB");
-		Log.v("Debug.MemoryInfo", "nativeSharedDirty:" + memoryInfo.nativeSharedDirty + "KB");
-		Log.v("Debug.MemoryInfo", "otherPrivateDirty:" + memoryInfo.otherPrivateDirty + "KB");
-		Log.v("Debug.MemoryInfo", "otherPss:" + memoryInfo.otherPss + "KB");
-		Log.v("Debug.MemoryInfo", "otherSharedDirty:" + memoryInfo.otherSharedDirty + "KB");
-	}
-	
-	// 取得各App系統資訊
-	public static void logAppMemoryInfoArray(Context context){
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-		List<RunningAppProcessInfo> appProcessList = activityManager.getRunningAppProcesses();
-		for(int i=0; i<appProcessList.size(); i++){
-			RunningAppProcessInfo appProcessInfo = (RunningAppProcessInfo)appProcessList.get(i);
-			int[] pids = new int[]{appProcessInfo.pid};
-			Debug.MemoryInfo[] debugMemoryInfoArray = activityManager.getProcessMemoryInfo(pids);
-			Log.v("AppMemoryInfo", "processName:" + appProcessInfo.processName + 
-					" pid:" + appProcessInfo.pid + " uid:" + appProcessInfo.uid + 
-					" memorySize:" + debugMemoryInfoArray[0].dalvikPrivateDirty + "KB");
+	// 列印此App單一Process記憶體詳細資訊
+	public static void logDebugMemoryInfo(Debug.MemoryInfo debugMemoryInfo){
+		if(debugMemoryInfo == null){
+			debugMemoryInfo = new Debug.MemoryInfo();
+			Debug.getMemoryInfo(debugMemoryInfo);
 		}
+		// Java heap space
+		Log.v("Debug.MemoryInfo", "dalvikPrivateDirty:" + debugMemoryInfo.dalvikPrivateDirty + "KB");
+		Log.v("Debug.MemoryInfo", "dalvikPss:" + debugMemoryInfo.dalvikPss + "KB");
+		Log.v("Debug.MemoryInfo", "dalvikSharedDirty:" + debugMemoryInfo.dalvikSharedDirty + "KB");
+		// C & C++ heap space
+		Log.v("Debug.MemoryInfo", "nativePrivateDirty:" + debugMemoryInfo.nativePrivateDirty + "KB");
+		Log.v("Debug.MemoryInfo", "nativePss:" + debugMemoryInfo.nativePss + "KB");
+		Log.v("Debug.MemoryInfo", "nativeSharedDirty:" + debugMemoryInfo.nativeSharedDirty + "KB");
+		
+		Log.v("Debug.MemoryInfo", "otherPrivateDirty:" + debugMemoryInfo.otherPrivateDirty + "KB");
+		Log.v("Debug.MemoryInfo", "otherPss:" + debugMemoryInfo.otherPss + "KB");
+		Log.v("Debug.MemoryInfo", "otherSharedDirty:" + debugMemoryInfo.otherSharedDirty + "KB");
+	}
+	
+	public static void logDebugMemoryInfo(){
+		logDebugMemoryInfo(null);
 	}
 	
 	// 取得軟體資訊
