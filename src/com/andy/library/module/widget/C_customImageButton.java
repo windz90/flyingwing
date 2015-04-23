@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 1.0.0
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module.widget;
 
 import android.content.Context;
@@ -8,12 +15,6 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 1.0.0
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_customImageButton extends ImageButton{
 	
 	private String text = "";

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 3.2.2
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.net.HttpURLConnection;
@@ -15,12 +22,6 @@ import android.util.Log;
 import com.andy.library.module.C_networkAccess.ConnectionResult;
 import com.andy.library.module.widget.C_progressDialog;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.2
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public abstract class C_connectManager {
 	
 	public static final int RUN_MODE_FOREGROUND_SINGLE_TAG = 0x0A1;

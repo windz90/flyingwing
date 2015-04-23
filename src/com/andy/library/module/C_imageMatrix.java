@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 2.4.0
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.util.Timer;
@@ -22,12 +29,6 @@ import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.4.0
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_imageMatrix{
 	
 	public interface ClickAction{

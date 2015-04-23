@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 2.3.6
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.io.IOException;
@@ -43,12 +50,6 @@ import android.widget.TextView;
 
 import com.andy.library.R;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.6
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_subWindow {
 	
 	public static boolean sIsInstanceShow;

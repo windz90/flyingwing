@@ -12,12 +12,6 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Window;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 1.0.0
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_c2dmPrompt extends Activity {
 	
 	@Override

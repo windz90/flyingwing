@@ -22,12 +22,6 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings.Secure;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 1.0.0
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_c2dmReceiver extends BroadcastReceiver{
 	
     private static SharedPreferences sp;

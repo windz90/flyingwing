@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 3.4.9
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.io.ByteArrayInputStream;
@@ -42,12 +49,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Handler.Callback;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.9
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_imageProcessor {
 	
 	private static final ImageSetting IMAGESETTING = new ImageSetting();

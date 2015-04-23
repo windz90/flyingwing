@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 1.0.0
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module.widget;
 
 import java.io.IOException;
@@ -30,12 +37,6 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.TextView;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 1.0.0
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_calendar {
 	
 	public static int calendarBackgroundResource = 0xFFBBBBBB;

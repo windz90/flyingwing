@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 1.1.1
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.security.MessageDigest;
@@ -5,12 +12,6 @@ import java.security.NoSuchAlgorithmException;
 
 import android.util.Base64;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 1.1.1
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_encrypt {
 	
 	public static final String TYPE_MD2 = "MD2";

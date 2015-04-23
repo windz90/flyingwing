@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 3.3.11
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.io.BufferedReader;
@@ -104,12 +111,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.3.11
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class Utils {
 	
 	public static final int LIMIT_DIP_WIDTH_320 = 320;

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2014 Andy Lin. All rights reserved.
+ * @version 1.0.2
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 4.0
+ */
+
 package com.andy.library.module.widget;
 
 import java.util.Timer;
@@ -32,12 +39,6 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-/** 
- * Copyright 2014 Andy Lin. All rights reserved.
- * @version 1.0.2
- * @author Andy Lin
- * @since JDK 1.5 and Android 4.0
- */
 @SuppressLint("NewApi")
 public class C_pullToRefresh {
 	

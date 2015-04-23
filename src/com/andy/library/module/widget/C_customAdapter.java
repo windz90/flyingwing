@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 3.0.4
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module.widget;
 
 import java.util.List;
@@ -29,12 +36,6 @@ import com.andy.library.R;
 import com.andy.library.module.C_imageProcessor;
 import com.andy.library.module.C_imageProcessor.DownLoadComplete;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.0.4
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_customAdapter extends BaseAdapter{
 	
 	public static final int STYLE_SIMPLE_LIST = 1;

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 3.2.3
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import android.annotation.SuppressLint;
@@ -15,12 +22,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.2.3
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_display {
 	
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;

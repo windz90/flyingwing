@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 2.1.1
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.text.Collator;
@@ -12,11 +19,6 @@ import java.util.regex.Pattern;
  * 排序規則<br>
  * Comparator是在集合外定義Comparator接口實現的排序<br>
  * Comparable是在集合內部實作Comparable接口實現的排序<br><br>
- * 
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.1.1
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
  */
 public class C_comparator implements Comparator<Map<String, String>>{
 	

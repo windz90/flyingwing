@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2014 Andy Lin. All rights reserved.
+ * @version 1.0.3
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module.widget;
 
 import java.util.ArrayList;
@@ -26,12 +33,6 @@ import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.RelativeLayout;
 
-/** 
- * Copyright 2014 Andy Lin. All rights reserved.
- * @version 1.0.3
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_tabView extends LinearLayout {
 	
 	private int BASE_ID = 0x5FF;

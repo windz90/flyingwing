@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 3.4.5
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.io.BufferedReader;
@@ -56,12 +63,6 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 3.4.5
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_networkAccess {
 	
 	public static final int SPLIT_AUTO_MAX_QUANTITY = 0;

@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 2.3.4
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module.widget;
 
 import android.app.Activity;
@@ -13,12 +20,6 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.4
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_progressDialog {
 	
 	private static C_progressDialog sProgress;

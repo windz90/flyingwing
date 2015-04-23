@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 2.1.1
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.util.List;
@@ -23,12 +30,6 @@ import android.os.Handler.Callback;
 import android.provider.Settings;
 import android.widget.Toast;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.1.1
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_customLocation implements LocationListener {
 	
 	public static final int NETWORK = 10;

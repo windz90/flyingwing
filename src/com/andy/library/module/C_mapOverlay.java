@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2012 Andy Lin. All rights reserved.
+ * @version 2.3.0
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module;
 
 import java.util.ArrayList;
@@ -28,12 +35,6 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 import com.google.android.maps.Projection;
 
-/**
- * Copyright 2012 Andy Lin. All rights reserved.
- * @version 2.3.0
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public class C_mapOverlay extends Overlay{
 	
 	private Activity activity;
