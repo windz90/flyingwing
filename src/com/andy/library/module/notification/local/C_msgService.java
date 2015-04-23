@@ -1,4 +1,4 @@
-package com.andy.library.module.serviceNotification;
+package com.andy.library.module.notification.local;
 
 import java.util.Calendar;
 

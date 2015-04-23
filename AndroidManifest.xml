@@ -23,7 +23,7 @@
         android:theme="@style/AppTheme" >
         <uses-library android:name="com.google.android.maps" />
         <receiver
-            android:name="com.andy.library.module.C_c2dmReceiver"
+            android:name="com.andy.library.module.notification.c2dm.C_c2dmReceiver"
             android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>

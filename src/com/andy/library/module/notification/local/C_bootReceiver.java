@@ -1,4 +1,4 @@
-package com.andy.library.module.serviceNotification;
+package com.andy.library.module.notification.local;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

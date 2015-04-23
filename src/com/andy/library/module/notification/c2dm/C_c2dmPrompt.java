@@ -1,4 +1,4 @@
-package com.andy.library.module;
+package com.andy.library.module.notification.c2dm;
 
 import com.andy.library.R;
 import com.andy.library.view.Main;
