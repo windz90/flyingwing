@@ -21,7 +21,7 @@ public class CustomActivity extends Activity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Intent intent;
 		switch (item.getItemId()) {
-		case R.id.menu1:
+		case android.R.id.home:
 			intent = new Intent(this, Main.class);
 			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 			intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
