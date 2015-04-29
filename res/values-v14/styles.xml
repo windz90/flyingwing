@@ -20,7 +20,7 @@
 	<style name="CustomAppCompatBase" parent="Theme.AppCompat.Light">
 		<!-- No ActionBar -->
 		<item name="windowActionBar">false</item>
-		<item name="android:windowNoTitle">true</item>
+		<item name="windowNoTitle">true</item>
 		
 		<!-- android:fitsSystemWindows : StatusBar and NavigationBar is hold space, But material style dialog text padding not work -->
 		<!-- <item name="android:fitsSystemWindows">true</item> -->
