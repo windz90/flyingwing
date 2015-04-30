@@ -1,0 +1,89 @@
+<resources xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+	
+	<style name="CustomTheme" parent="CustomMaterialBase"/>
+	
+	<!-- CustomMaterialBase -->
+	
+	<!-- Theme.Material -->
+	<!-- Theme.Material.Light -->
+	<!-- Theme.Material.Light.DarkActionBar -->
+	<style name="CustomMaterialBase" parent="android:Theme.Material.Light">
+		<!-- No ActionBar -->
+		<item name="windowActionBar">false</item>
+		<item name="windowNoTitle">true</item>
+		
+		<!-- android:fitsSystemWindows : StatusBar and NavigationBar is hold space, But material style dialog text padding not work -->
+		<!-- <item name="android:fitsSystemWindows">true</item> -->
+		
+		<!-- android:windowTranslucentStatus : StatusBar is translucent -->
+		<item name="android:windowTranslucentStatus">true</item>
+		<!-- android:windowTranslucentNavigation : NavigationBar is translucent -->
+		<item name="android:windowTranslucentNavigation">true</item>
+		
+		<!-- Toolbar styles -->
+		<item name="toolbarStyle">@style/ToolbarStyleMaterial</item>
+		<item name="toolbarNavigationButtonStyle">@style/ToolbarNavigationButtonStyleMaterial</item>
+		
+		<!-- Action Bar Styles -->
+		<item name="actionButtonStyle">@style/ActionButtonStyleMaterial</item>
+		<item name="actionOverflowButtonStyle">@style/ActionOverflowButtonStyleMaterial</item>
+		<item name="actionOverflowMenuStyle">@android:style/Widget.Material.Light.PopupMenu.Overflow</item>
+		
+		<!-- Window attributes -->
+		<!-- android:statusBarColor : StatusBar background(getWindow().setStatusBarColor()) -->
+		<item name="android:statusBarColor">?attr/colorPrimaryDark</item>
+		<!-- android:navigationBarColor : NavigationBar background(getWindow().setNavigationBarColor()) -->
+		<item name="android:navigationBarColor">?attr/colorPrimaryDark</item>
+		<item name="android:windowContentTransitions">true</item>
+		
+		<!-- Color palette -->
+		<!-- colorPrimary : default ActionBar(but not Toolbar) background -->
+		<item name="colorPrimary">?attr/colorPrimary</item>
+		<!-- colorPrimaryDark : StatusBar background(getWindow().setStatusBarColor()) -->
+		<item name="colorPrimaryDark">?attr/colorPrimaryDark</item>
+		<!-- colorAccent : widgets checked tint -->
+		<item name="colorAccent">?attr/colorAccent</item>
+		
+		<item name="colorControlNormal">?android:attr/textColorSecondary</item>
+		<item name="colorControlActivated">?attr/colorControlActivated</item>
+		
+		<item name="colorControlHighlight">?attr/colorControlHighlight</item>
+		<item name="colorButtonNormal">?attr/colorButtonNormal</item>
+		<item name="colorSwitchThumbNormal">?attr/colorSwitchThumbNormal</item>
+	</style>
+	
+	<style name="ToolbarStyleMaterial" parent="@android:style/Widget.Material.Toolbar">
+		<item name="android:minHeight">@dimen/toolbarHeight</item>
+		<item name="android:paddingRight">0dip</item>
+		<item name="contentInsetStart">0dip</item>
+		<item name="contentInsetEnd">0dip</item>
+		<!-- popupTheme : menu popup theme -->
+		<item name="popupTheme">@android:style/ThemeOverlay.Material.Light</item>
+	</style>
+	
+	<style name="ToolbarNavigationButtonStyleMaterial" parent="@android:style/Widget.Material.Toolbar.Button.Navigation">
+		<item name="android:minWidth">0dip</item>
+		<item name="android:padding">12dip</item>
+		<item name="android:scaleType">centerInside</item>
+	</style>
+	
+	<style name="ActionButtonStyleMaterial" parent="@android:style/Widget.Material.Light.ActionButton">
+		<item name="android:background">?android:attr/actionBarItemBackground</item>
+		<item name="android:minWidth">?android:attr/minWidth</item>
+		<item name="android:minHeight">?android:attr/minHeight</item>
+		<item name="android:paddingLeft">10dip</item>
+		<item name="android:paddingRight">10dip</item>
+		<item name="android:gravity">center</item>
+		<item name="android:scaleType">center</item>
+		<item name="android:maxLines">2</item>
+		<item name="textAllCaps">false</item>
+	</style>
+	
+	<style name="ActionOverflowButtonStyleMaterial" parent="@android:style/Widget.Material.Light.ActionButton.Overflow">
+		<!-- <item name="android:src"></item> -->
+		<item name="android:background">?android:attr/actionBarItemBackground</item>
+		<item name="android:paddingLeft">12dip</item>
+		<item name="android:paddingRight">12dip</item>
+	</style>
+	
+</resources>
