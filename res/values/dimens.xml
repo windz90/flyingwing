@@ -1,14 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Default screen margins, per the Android Design guidelines. -->
-    <dimen name="standardHeight">61.5dip</dimen>
-    <dimen name="standardHeight_1_75">107.625dip</dimen>
-    <dimen name="standardHeight_1_25">76.875dip</dimen>
-    <dimen name="standardHeight_0_75">46.125dip</dimen>
-    <dimen name="toolbarHeight">@dimen/standardHeight_0_75</dimen>
-    <dimen name="dip1">1dip</dimen>
-    <dimen name="dip5">5dip</dimen>
-    <dimen name="dip10">10dip</dimen>
-    <dimen name="dip15">15dip</dimen>
-    <dimen name="dip20">20dip</dimen>
+	<!-- Default screen margins, per the Android Design guidelines. -->
+	<dimen name="standardHeight">61.5dip</dimen>
+	<dimen name="standardHeight_0_75">46.125dip</dimen>
+	<dimen name="standardHeight_1_25">76.875dip</dimen>
+	<dimen name="standardHeight_1_75">107.625dip</dimen>
+	<dimen name="toolbarHeight">@dimen/standardHeight_0_75</dimen>
+	<dimen name="dip5">5dip</dimen>
+	<dimen name="dip10">10dip</dimen>
+	<dimen name="dip15">15dip</dimen>
+	<dimen name="dip20">20dip</dimen>
+	
+	<!-- 24倍數 -->
+	<dimen name="dip24">24dip</dimen>
+	<dimen name="dip48">48dip</dimen>
+	<dimen name="dip72">72dip</dimen>
+	<dimen name="dip120">120dip</dimen>
+	
+	<!-- 28倍數 -->
+	<dimen name="dip28">28dip</dimen>
+	<dimen name="dip56">56dip</dimen>
+	<dimen name="dip84">84dip</dimen>
+	<dimen name="dip112">112dip</dimen>
+	<dimen name="dip140">140dip</dimen>
+	
+	<!-- 32倍數 -->
+	<dimen name="dip32">32dip</dimen>
+	<dimen name="dip64">64dip</dimen>
+	<dimen name="dip96">96dip</dimen>
+	<dimen name="dip128">128dip</dimen>
+	<dimen name="dip160">160dip</dimen>
 </resources>
