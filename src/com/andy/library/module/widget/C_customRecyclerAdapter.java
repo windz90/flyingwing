@@ -2,7 +2,9 @@ package com.andy.library.module.widget;
 
 import java.util.List;
 import java.util.Map;
+
 import org.json.JSONArray;
+
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
@@ -13,11 +15,12 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
+
 import com.andy.library.module.Utils;
 
 /** 
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -25,6 +28,7 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	
 	protected OnItemClickListener mOnItemClickListener;
 	protected OnItemLongClickListener mOnItemLongClickListener;
+	protected String[][] mDataArray;
 	protected List<Map<String, String>> mDataList;
 	protected JSONArray mJsonArray;
 	protected int mSelectorBgRes;
@@ -120,6 +124,14 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 		}else{
 			mSelectorBgRes = android.R.color.white;
 		}
+	}
+	
+	public void setDataArray(String[][] array){
+		mDataArray = array;
+	}
+	
+	public String[][] getDataArray(){
+		return mDataArray;
 	}
 	
 	public void setDataList(List<Map<String, String>> list){
