@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="toolbar" type="id"/>
+    <item name="viewPager" type="id"/>
+    <item name="swipeRefresh" type="id"/>
+    <item name="topLayout" type="id"/>
+    <item name="topLeft" type="id"/>
+    <item name="topCenter" type="id"/>
+    <item name="topRight" type="id"/>
+</resources>
