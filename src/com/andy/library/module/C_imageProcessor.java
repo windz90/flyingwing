@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.9
+ * @version 3.4.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -40,14 +40,14 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.EmbossMaskFilter;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Message;
 import android.os.Handler.Callback;
+import android.os.Message;
 
 public class C_imageProcessor {
 	
@@ -706,7 +706,10 @@ public class C_imageProcessor {
 		streamURL = streamURL.replace("\\(", "%28");
 		streamURL = streamURL.replace("\\)", "%29");
 		URL url = new URL(streamURL);
-		return inputStreamToByteArray(url.openStream(), IMAGESETTING.mBufferSize);
+		InputStream inputStream = url.openStream();
+		byte[] bytes = inputStreamToByteArray(inputStream, IMAGESETTING.mBufferSize);
+		inputStream.close();
+		return bytes;
 	}
 	
 	public static boolean isConnect(Context context) {
@@ -1085,7 +1088,8 @@ public class C_imageProcessor {
 		return null;
 	}
 	
-	@SuppressLint("NewApi")
+	@SuppressWarnings("deprecation")
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public static Bitmap getAgileBitmap(InputStream is, int inSampleSize){
 		// 圖片設定
 		BitmapFactory.Options options = new BitmapFactory.Options();
@@ -1095,24 +1099,28 @@ public class C_imageProcessor {
 		options.inSampleSize = inSampleSize;
 		// 設定圖片ARGB屬性佔用記憶體空間，預設Bitmap.Config.ARGB_8888為各佔8Bit
 		options.inPreferredConfig = IMAGESETTING.mBitmapConfig;
-		// 設定是否系統記憶體不足時先行回收部分的記憶體，但回收動作仍會佔用JVM的記憶體
-		options.inPurgeable = true;
-		options.inInputShareable = true;
 		// SDK 11 開始可設定是否讓圖片內容允許變動
-		if(Build.VERSION.SDK_INT >= 11){
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
 			options.inMutable = true;
 		}
-		try {
-			// 直接把不使用的記憶體歸給JVM，回收動作不佔用JVM的記憶體
-			BitmapFactory.Options.class.getField("inNativeAlloc").setBoolean(options, IMAGESETTING.mInNativeAlloc);
-		} catch (IllegalArgumentException e) {
-//			e.printStackTrace();
-		} catch (SecurityException e) {
-//			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-//			e.printStackTrace();
-		} catch (NoSuchFieldException e) {
-//			e.printStackTrace();
+		// 直接把不使用的記憶體歸給JVM，回收動作不佔用JVM的記憶體
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH){
+			try {
+				BitmapFactory.Options.class.getField("inNativeAlloc").setBoolean(options, IMAGESETTING.mInNativeAlloc);
+			} catch (IllegalArgumentException e) {
+//				e.printStackTrace();
+			} catch (SecurityException e) {
+//				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+//				e.printStackTrace();
+			} catch (NoSuchFieldException e) {
+//				e.printStackTrace();
+			}
+		}
+		// 設定是否系統記憶體不足時先行回收部分的記憶體，但回收動作仍會佔用JVM的記憶體
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP){
+			options.inPurgeable = true;
+			options.inInputShareable = true;
 		}
 		Bitmap bitmap = null;
 		try {
