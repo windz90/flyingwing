@@ -3,10 +3,6 @@
 	android:id="@+id/layoutScrollFrameLay"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
-	<View
-		android:layout_width="0dip"
-		android:layout_height="0dip"
-		android:visibility="gone"/>
 	<ScrollView
 		android:id="@+id/layoutScrollFrameScrollView"
 		android:layout_width="match_parent"
