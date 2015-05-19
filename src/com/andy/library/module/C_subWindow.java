@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.7
+ * @version 2.3.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -442,17 +442,16 @@ public class C_subWindow {
 				textViews[i].setId(R.id.topLeft);
 				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
 				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-				relLayPar.setMargins(0, space, 0, space);
+				relLayPar.setMargins(0, space, space, space);
 			}else if(i == 1){
 				textViews[i].setId(R.id.topCenter);
-				relLayPar = new RelativeLayout.LayoutParams(relLay.getLayoutParams().width - btnWidth * 2 - space * 2, height);
+				relLayPar = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
 				relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLeft);
-				relLayPar.setMargins(space, 0, space, 0);
 			}else{
 				textViews[i].setId(R.id.topRight);
 				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
 				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-				relLayPar.setMargins(0, space, 0, space);
+				relLayPar.setMargins(space, space, 0, space);
 			}
 			textViews[i].setLayoutParams(relLayPar);
 			textViews[i].setGravity(Gravity.CENTER);
@@ -467,6 +466,10 @@ public class C_subWindow {
 			textViews[i].setMaxLines(2);
 			relLay.addView(textViews[i]);
 		}
+		
+		// 偏移位置設定
+		relLayPar = (RelativeLayout.LayoutParams)textViews[1].getLayoutParams();
+		relLayPar.addRule(RelativeLayout.LEFT_OF, R.id.topRight);
 		
 		return relLay;
 	}
