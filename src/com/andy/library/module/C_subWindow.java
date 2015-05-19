@@ -715,8 +715,8 @@ public class C_subWindow {
 			}
 		});
 		
-		if(topBar.findViewWithTag("left") instanceof View){
-			topBar.findViewWithTag("left").setOnClickListener(new OnClickListener() {
+		if(topBar.findViewById(R.id.topLeft) instanceof View){
+			topBar.findViewById(R.id.topLeft).setOnClickListener(new OnClickListener() {
 				
 				@Override
 				public void onClick(View v) {
