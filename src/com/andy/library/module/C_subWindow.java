@@ -715,7 +715,7 @@ public class C_subWindow {
 			}
 		});
 		
-		if(topBar.findViewById(R.id.topLeft) instanceof View){
+		if(topBar.findViewById(R.id.topLeft) != null){
 			topBar.findViewById(R.id.topLeft).setOnClickListener(new OnClickListener() {
 				
 				@Override
