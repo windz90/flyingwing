@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.11
+ * @version 3.3.12
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -71,6 +71,7 @@ import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.PointF;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
@@ -1404,6 +1405,7 @@ public class Utils {
 	
 	@SuppressWarnings("unchecked")
 	public static List<Object> reflectionJSONArrayToList(JSONArray jsonArray){
+		// Reflection反射調用private屬性
 		try {
 			Field field = jsonArray.getClass().getDeclaredField("values");
 			field.setAccessible(true);
@@ -1466,6 +1468,7 @@ public class Utils {
 	
 	@SuppressWarnings("unchecked")
 	public static Map<String, Object> reflectionJSONObjectToMap(JSONObject jsonObject){
+		// Reflection反射調用private屬性
 		try {
 			Field field = jsonObject.getClass().getDeclaredField("nameValuePairs");
 			field.setAccessible(true);
@@ -1725,8 +1728,7 @@ public class Utils {
 	
 	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, boolean circleCrop, boolean noFaceDetection
 			, boolean returnData, int requestCode){
-		callImageCrop(activity, uriSrc, uriDst, 0, 0, 0, 0, Bitmap.CompressFormat.PNG.toString(), circleCrop, noFaceDetection, returnData
-				, requestCode);
+		callImageCrop(activity, uriSrc, uriDst, 0, 0, 0, 0, Bitmap.CompressFormat.PNG.toString(), circleCrop, noFaceDetection, returnData, requestCode);
 	}
 	
 	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, String outputFormat, boolean returnData, int requestCode){
@@ -1972,6 +1974,35 @@ public class Utils {
 				e.printStackTrace();
 				return false;
 			}
+		}
+		return false;
+	}
+
+	public static boolean isOnViewVisible(View parentsView, View view){
+		if(view.getVisibility() != View.VISIBLE){
+			return false;
+		}
+		Rect rectHit = new Rect();
+		parentsView.getHitRect(rectHit);
+		if(view.getLocalVisibleRect(rectHit)){
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isViewVisible(View parentsView, View view, int xOffset, int yOffset){
+		if(view.getVisibility() != View.VISIBLE){
+			return false;
+		}
+		Rect rectScroll = new Rect();
+		parentsView.getDrawingRect(rectScroll);
+		rectScroll.left += xOffset;
+		rectScroll.right += xOffset;
+		rectScroll.top += yOffset;
+		rectScroll.bottom += yOffset;
+		if(rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() && 
+				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight()){
+			return true;
 		}
 		return false;
 	}

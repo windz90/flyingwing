@@ -1,4 +1,17 @@
+/*
+ * Copyright 2015 Andy Lin. All rights reserved.
+ * @version 1.0.3
+ * @author Andy Lin
+ * @since JDK 1.5 and Android 2.2
+ */
+
 package com.andy.library.module.widget;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONArray;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -11,19 +24,8 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 
-import com.enlightouch.homework.module.Utils;
+import com.andy.library.module.Utils;
 
-import org.json.JSONArray;
-
-import java.util.List;
-import java.util.Map;
-
-/** 
- * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.2
- * @author Andy Lin
- * @since JDK 1.5 and Android 2.2
- */
 public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 	
 	protected OnItemClickListener mOnItemClickListener;
@@ -134,80 +136,62 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 		return mDataArray;
 	}
 
-	public void addItemInArray(String[] stringArray, int index){
-		if(mDataArray != null){
-			String[][] dataArray = new String[mDataArray.length + 1][2];
-			if(mDataArray.length - 1 == index){
-				System.arraycopy(mDataArray, 0, dataArray, 0, mDataArray.length);
-				mDataArray = dataArray;
-				mDataArray[mDataArray.length - 1] = stringArray;
-			}else{
-				for(int i=0; i<mDataArray.length; i++){
-					if(i < index){
-						dataArray[i] = mDataArray[i];
-					}else if(i >= index + 1){
-						dataArray[i] = mDataArray[i - 1];
-					}else{
-						dataArray[i] = stringArray;
-					}
-				}
-			}
-			notifyItemInserted(mDataArray.length - 1);
-		}
-	}
-
 	public void addRangeItemInArray(String[][] stringArray, int positionStart){
 		if(mDataArray != null){
-			String[][] dataArray = new String[mDataArray.length + stringArray.length][2];
-			if(mDataArray.length - 1 == positionStart){
-				System.arraycopy(mDataArray, 0, dataArray, 0, mDataArray.length);
-				mDataArray = dataArray;
+			String[][] dataArrayNew = new String[mDataArray.length + stringArray.length][2];
+			if(mDataArray.length - stringArray.length == positionStart){
+				System.arraycopy(mDataArray, 0, dataArrayNew, 0, mDataArray.length);
 				for(int i=0; i<stringArray.length; i++){
-					mDataArray[positionStart + i] = stringArray[i];
+					dataArrayNew[positionStart + i] = stringArray[i];
 				}
 			}else{
 				for(int i=0; i<mDataArray.length; i++){
 					if(i < positionStart){
-						dataArray[i] = mDataArray[i];
+						dataArrayNew[i] = mDataArray[i];
 					}else if(i >= positionStart + stringArray.length){
-						dataArray[i] = mDataArray[i - stringArray.length];
+						dataArrayNew[i] = mDataArray[i - stringArray.length];
 					}else{
-						dataArray[i] = stringArray[i - positionStart];
+						dataArrayNew[i] = stringArray[i - positionStart];
 					}
 				}
 			}
+			mDataArray = dataArrayNew;
 			notifyItemRangeInserted(positionStart, stringArray.length);
 		}
 	}
 
-	public void removeItemFromArray(int index){
-		if(mDataArray != null && mDataArray.length > index){
-			String[][] dataArray = new String[mDataArray.length - 1][2];
-			for(int i=0; i<mDataArray.length; i++){
-				if(i < index){
-					dataArray[i] = mDataArray[i];
-				}else if(i > index){
-					dataArray[i - 1] = mDataArray[i];
-				}
-			}
-			mDataArray = dataArray;
-			notifyItemRemoved(index);
+	public void addItemInArray(String[] stringItem, int index){
+		addRangeItemInArray(new String[][]{stringItem}, index);
+	}
+	
+	public void updateRangeItemFormArray(String[][] stringArray, int positionStart){
+		if(mDataArray != null && mDataArray.length >= positionStart + stringArray.length){
+			System.arraycopy(stringArray, 0, mDataArray, positionStart, stringArray.length);
+			notifyItemRangeChanged(positionStart, stringArray.length);
 		}
 	}
 
+	public void updateItemFormArray(String[] stringItem, int index){
+		updateRangeItemFormArray(new String[][]{stringItem}, index);
+	}
+
 	public void removeRangeItemFromArray(int positionStart, int itemCount){
-		if(mDataArray != null && mDataArray.length > positionStart + itemCount){
-			String[][] dataArray = new String[mDataArray.length - itemCount][2];
+		if(mDataArray != null && mDataArray.length >= positionStart + itemCount){
+			String[][] dataArrayNew = new String[mDataArray.length - itemCount][2];
 			for(int i=0; i<mDataArray.length; i++){
 				if(i < positionStart){
-					dataArray[i] = mDataArray[i];
+					dataArrayNew[i] = mDataArray[i];
 				}else if(i >= positionStart + itemCount){
-					dataArray[i - itemCount] = mDataArray[i];
+					dataArrayNew[i - itemCount] = mDataArray[i];
 				}
 			}
-			mDataArray = dataArray;
+			mDataArray = dataArrayNew;
 			notifyItemRangeRemoved(positionStart, itemCount);
 		}
+	}
+
+	public void removeItemFromArray(int index){
+		removeRangeItemFromArray(index, 1);
 	}
 
 	public void setDataList(List<Map<String, String>> list){
@@ -216,13 +200,6 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	
 	public List<Map<String, String>> getDataList(){
 		return mDataList;
-	}
-
-	public void addItemInList(Map<String, String> map, int index){
-		if(mDataList != null){
-			mDataList.add(index, map);
-			notifyItemInserted(index);
-		}
 	}
 
 	public void addRangeItemInList(List<Map<String, String>> list, int positionStart){
@@ -235,20 +212,35 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 		}
 	}
 
-	public void removeItemFromList(int index){
-		if(mDataList != null && mDataList.size() > index){
-			mDataList.remove(index);
-			notifyItemRemoved(index);
+	public void addItemInList(Map<String, String> map, int index){
+		addRangeItemInList(Collections.singletonList(map), index);
+	}
+
+	public void updateRangeItemFormList(List<Map<String, String>> list, int positionStart){
+		int size = list.size();
+		if(mDataList != null && mDataList.size() >= positionStart + size){
+			for (int i = 0; i < size; i++) {
+				mDataList.set(positionStart + i, list.get(i));
+			}
+			notifyItemRangeChanged(positionStart, size);
 		}
 	}
 
+	public void updateItemFormList(Map<String, String> map, int index){
+		updateRangeItemFormList(Collections.singletonList(map), index);
+	}
+
 	public void removeRangeItemFromList(int positionStart, int itemCount){
-		if(mDataList != null && mDataList.size() > positionStart + itemCount){
+		if(mDataList != null && mDataList.size() >= positionStart + itemCount){
 			for(int i=0; i<itemCount; i++){
-				mDataList.remove(positionStart + itemCount);
+				mDataList.remove(positionStart + i);
 			}
 			notifyItemRangeRemoved(positionStart, itemCount);
 		}
+	}
+
+	public void removeItemFromList(int index){
+		removeRangeItemFromList(index, 1);
 	}
 
 	public void setJSONArray(JSONArray jsonArray){
@@ -259,13 +251,6 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 		return mJsonArray;
 	}
 	
-	public void addItemInJSONArray(Object object){
-		if(mJsonArray != null){
-			mJsonArray.put(object);
-			notifyItemInserted(mJsonArray.length() - 1);
-		}
-	}
-
 	public void addRangeItemInJSONArray(JSONArray jsonArray, int positionStart){
 		if(mJsonArray != null){
 			int length = jsonArray.length();
@@ -278,45 +263,49 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 		}
 	}
 
-	/**
-	 * API < Build.VERSION_CODES.KITKAT Use Reflection
-	 * @param index
-	 */
-	public void removeItemFromJSONArray(int index){
-		if(mJsonArray != null && mJsonArray.length() > index){
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
-				mJsonArray.remove(index);
-			}else{
-				List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
-				if(list != null){
-					list.remove(index);
+	public void addItemInJSONArray(Object object, int index){
+		addRangeItemInJSONArray(new JSONArray(Collections.singletonList(object)), index);
+	}
+
+	public void updateRangeItemFormJSONArray(JSONArray jsonArray, int positionStart){
+		if(mJsonArray != null && mJsonArray.length() >= positionStart + jsonArray.length()){
+			List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
+			List<Object> listUpdate = Utils.reflectionJSONArrayToList(jsonArray);
+			if(list != null && listUpdate != null){
+				int size = listUpdate.size();
+				for(int i=0; i<size; i++){
+					list.set(positionStart + i, listUpdate.get(i));
 				}
+				notifyItemRangeChanged(positionStart, size);
 			}
-			notifyItemRemoved(index);
 		}
 	}
 
-	/**
-	 * API < Build.VERSION_CODES.KITKAT Use Reflection
-	 * @param positionStart
-	 * @param itemCount
-	 */
+	public void updateItemFormJSONArray(Object object, int index){
+		updateRangeItemFormJSONArray(new JSONArray(Collections.singletonList(object)), index);
+	}
+
 	public void removeRangeItemFromJSONArray(int positionStart, int itemCount){
-		if(mJsonArray != null && mJsonArray.length() > positionStart + itemCount){
+		if(mJsonArray != null && mJsonArray.length() >= positionStart + itemCount){
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 				for(int i=0; i<itemCount; i++){
 					mJsonArray.remove(positionStart + itemCount);
 				}
-			}else{
-				List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
-				if(list != null){
-					for(int i=0; i<itemCount; i++){
-						list.remove(positionStart + itemCount);
-					}
-				}
+				notifyItemRangeRemoved(positionStart, itemCount);
+				return;
 			}
-			notifyItemRangeRemoved(positionStart, itemCount);
+			List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
+			if(list != null){
+				for(int i=0; i<itemCount; i++){
+					list.remove(positionStart + i);
+				}
+				notifyItemRangeRemoved(positionStart, itemCount);
+			}
 		}
+	}
+
+	public void removeItemFromJSONArray(int index){
+		removeRangeItemFromJSONArray(index, 1);
 	}
 	
 	public void setItemWidth(int itemWidth){
