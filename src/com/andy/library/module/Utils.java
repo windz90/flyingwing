@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.12
+ * @version 3.3.13
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -50,6 +50,7 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.ContentProviderOperation;
 import android.content.ContentUris;
 import android.content.Context;
@@ -108,6 +109,8 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -592,130 +595,6 @@ public class Utils {
 		return file.delete();
 	}
 	
-	public static String halfWidthToFullWidth(String text){
-		StringBuilder stringBuilder = new StringBuilder();
-		char word;
-		for(int i=0; i<text.length(); i++){
-			word = text.charAt(i);
-			// 半形ASCII 33~126 與 全形ASCII 65281~65374 對應之 ASCII 皆相差 65248
-			if(word > 32 && word < 127){
-				word = (char)((int)word + 65248);
-			}
-			stringBuilder.append(word);
-		}
-		return stringBuilder.toString();
-	}
-	
-	public static String getXmlEscapeText(String xml) {
-		StringBuilder stringBuilder = new StringBuilder();
-		for(int i = 0; i < xml.length(); i++){
-			char c = xml.charAt(i);
-			switch(c){
-			case '<': stringBuilder.append("&lt;"); break;
-			case '>': stringBuilder.append("&gt;"); break;
-			case '\"': stringBuilder.append("&guot;"); break;
-			case '&': stringBuilder.append("&amp;"); break;
-			case '\'': stringBuilder.append("&apos;"); break;
-			default:
-				if(c>0x7e) {
-					stringBuilder.append("&#"+((int)c)+";");
-				}else{
-					stringBuilder.append(c);
-				}
-			}
-		}
-		return stringBuilder.toString();
-	}
-	
-	/**
-	 * 反射類別資料，包含ClassLoader、DeclaringClass、EnclosingClass、extends Superclass、EnumConstant、implements Interface、Field、Constructor、Method、InnerClass
-	 * @param class1 Instance or Class.forName("className")
-	 * @return
-	 */
-	public static void reflectionClassInfo(Class<?> class1){
-		String info;
-		info = class1.getName();
-		Log.v("ClassName", info);
-		
-		ClassLoader classLoader = class1.getClassLoader();
-		if(classLoader != null){
-			info = classLoader.getClass().getName();
-			Log.v("ClassLoader", info);
-		}
-		
-		Class<?> classMember = class1.getDeclaringClass();
-		if(classMember != null){
-			info = classMember.getName();
-			Log.v("MemberClass", info);
-		}
-		
-		Class<?> classOuter = class1.getEnclosingClass();
-		if(classOuter != null){
-			info = classOuter.getName();
-			Log.v("OuterClass", info);
-		}
-		
-		Class<?> classSuper = class1.getSuperclass();
-		if(classSuper != null){
-			info = classSuper.getName();
-			Log.v("extends Superclass", info);
-		}
-		
-		Class<?>[] interfaces = class1.getInterfaces();
-		if(interfaces.length > 0){
-			Log.i("Reflection implements Interface", "**** Interface count:" + interfaces.length + " ****");
-			for(int i=0; i<interfaces.length; i++){
-				info = interfaces[i].getName();
-				Log.v("Interface", info);
-			}
-		}
-		
-		Object[] enumConstants = class1.getEnumConstants();
-		if(enumConstants != null && enumConstants.length > 0){
-			Log.i("Reflection Enum Constant", "**** Enum Constant count:" + enumConstants.length + " ****");
-			for(int i=0; i<enumConstants.length; i++){
-				info = enumConstants[i].getClass().getName();
-				Log.v("Enum Constant", info);
-			}
-		}
-		
-		Field[] fields = class1.getDeclaredFields();
-		if(fields.length > 0){
-			Log.i("Reflection Field", "**** Field count:" + fields.length + " ****");
-			for(int i=0; i<fields.length; i++){
-				info = fields[i].toGenericString();
-				Log.v("Field", info);
-			}
-		}
-		
-		Constructor<?>[] constructors = class1.getDeclaredConstructors();
-		if(constructors.length > 0){
-			Log.i("Reflection Constructor", "**** Constructor count:" + constructors.length + " ****");
-			for(int i=0; i<constructors.length; i++){
-				info = constructors[i].toGenericString();
-				Log.v("Constructor", info);
-			}
-		}
-		
-		Method[] methods = class1.getDeclaredMethods();
-		if(methods.length > 0){
-			Log.i("Reflection Method", "**** Method count:" + methods.length + " ****");
-			for(int i=0; i<methods.length; i++){
-				info = methods[i].toGenericString();
-				Log.v("Method", info);
-			}
-		}
-		
-		Class<?>[] classes = class1.getDeclaredClasses();
-		if(classes.length > 0){
-			Log.i("Reflection InnerClass", "**** InnerClass count:" + classes.length + " ****");
-			for(int i=0; i<classes.length; i++){
-				info = classes[i].getName();
-				Log.v("InnerClass", info);
-			}
-		}
-	}
-	
 	public static boolean isFillScreen(DisplayMetrics displayMetrics, int limitDipWidth){
 		int width = displayMetrics.widthPixels;
 		int height = displayMetrics.heightPixels;
@@ -735,7 +614,7 @@ public class Utils {
 	
 	public static int getVisibleHeightSP(Context context, String SPname){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, SPname);
 		return visibleHe;
@@ -750,14 +629,7 @@ public class Utils {
 		int visibleHe = displayMetrics.heightPixels - getStatusBarHeight(0);
 		return visibleHe;
 	}
-	
-	public static int getVisibleHeight(Context context){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
-		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		return getVisibleHeight(displayMetrics);
-	}
-	
+
 	public static int getStatusBarHeight(int defValue){
 		Resources res = Resources.getSystem();
 		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
@@ -767,6 +639,137 @@ public class Utils {
 		return defValue;
 	}
 	
+	public static int getVisibleHeight(Context context){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		return getVisibleHeight(displayMetrics);
+	}
+
+	public static TypedValue getAttribute(Context context, int attrResource){
+		TypedValue typedValue = new TypedValue();
+		Theme theme = context.getTheme();
+		if(theme != null){
+			if(theme.resolveAttribute(attrResource, typedValue, true)){
+				return typedValue;
+			}
+		}
+		return null;
+	}
+
+	public static int getAttributeResorce(Context context, int attrResource, int defResource){
+		TypedValue typedValue = new TypedValue();
+		Theme theme = context.getTheme();
+		if(theme != null){
+			if(theme.resolveAttribute(attrResource, typedValue, true)){
+				return typedValue.resourceId;
+			}
+		}
+		return defResource;
+	}
+
+	public static int getAttributePixels(Context context, DisplayMetrics displayMetrics, int attrResource, int defValue){
+		TypedValue typedValue = new TypedValue();
+		Theme theme = context.getTheme();
+		if(theme != null){
+			if(theme.resolveAttribute(attrResource, typedValue, true)){
+				return TypedValue.complexToDimensionPixelSize(typedValue.data, displayMetrics);
+			}
+		}
+		return defValue;
+	}
+
+	@SuppressLint("InlinedApi")
+	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defValue){
+		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defValue);
+	}
+
+	/**
+	 * 判斷螢幕尺寸<br>
+	 * Configuration.SCREENLAYOUT_SIZE_SMALL<br>
+	 * Configuration.SCREENLAYOUT_SIZE_NORMAL<br>
+	 * Configuration.SCREENLAYOUT_SIZE_LARGE<br>
+	 * Configuration.SCREENLAYOUT_SIZE_XLARGE
+	 * @param context
+	 * @param screenLayoutSize
+	 * @return isLeast
+	 */
+	public static boolean isLayoutSizeAtLeast(Context context, int screenLayoutSize) {
+		if (android.os.Build.VERSION.SDK_INT >= 11) {// honeycomb
+			// test screen size, use reflection because isLayoutSizeAtLeast is only available since 11
+			Configuration configuration = context.getResources().getConfiguration();
+			try {
+				Method method = configuration.getClass().getMethod("isLayoutSizeAtLeast", int.class);
+				boolean isLeast = (Boolean)method.invoke(configuration, screenLayoutSize);
+				return isLeast;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+		}
+		return false;
+	}
+
+	public static boolean isOnViewVisible(View parentsView, View view){
+		if(view.getVisibility() != View.VISIBLE){
+			return false;
+		}
+		Rect rectHit = new Rect();
+		parentsView.getHitRect(rectHit);
+		if(view.getLocalVisibleRect(rectHit)){
+			return true;
+		}
+		return false;
+	}
+
+	public static boolean isViewVisible(View parentsView, View view, int xOffset, int yOffset){
+		if(view.getVisibility() != View.VISIBLE){
+			return false;
+		}
+		Rect rectScroll = new Rect();
+		parentsView.getDrawingRect(rectScroll);
+		rectScroll.left += xOffset;
+		rectScroll.right += xOffset;
+		rectScroll.top += yOffset;
+		rectScroll.bottom += yOffset;
+		if(rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() &&
+				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight()){
+			return true;
+		}
+		return false;
+	}
+
+	@SuppressWarnings("deprecation")
+	public static void clearWebViewCookie(Context context){
+		CookieManager cookieManager;
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+			cookieManager = CookieManager.getInstance();
+			cookieManager.removeAllCookies(null);
+			cookieManager.flush();
+		}else{
+			CookieSyncManager cookieSyncManager = CookieSyncManager.createInstance(context);
+			cookieSyncManager.startSync();
+			cookieManager = CookieManager.getInstance();
+			cookieManager.removeAllCookie();
+			cookieSyncManager.stopSync();
+		}
+	}
+
+	public static void setToast(Context context, CharSequence text, int gravity, int duration){
+		Toast toast = Toast.makeText(context, text, duration);
+		toast.setGravity(gravity, 0, 0);
+		toast.show();
+	}
+
+	public static void setToast(Context context, CharSequence text, int duration){
+		Toast toast = Toast.makeText(context, text, duration);
+		toast.show();
+	}
+
+	public static void setToast(Context context, CharSequence text){
+		setToast(context, text, Toast.LENGTH_SHORT);
+	}
+
 	public static void setTextSize(Context context, TextView textView, int unit, float size){
 		DisplayMetrics dmWin = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
@@ -923,58 +926,106 @@ public class Utils {
 		baselineY = (fontMetrics.bottom - fontMetrics.top) / 2 + fontMetrics.bottom;
 		return baselineY;
 	}
-	
-	public static TypedValue getAttribute(Context context, int attrResource){
-		TypedValue typedValue = new TypedValue();
-		Theme theme = context.getTheme();
-		if(theme != null){
-			if(theme.resolveAttribute(attrResource, typedValue, true)){
-				return typedValue;
+
+	public static String neatString(String string){
+		if(string != null){
+			string = string.replace("\r\n", "").replace("\n", "").trim();
+		}
+		return string;
+	}
+
+	public static Object removeNull(Object object, Object replace){
+		if(object == null){
+			object = replace;
+		}
+		return replace;
+	}
+
+	public static String removeNull(Object object, String replace){
+		if(object == null || object.toString().length() == 0){
+			object = replace;
+		}
+		return object.toString();
+	}
+
+	public static String removeNull(Object object){
+		return removeNull(object, "");
+	}
+
+	public static String halfWidthToFullWidth(String text){
+		StringBuilder stringBuilder = new StringBuilder();
+		char word;
+		for(int i=0; i<text.length(); i++){
+			word = text.charAt(i);
+			// 半形ASCII 33~126 與 全形ASCII 65281~65374 對應之 ASCII 皆相差 65248
+			if(word > 32 && word < 127){
+				word = (char)((int)word + 65248);
+			}
+			stringBuilder.append(word);
+		}
+		return stringBuilder.toString();
+	}
+
+	public static String getXmlEscapeText(String xml) {
+		StringBuilder stringBuilder = new StringBuilder();
+		for(int i = 0; i < xml.length(); i++){
+			char c = xml.charAt(i);
+			switch(c){
+				case '<': stringBuilder.append("&lt;"); break;
+				case '>': stringBuilder.append("&gt;"); break;
+				case '\"': stringBuilder.append("&guot;"); break;
+				case '&': stringBuilder.append("&amp;"); break;
+				case '\'': stringBuilder.append("&apos;"); break;
+				default:
+					if(c>0x7e) {
+						stringBuilder.append("&#"+((int)c)+";");
+					}else{
+						stringBuilder.append(c);
+					}
 			}
 		}
-		return null;
+		return stringBuilder.toString();
 	}
 	
-	public static int getAttributeResorce(Context context, int attrResource, int defResource){
-		TypedValue typedValue = new TypedValue();
-		Theme theme = context.getTheme();
-		if(theme != null){
-			if(theme.resolveAttribute(attrResource, typedValue, true)){
-				return typedValue.resourceId;
+	public static String getStringSymbolCombine(String body, String sub, String delimiter, boolean isAllowRepeat){
+		if(TextUtils.isEmpty(sub)){
+			return body;
+		}
+		if(body == null){
+			body = "";
+		}
+
+		StringBuilder stringBuilder = new StringBuilder(body);
+		String[] subArray = sub.split(delimiter);
+		String start, end, startSub, middleSub, endSub;
+		try {
+			start = stringBuilder.substring(0, stringBuilder.indexOf(delimiter)) + delimiter;
+		} catch (Exception e) {
+			start = stringBuilder.toString();
+		}
+		for(int i=0; i<subArray.length; i++){
+			try {
+				end = stringBuilder.substring(stringBuilder.lastIndexOf(delimiter));
+			} catch (Exception e) {
+				end = "";
+			}
+			startSub = subArray[i] + delimiter;
+			middleSub = delimiter + subArray[i] + delimiter;
+			endSub = delimiter + subArray[i];
+			if(isAllowRepeat || !(stringBuilder.indexOf(middleSub) > -1 || start.equals(startSub) || end.equals(endSub) ||
+					start.equals(subArray[i]))){
+				if(stringBuilder.length() == 0){
+					stringBuilder.append(subArray[i]);
+				}else{
+					stringBuilder.append(endSub);
+				}
 			}
 		}
-		return defResource;
+		return stringBuilder.toString();
 	}
-	
-	public static int getAttributePixels(Context context, DisplayMetrics displayMetrics, int attrResource, int defValue){
-		TypedValue typedValue = new TypedValue();
-		Theme theme = context.getTheme();
-		if(theme != null){
-			if(theme.resolveAttribute(attrResource, typedValue, true)){
-				return TypedValue.complexToDimensionPixelSize(typedValue.data, displayMetrics);
-			}
-		}
-		return defValue;
-	}
-	
-	@SuppressLint("InlinedApi")
-	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defValue){
-		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defValue);
-	}
-	
-	public static void setToast(Context context, CharSequence text, int gravity, int duration){
-		Toast toast = Toast.makeText(context, text, duration);
-		toast.setGravity(gravity, 0, 0);
-		toast.show();
-	}
-	
-	public static void setToast(Context context, CharSequence text, int duration){
-		Toast toast = Toast.makeText(context, text, duration);
-		toast.show();
-	}
-	
-	public static void setToast(Context context, CharSequence text){
-		setToast(context, text, Toast.LENGTH_SHORT);
+
+	public static String getStringSymbolCombine(String body, String sub, boolean isAllowRepeat){
+		return getStringSymbolCombine(body, sub, SP_MAP_DELIMITER, isAllowRepeat);
 	}
 	
 	@SuppressLint("CommitPrefEdits")
@@ -1264,48 +1315,7 @@ public class Utils {
 		}
 		return map;
 	}
-	
-	public static String getStringSymbolCombine(String body, String sub, String delimiter, boolean isAllowRepeat){
-		if(TextUtils.isEmpty(sub)){
-			return body;
-		}
-		if(body == null){
-			body = "";
-		}
-		
-		StringBuilder stringBuilder = new StringBuilder(body);
-		String[] subArray = sub.split(delimiter);
-		String start, end, startSub, middleSub, endSub;
-		try {
-			start = stringBuilder.substring(0, stringBuilder.indexOf(delimiter)) + delimiter;
-		} catch (Exception e) {
-			start = stringBuilder.toString();
-		}
-		for(int i=0; i<subArray.length; i++){
-			try {
-				end = stringBuilder.substring(stringBuilder.lastIndexOf(delimiter));
-			} catch (Exception e) {
-				end = "";
-			}
-			startSub = subArray[i] + delimiter;
-			middleSub = delimiter + subArray[i] + delimiter;
-			endSub = delimiter + subArray[i];
-			if(isAllowRepeat || !(stringBuilder.indexOf(middleSub) > -1 || start.equals(startSub) || end.equals(endSub) || 
-					start.equals(subArray[i]))){
-				if(stringBuilder.length() == 0){
-					stringBuilder.append(subArray[i]);
-				}else{
-					stringBuilder.append(endSub);
-				}
-			}
-		}
-		return stringBuilder.toString();
-	}
-	
-	public static String getStringSymbolCombine(String body, String sub, boolean isAllowRepeat){
-		return getStringSymbolCombine(body, sub, SP_MAP_DELIMITER, isAllowRepeat);
-	}
-	
+
 	public static String[][] getMapToArray(Map<String, ?> map, boolean isReview){
 		String[][] strArray = new String[map.size()][2];
 		Iterator<? extends Entry<String, ?>> entryIterator = map.entrySet().iterator();
@@ -1343,31 +1353,6 @@ public class Utils {
 		for(int i=0; i<array.length; i++){
 			System.out.println("count " + i + ":" + array[i].toString());
 		}
-	}
-	
-	public static String neatString(String string){
-		if(string != null){
-			string = string.replace("\r\n", "").replace("\n", "").trim();
-		}
-		return string;
-	}
-	
-	public static Object removeNull(Object object, Object replace){
-		if(object == null){
-			object = replace;
-		}
-		return replace;
-	}
-	
-	public static String removeNull(Object object, String replace){
-		if(object == null || object.toString().length() == 0){
-			object = replace;
-		}
-		return object.toString();
-	}
-	
-	public static String removeNull(Object object){
-		return removeNull(object, "");
 	}
 	
 	public static JSONArray newJSONArray(String data){
@@ -1479,6 +1464,95 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * 反射類別資料，包含ClassLoader、DeclaringClass、EnclosingClass、extends Superclass、EnumConstant、implements Interface、Field、Constructor、Method、InnerClass
+	 * @param class1 Instance or Class.forName("className")
+	 * @return
+	 */
+	public static void reflectionClassInfo(Class<?> class1){
+		String info;
+		info = class1.getName();
+		Log.v("ClassName", info);
+
+		ClassLoader classLoader = class1.getClassLoader();
+		if(classLoader != null){
+			info = classLoader.getClass().getName();
+			Log.v("ClassLoader", info);
+		}
+
+		Class<?> classMember = class1.getDeclaringClass();
+		if(classMember != null){
+			info = classMember.getName();
+			Log.v("MemberClass", info);
+		}
+
+		Class<?> classOuter = class1.getEnclosingClass();
+		if(classOuter != null){
+			info = classOuter.getName();
+			Log.v("OuterClass", info);
+		}
+
+		Class<?> classSuper = class1.getSuperclass();
+		if(classSuper != null){
+			info = classSuper.getName();
+			Log.v("extends Superclass", info);
+		}
+
+		Class<?>[] interfaces = class1.getInterfaces();
+		if(interfaces.length > 0){
+			Log.i("Reflection implements Interface", "**** Interface count:" + interfaces.length + " ****");
+			for(int i=0; i<interfaces.length; i++){
+				info = interfaces[i].getName();
+				Log.v("Interface", info);
+			}
+		}
+
+		Object[] enumConstants = class1.getEnumConstants();
+		if(enumConstants != null && enumConstants.length > 0){
+			Log.i("Reflection Enum Constant", "**** Enum Constant count:" + enumConstants.length + " ****");
+			for(int i=0; i<enumConstants.length; i++){
+				info = enumConstants[i].getClass().getName();
+				Log.v("Enum Constant", info);
+			}
+		}
+
+		Field[] fields = class1.getDeclaredFields();
+		if(fields.length > 0){
+			Log.i("Reflection Field", "**** Field count:" + fields.length + " ****");
+			for(int i=0; i<fields.length; i++){
+				info = fields[i].toGenericString();
+				Log.v("Field", info);
+			}
+		}
+
+		Constructor<?>[] constructors = class1.getDeclaredConstructors();
+		if(constructors.length > 0){
+			Log.i("Reflection Constructor", "**** Constructor count:" + constructors.length + " ****");
+			for(int i=0; i<constructors.length; i++){
+				info = constructors[i].toGenericString();
+				Log.v("Constructor", info);
+			}
+		}
+
+		Method[] methods = class1.getDeclaredMethods();
+		if(methods.length > 0){
+			Log.i("Reflection Method", "**** Method count:" + methods.length + " ****");
+			for(int i=0; i<methods.length; i++){
+				info = methods[i].toGenericString();
+				Log.v("Method", info);
+			}
+		}
+
+		Class<?>[] classes = class1.getDeclaredClasses();
+		if(classes.length > 0){
+			Log.i("Reflection InnerClass", "**** InnerClass count:" + classes.length + " ****");
+			for(int i=0; i<classes.length; i++){
+				info = classes[i].getName();
+				Log.v("InnerClass", info);
+			}
+		}
 	}
 	
 	/**
@@ -1613,6 +1687,20 @@ public class Utils {
 		return intent;
 	}
 	
+	public static Intent getLauncherIntent(String packageName, String className){
+		Intent intent = new Intent();
+		intent.setComponent(new ComponentName(packageName, className));
+		intent.setAction(Intent.ACTION_MAIN);
+		intent.addCategory(Intent.CATEGORY_LAUNCHER);
+		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+		return intent;
+	}
+
+	public static Intent getLauncherIntent(Context packageContext, Class<?> cls){
+		return getLauncherIntent(packageContext.getPackageName(), cls.getName());
+	}
+	
 	public static Intent getBackTaskIntent(Context context, Class<? extends Activity> targetCalss){
 		Intent intent = new Intent(context, targetCalss);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -1628,10 +1716,8 @@ public class Utils {
 		return intent;
 	}
 	
-	@SuppressLint("InlinedApi")
-	public static void callContentSelection(final Activity activity, String intentType, boolean allowMultiple, final int requestCode
-			, final String title, String failInfo){
-		final Intent intent = new Intent();
+	public static Intent getContentSelectionIntent(String intentType, boolean allowMultiple){
+		Intent intent = new Intent();
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 			intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
 		}else{
@@ -1641,6 +1727,13 @@ public class Utils {
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
 			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
 		}
+		return intent;
+	}
+	
+	@SuppressLint("InlinedApi")
+	public static void callContentSelection(final Activity activity, String intentType, boolean allowMultiple, final int requestCode
+			, final String title, String failInfo){
+		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
 		PackageManager packageManager = activity.getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.GET_ACTIVITIES);
 		if(listResolveInfo != null && listResolveInfo.size() > 0){
@@ -1781,7 +1874,7 @@ public class Utils {
 		return path;
 	}
 	
-	@SuppressLint("NewApi")
+	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static String[] getFilesPathFromIntentUri(Context context, Intent intent){
 		Uri[] uris = getIntentUris(intent);
 		String[] paths = new String[uris.length];
@@ -1830,7 +1923,7 @@ public class Utils {
 		return paths;
 	}
 	
-	@SuppressLint("NewApi")
+	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static Uri[] getIntentUrisWithPath(Context context, Intent intent){
 		Uri[] uris = getIntentUris(intent);
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
@@ -1845,21 +1938,19 @@ public class Utils {
 		}
 		return uris;
 	}
-	
-	@SuppressLint("NewApi")
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	public static Uri[] getIntentUris(Intent intent){
-		Uri[] uris;
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
-			ClipData clipData = intent.getClipData();
-			if(clipData == null || clipData.getItemCount() == 0){
-				return null;
-			}
-			uris = new Uri[clipData.getItemCount()];
-			for(int i=0; i<uris.length; i++){
-				uris[i] = clipData.getItemAt(i).getUri();
-			}
-		}else{
-			uris = new Uri[]{intent.getData()};
+			return new Uri[]{intent.getData()};
+		}
+		ClipData clipData = intent.getClipData();
+		if(clipData == null || clipData.getItemCount() == 0){
+			return new Uri[]{intent.getData()};
+		}
+		Uri[] uris = new Uri[clipData.getItemCount()];
+		for(int i=0; i<uris.length; i++){
+			uris[i] = clipData.getItemAt(i).getUri();
 		}
 		return uris;
 	}
@@ -1950,61 +2041,6 @@ public class Utils {
 			imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
 			imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
 		}
-	}
-	
-	/**
-	 * 判斷螢幕尺寸<br>
-	 * Configuration.SCREENLAYOUT_SIZE_SMALL<br>
-	 * Configuration.SCREENLAYOUT_SIZE_NORMAL<br>
-	 * Configuration.SCREENLAYOUT_SIZE_LARGE<br>
-	 * Configuration.SCREENLAYOUT_SIZE_XLARGE
-	 * @param context
-	 * @param screenLayoutSize
-	 * @return isLeast
-	 */
-	public static boolean isLayoutSizeAtLeast(Context context, int screenLayoutSize) {
-		if (android.os.Build.VERSION.SDK_INT >= 11) {// honeycomb
-			// test screen size, use reflection because isLayoutSizeAtLeast is only available since 11
-			Configuration configuration = context.getResources().getConfiguration();
-			try {
-				Method method = configuration.getClass().getMethod("isLayoutSizeAtLeast", int.class);
-				boolean isLeast = (Boolean)method.invoke(configuration, screenLayoutSize);
-				return isLeast;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-		return false;
-	}
-
-	public static boolean isOnViewVisible(View parentsView, View view){
-		if(view.getVisibility() != View.VISIBLE){
-			return false;
-		}
-		Rect rectHit = new Rect();
-		parentsView.getHitRect(rectHit);
-		if(view.getLocalVisibleRect(rectHit)){
-			return true;
-		}
-		return false;
-	}
-	
-	public static boolean isViewVisible(View parentsView, View view, int xOffset, int yOffset){
-		if(view.getVisibility() != View.VISIBLE){
-			return false;
-		}
-		Rect rectScroll = new Rect();
-		parentsView.getDrawingRect(rectScroll);
-		rectScroll.left += xOffset;
-		rectScroll.right += xOffset;
-		rectScroll.top += yOffset;
-		rectScroll.bottom += yOffset;
-		if(rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() && 
-				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight()){
-			return true;
-		}
-		return false;
 	}
 	
 	// 取得Android機器ID
