@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.4
+ * @version 1.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -30,6 +31,7 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	
 	protected OnItemClickListener mOnItemClickListener;
 	protected OnItemLongClickListener mOnItemLongClickListener;
+	protected Handler mHandler;
 	protected String[][] m2DArray;
 	protected List<Object> mList;
 	protected List<Map<String, Object>> mComplexList;
@@ -380,6 +382,14 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	
 	public void setOnItemLongClickListener(OnItemLongClickListener onItemLongClickListener){
 		mOnItemLongClickListener = onItemLongClickListener;
+	}
+
+	public void setHandler(Handler handler){
+		this.mHandler = handler;
+	}
+
+	public Handler getHandler(){
+		return mHandler;
 	}
 	
 	@Override

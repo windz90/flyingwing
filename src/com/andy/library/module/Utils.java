@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.13
+ * @version 3.3.14
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -607,7 +607,7 @@ public class Utils {
 	
 	public static boolean isFillScreen(Context context, int limitDipWidth){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return isFillScreen(displayMetrics, limitDipWidth);
 	}
@@ -641,7 +641,7 @@ public class Utils {
 	
 	public static int getVisibleHeight(Context context){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return getVisibleHeight(displayMetrics);
 	}
@@ -772,7 +772,7 @@ public class Utils {
 
 	public static void setTextSize(Context context, TextView textView, int unit, float size){
 		DisplayMetrics dmWin = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(dmWin);
 		DisplayMetrics dmRes = context.getResources().getDisplayMetrics();
 		if(dmWin.scaledDensity == dmRes.scaledDensity){
@@ -803,7 +803,7 @@ public class Utils {
 	
 	public static void setTextSizeMethod(Context context, TextView textView, int unit, float size){
 		DisplayMetrics dmWin = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(dmWin);
 		DisplayMetrics dmRes = context.getResources().getDisplayMetrics();
 		if(dmWin.scaledDensity == dmRes.scaledDensity){
@@ -1027,10 +1027,29 @@ public class Utils {
 	public static String getStringSymbolCombine(String body, String sub, boolean isAllowRepeat){
 		return getStringSymbolCombine(body, sub, SP_MAP_DELIMITER, isAllowRepeat);
 	}
+
+	public static String findStringTarget(String text, String target, String borderFront, String borderRear){
+		if(text == null || target == null || borderFront == null || borderRear == null){
+			return null;
+		}
+		int indexRear = text.indexOf(target);
+		if(indexRear < 0){
+			return null;
+		}
+		indexRear = text.indexOf(borderRear, indexRear);
+		if(indexRear < 0){
+			return null;
+		}
+		int indexFront = text.lastIndexOf(borderFront, indexRear - 1);
+		if(indexFront < 0){
+			return null;
+		}
+		return text.substring(indexFront, indexRear + 1);
+	}
 	
 	@SuppressLint("CommitPrefEdits")
 	public static SharedPreferences.Editor getNotYetCommitSharedPreferencesEditor(Context context, String SPname, String key, Object value
-			, boolean toggleMode){
+			, boolean toggleMode) {
 		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
 		SharedPreferences.Editor spEdit = sp.edit();
 		if(toggleMode && sp.contains(key)){
