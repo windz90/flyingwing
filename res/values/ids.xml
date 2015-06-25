@@ -3,8 +3,14 @@
     <item name="toolbar" type="id"/>
     <item name="viewPager" type="id"/>
     <item name="swipeRefresh" type="id"/>
+    <item name="cardView" type="id"/>
     <item name="topLayout" type="id"/>
     <item name="topLeft" type="id"/>
     <item name="topCenter" type="id"/>
     <item name="topRight" type="id"/>
+    <item name="bottomLayout" type="id"/>
+    <item name="bottomLeft" type="id"/>
+    <item name="bottomCenter" type="id"/>
+    <item name="bottomRight" type="id"/>
+    <item name="anchorView" type="id"/>
 </resources>
