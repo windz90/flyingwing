@@ -28,3 +28,16 @@ proguard/
 *.iws
 .idea/
 
+# Android Studio Default
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+
+# Android Studio
+*.iml
+.idea
+.gradle
+build/

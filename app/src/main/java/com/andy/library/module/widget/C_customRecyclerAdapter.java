@@ -7,12 +7,6 @@
 
 package com.andy.library.module.widget;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import org.json.JSONArray;
-
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
@@ -27,6 +21,12 @@ import android.view.ViewGroup;
 
 import com.andy.library.module.Utils;
 
+import org.json.JSONArray;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 	
 	protected OnItemClickListener mOnItemClickListener;
@@ -40,13 +40,13 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	protected int mItemWidth, mItemHeight;
 	
 	private long timeClick;
-	
-	public static interface OnItemClickListener {
-		public void onItemClick(C_customRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
+
+	public interface OnItemClickListener {
+		void onItemClick(C_customRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
 	}
-	
-	public static interface OnItemLongClickListener {
-		public void onItemLongClick(C_customRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
+
+	public interface OnItemLongClickListener {
+		void onItemLongClick(C_customRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
 	}
 	
 	public static abstract class OnItemClickSimpleListener implements RecyclerView.OnItemTouchListener {
