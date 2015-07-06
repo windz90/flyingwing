@@ -1,20 +1,11 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.8
+ * @version 2.3.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.andy.library.module;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
+package com.andy.library.module.widget;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -30,6 +21,7 @@ import android.content.res.Resources;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.DisplayMetrics;
@@ -53,22 +45,33 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.andy.library.R;
+import com.andy.library.module.Utils;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond"})
 public class C_subWindow {
-	
+
 	public static boolean sIsInstanceShow;
-	
+
 	public interface ClickAction {
-		public void action(View v, int clickIndex, Bundle bundle);
+		void action(View v, int clickIndex, Bundle bundle);
 	}
-	
+
 	public static void alertBuilderMessage(Context context, String title, String message, final DialogInterface.OnClickListener click) {
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
 		alertDialogBuilder.setPositiveButton(context.getString(R.string.close), click);
 		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
-			
+
 			@Override
 			public void onCancel(DialogInterface dialog) {
 				if(click != null){
@@ -84,39 +87,38 @@ public class C_subWindow {
 			alertDialogBuilder.show();
 		}
 	}
-	
+
 	public static void alertBuilderMessage(Context context, String message, DialogInterface.OnClickListener click) {
 		alertBuilderMessage(context, null, message, click);
 	}
-	
+
 	public static void alertBuilderMessage(Context context, String title, String message) {
 		alertBuilderMessage(context, title, message, null);
 	}
-	
+
 	public static void alertBuilderMessage(Context context, String message) {
 		alertBuilderMessage(context, null, message, null);
 	}
-	
+
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	@SuppressWarnings("deprecation")
 	public static void popupMessage(Context context, final View view, boolean isSetLocation, int gravity, int x, int y, int width, int height
 			, String[] strArray, final ClickAction clickAction){
 		Resources res = context.getResources();
-		
+
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
-		
+
 		int space;
 		LinearLayout.LayoutParams linLayPar;
-		
+
 		LinearLayout linLay;
 		ScrollView scrollView;
 		LinearLayout scrollLinLay;
 		View viewSpace;
 		TextView[] textViews = new TextView[4];
-		
+
 		space = res.getDimensionPixelSize(R.dimen.dip5);
 		linLayPar = new LayoutParams(width, LayoutParams.WRAP_CONTENT);
 		linLay = new LinearLayout(context);
@@ -124,22 +126,22 @@ public class C_subWindow {
 		linLay.setLayoutParams(linLayPar);
 		linLay.setPadding(space, space, space, space);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
-		
+
 		linLayPar = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		scrollView = new ScrollView(context);
 		scrollView.setLayoutParams(linLayPar);
 		linLay.addView(scrollView);
-		
+
 		scrollLinLay = new LinearLayout(context);
 		scrollLinLay.setOrientation(LinearLayout.VERTICAL);
 		scrollLinLay.setLayoutParams(linLayPar);
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
-		
+
 		linLayPar = new LayoutParams(LayoutParams.MATCH_PARENT, res.getDimensionPixelSize(R.dimen.dip10));
 		viewSpace = new View(context);
 		viewSpace.setLayoutParams(linLayPar);
-		
+
 		linLayPar = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		for(int i=0; i<textViews.length; i++){
 			textViews[i] = new TextView(context);
@@ -160,30 +162,30 @@ public class C_subWindow {
 				textViews[i].setEllipsize(TruncateAt.END);
 				textViews[i].setMaxLines(2);
 			}
-			
+
 			if(i < strArray.length && !TextUtils.isEmpty(strArray[i])){
 				textViews[i].setText(strArray[i]);
 			}else{
 				textViews[i].setVisibility(View.GONE);
 			}
 		}
-		
+
 		scrollLinLay.addView(textViews[0]);
 		scrollLinLay.addView(textViews[1]);
 		scrollLinLay.addView(viewSpace);
 		scrollLinLay.addView(textViews[2]);
 		scrollLinLay.addView(textViews[3]);
-		
-		if((textViews[0].getVisibility() == View.GONE && textViews[1].getVisibility() == View.GONE) || 
+
+		if((textViews[0].getVisibility() == View.GONE && textViews[1].getVisibility() == View.GONE) ||
 				(textViews[2].getVisibility() == View.GONE && textViews[3].getVisibility() == View.GONE)){
 			viewSpace.setVisibility(View.GONE);
 		}
-		
+
 		PopupWindow popupWindow = new PopupWindow(context);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-			popupWindow.setBackgroundDrawable(res.getDrawable(android.R.drawable.dialog_holo_light_frame));
+			popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(res, android.R.drawable.dialog_holo_light_frame, null));
 		}else{
-			popupWindow.setBackgroundDrawable(res.getDrawable(android.R.drawable.dialog_frame));
+			popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(res, android.R.drawable.dialog_frame, null));
 		}
 		popupWindow.setWidth(width);
 		popupWindow.setHeight(height);
@@ -203,9 +205,9 @@ public class C_subWindow {
 		}else{
 			popupWindow.showAsDropDown(view);
 		}
-		
+
 		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
-			
+
 			@Override
 			public void onDismiss() {
 				if(clickAction != null){
@@ -214,23 +216,23 @@ public class C_subWindow {
 			}
 		});
 	}
-	
+
 	public static void popupMessage(Context context, View view, boolean isSetLocation, int gravity, int x, int y, String[] strArray
 			, ClickAction clickAction){
 		popupMessage(context, view, isSetLocation, gravity, x, y, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, strArray, clickAction);
 	}
-	
+
 	public static void popupMessage(Context context, View view, int width, int height, String[] strArray, ClickAction clickAction){
 		popupMessage(context, view, false, Gravity.NO_GRAVITY, 0, 0, width, height, strArray, clickAction);
 	}
-	
+
 	public static void popupMessage(Context context, View view, String[] strArray, ClickAction clickAction){
 		popupMessage(context, view, false, Gravity.NO_GRAVITY, 0, 0, LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, strArray, clickAction);
 	}
-	
+
 	public static void alertBuilderConfirm(final Context context, String title, String message, final ClickAction clickAction){
 		final DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
-			
+
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				// DialogInterface.BUTTON_POSITIVE
@@ -246,7 +248,7 @@ public class C_subWindow {
 		alertDialogBuilder.setPositiveButton(context.getString(R.string.ok), click);
 		alertDialogBuilder.setNegativeButton(context.getString(R.string.cancel), click);
 		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
-			
+
 			@Override
 			public void onCancel(DialogInterface dialog) {
 				click.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
@@ -260,14 +262,14 @@ public class C_subWindow {
 			alertDialogBuilder.show();
 		}
 	}
-	
+
 	public static void alertBuilderConfirm(final Context context, String title, final ClickAction clickAction){
 		alertBuilderConfirm(context, title, context.getString(R.string.confirm), clickAction);
 	}
-	
+
 	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitCalss){
 		final DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
-			
+
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == DialogInterface.BUTTON_POSITIVE){
@@ -285,7 +287,7 @@ public class C_subWindow {
 		alertDialogBuilder.setPositiveButton(activity.getString(R.string.ok), click);
 		alertDialogBuilder.setNegativeButton(activity.getString(R.string.cancel), click);
 		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
-			
+
 			@Override
 			public void onCancel(DialogInterface dialog) {
 				click.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
@@ -295,37 +297,37 @@ public class C_subWindow {
 			alertDialogBuilder.show();
 		}
 	}
-	
+
 	public static void alertMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
 			, boolean isOutsideCancel, final ClickAction clickAction){
 		Resources res = context.getResources();
-		
+
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
-		
+
 		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
-		
+
 		LinearLayout linLay;
 		ScrollView scrollView;
 		LinearLayout scrollLinLay;
 		Button[] buttons = new Button[strArray.length];
-		
+
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
 		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
-		
+
 		scrollView = new ScrollView(context);
 		linLay.addView(scrollView);
-		
+
 		scrollLinLay = new LinearLayout(context);
 		scrollLinLay.setOrientation(LinearLayout.VERTICAL);
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
-		
+
 		space = res.getDimensionPixelSize(R.dimen.dip5);
 		itemWi = width - space * 2;
 		itemHe = LayoutParams.WRAP_CONTENT;
@@ -336,14 +338,11 @@ public class C_subWindow {
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
 			buttons[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
+			XmlPullParser xpp = res.getXml(+R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				buttons[i].setTextColor(colorList);
-			} catch (XmlPullParserException e) {
-				buttons[i].setTextColor(res.getColor(android.R.color.black));
-				e.printStackTrace();
-			} catch (IOException e) {
+			} catch (XmlPullParserException | IOException e) {
 				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
@@ -352,12 +351,12 @@ public class C_subWindow {
 			buttons[i].setEllipsize(TruncateAt.END);
 			buttons[i].setMaxLines(2);
 			scrollLinLay.addView(buttons[i]);
-			
+
 			buttons[i].setText(strArray[i][1]);
 		}
-		
+
 		DialogInterface.OnClickListener onClick = new DialogInterface.OnClickListener() {
-			
+
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 			}
@@ -367,7 +366,7 @@ public class C_subWindow {
 		alertDialog.setView(linLay, 0, 0, 0, 0);
 		alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, context.getString(R.string.cancel), onClick);
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
-		
+
 		WindowManager.LayoutParams windowLayPar = alertDialog.getWindow().getAttributes();
 		windowLayPar.x = 0;
 		windowLayPar.y = 0;
@@ -382,9 +381,9 @@ public class C_subWindow {
 		}else{
 			alertDialog.show();
 		}
-		
+
 		alertDialog.setOnDismissListener(new OnDismissListener() {
-			
+
 			@Override
 			public void onDismiss(DialogInterface dialog) {
 				if(clickAction != null){
@@ -392,11 +391,11 @@ public class C_subWindow {
 				}
 			}
 		});
-		
+
 		for(int i=0; i<buttons.length; i++){
 			final int count = i;
 			buttons[i].setOnClickListener(new OnClickListener() {
-				
+
 				@Override
 				public void onClick(View v) {
 					if(clickAction != null){
@@ -410,7 +409,7 @@ public class C_subWindow {
 			});
 		}
 	}
-	
+
 	public static void alertMenuUseButton(final Context context, String title, final String[][] strArray, boolean isOutsideCancel
 			, final ClickAction clickAction){
 		DisplayMetrics dm = new DisplayMetrics();
@@ -420,22 +419,22 @@ public class C_subWindow {
 		int height = LayoutParams.WRAP_CONTENT;
 		alertMenuUseButton(context, width, height, title, strArray, isOutsideCancel, clickAction);
 	}
-	
+
 	public static RelativeLayout getTopBar(Context context, DisplayMetrics displayMetrics, int width, int height, int btnWidth, int space){
 		Resources res = context.getResources();
-		
+
 		boolean isBigScreen = Utils.isFillScreen(displayMetrics, Utils.LIMIT_DIP_WIDTH);
-		
+
 		RelativeLayout.LayoutParams relLayPar;
-		
+
 		RelativeLayout relLay;
 		TextView[] textViews = new TextView[3];
-		
+
 		relLay = new RelativeLayout(context);
 		relLay.setId(R.id.topLayout);
 		relLay.setLayoutParams(new ViewGroup.LayoutParams(width, LayoutParams.WRAP_CONTENT));
 		relLay.setPadding(space, 0, space, 0);
-		
+
 		for(int i=0; i<textViews.length; i++){
 			textViews[i] = new TextView(context);
 			if(i == 0){
@@ -466,52 +465,52 @@ public class C_subWindow {
 			textViews[i].setMaxLines(2);
 			relLay.addView(textViews[i]);
 		}
-		
+
 		// 偏移位置設定
 		relLayPar = (RelativeLayout.LayoutParams)textViews[1].getLayoutParams();
 		relLayPar.addRule(RelativeLayout.LEFT_OF, R.id.topRight);
-		
+
 		return relLay;
 	}
-	
+
 	public static RelativeLayout getTopBar(Context context, int width, int height, int btnWidth, int space){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return getTopBar(context, displayMetrics, width, height, btnWidth, space);
 	}
-	
+
 	public static void dialogMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
 			, boolean isOutsideCancel, final ClickAction clickAction){
 		Resources res = context.getResources();
-		
+
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
-		
+
 		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
-		
+
 		LinearLayout linLay;
 		ScrollView scrollView;
 		LinearLayout scrollLinLay;
 		final Button[] buttons = new Button[strArray.length + 1];
 		TextView textView;
-		
+
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
 		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
-		
+
 		scrollView = new ScrollView(context);
 		linLay.addView(scrollView);
-		
+
 		scrollLinLay = new LinearLayout(context);
 		scrollLinLay.setOrientation(LinearLayout.VERTICAL);
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
-		
+
 		space = res.getDimensionPixelSize(R.dimen.dip5);
 		itemWi = width - space * 2;
 		itemHe = (int)(61.5f * 0.75f * dm.density);
@@ -526,10 +525,10 @@ public class C_subWindow {
 			textView.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			textView.getPaint().setFakeBoldText(true);
 			scrollLinLay.addView(textView);
-			
+
 			textView.setText(title);
 		}
-		
+
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 		linLayPar.setMargins(space, 0, space, 0);
 		for(int i=0; i<buttons.length; i++){
@@ -537,14 +536,11 @@ public class C_subWindow {
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
 			buttons[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
+			XmlPullParser xpp = res.getXml(+R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				buttons[i].setTextColor(colorList);
-			} catch (XmlPullParserException e) {
-				buttons[i].setTextColor(res.getColor(android.R.color.black));
-				e.printStackTrace();
-			} catch (IOException e) {
+			} catch (XmlPullParserException | IOException e) {
 				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
@@ -553,19 +549,19 @@ public class C_subWindow {
 			buttons[i].setEllipsize(TruncateAt.END);
 			buttons[i].setMaxLines(2);
 			scrollLinLay.addView(buttons[i]);
-			
+
 			if(i < buttons.length - 1){
 				buttons[i].setText(strArray[i][1]);
 			}else{
 				buttons[i].setText(res.getString(R.string.cancel));
 			}
 		}
-		
+
 		final Dialog dialog = new Dialog(context);
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		dialog.setContentView(linLay);
 		dialog.setCanceledOnTouchOutside(isOutsideCancel);
-		
+
 		WindowManager.LayoutParams windowLayPar = dialog.getWindow().getAttributes();
 		windowLayPar.x = 0;
 		windowLayPar.y = 0;
@@ -580,9 +576,9 @@ public class C_subWindow {
 		}else{
 			dialog.show();
 		}
-		
+
 		dialog.setOnDismissListener(new OnDismissListener() {
-			
+
 			@Override
 			public void onDismiss(DialogInterface dialog) {
 				if(clickAction != null){
@@ -590,11 +586,11 @@ public class C_subWindow {
 				}
 			}
 		});
-		
+
 		for(int i=0; i<buttons.length; i++){
 			final int count = i;
 			buttons[i].setOnClickListener(new OnClickListener() {
-				
+
 				@Override
 				public void onClick(View v) {
 					if(clickAction != null && count < strArray.length - 1){
@@ -608,7 +604,7 @@ public class C_subWindow {
 			});
 		}
 	}
-	
+
 	public static void dialogMenuUseButton(final Context context, String title, final String[][] strArray, boolean isOutsideCancel
 			, final ClickAction clickAction){
 		DisplayMetrics dm = new DisplayMetrics();
@@ -618,46 +614,46 @@ public class C_subWindow {
 		int height = LayoutParams.WRAP_CONTENT;
 		dialogMenuUseButton(context, width, height, title, strArray, isOutsideCancel, clickAction);
 	}
-	
+
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, int[] selectedArray, String title
 			, ListAdapter adp, final boolean isMult, boolean isOutsideCancel, final ClickAction clickAction) {
 		Resources res = context.getResources();
-		
+
 		int itemWi, itemHe, space;
 		LinearLayout.LayoutParams linLayPar;
-		
+
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		
+
 		LinearLayout linLay;
 		final ListView listView;
-		
+
 		linLay = new LinearLayout(context);
 		linLay.setOrientation(LinearLayout.VERTICAL);
 		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
-		
+
 		space = res.getDimensionPixelSize(R.dimen.dip5);
 		if(topBar == null){
 			itemWi = res.getDimensionPixelSize(R.dimen.dip72);
 			itemHe = (int)(61.5f * 1.0f * dm.density);
 			topBar = getTopBar(context, dm, width, itemHe, itemWi, space);
-			
+
 			topBar.setBackgroundColor(0xFFC0C0C0);
 			topBar.findViewById(R.id.topLeft).setBackgroundResource(android.R.color.white);
-			
+
 			if(topBar.findViewById(R.id.topLeft) instanceof TextView){
 				((TextView)topBar.findViewById(R.id.topLeft)).setText(res.getString(R.string.cancel));
 			}
 		}
-		
+
 		linLay.addView(topBar);
-		
+
 		if(topBar.findViewById(R.id.topCenter) instanceof TextView){
 			((TextView)topBar.findViewById(R.id.topCenter)).setText(title);
 		}
-		
+
 		itemWi = width - space * 2;
 		itemHe = LayoutParams.WRAP_CONTENT;
 		linLayPar = new LayoutParams(itemWi, itemHe);
@@ -669,9 +665,9 @@ public class C_subWindow {
 		listView.setCacheColorHint(0x00000000);
 		listView.setDivider(new ColorDrawable(0xFF808080));
 		listView.setDividerHeight((int)(1 * dm.density));
-		
+
 		linLay.addView(listView);
-		
+
 		if(isMult){
 			listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 		}else{
@@ -684,12 +680,12 @@ public class C_subWindow {
 				listView.setSelection(selectedArray[i]);
 			}
 		}
-		
+
 		final Dialog dialog = new Dialog(context);
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		dialog.setContentView(linLay);
 		dialog.setCanceledOnTouchOutside(isOutsideCancel);
-		
+
 		WindowManager.LayoutParams windowLayPar = dialog.getWindow().getAttributes();
 		windowLayPar.x = 0;
 		windowLayPar.y = 0;
@@ -704,9 +700,9 @@ public class C_subWindow {
 		}else{
 			dialog.show();
 		}
-		
+
 		dialog.setOnDismissListener(new OnDismissListener() {
-			
+
 			@Override
 			public void onDismiss(DialogInterface dialog) {
 				if(clickAction != null){
@@ -714,17 +710,17 @@ public class C_subWindow {
 				}
 			}
 		});
-		
+
 		if(topBar.findViewById(R.id.topLeft) != null){
 			topBar.findViewById(R.id.topLeft).setOnClickListener(new OnClickListener() {
-				
+
 				@Override
 				public void onClick(View v) {
 					dialog.dismiss();
 				}
 			});
 		}
-		
+
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
@@ -742,7 +738,7 @@ public class C_subWindow {
 			}
 		});
 	}
-	
+
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, String[] strArray
 			, int[] selectedArray, int resourceId, int[] viewIdArray, boolean isMult, boolean isOutsideCancel, ClickAction clickAction) {
 		List<Map<String, String>> list = new ArrayList<Map<String, String>>();
@@ -754,7 +750,7 @@ public class C_subWindow {
 		SimpleAdapter adp = new SimpleAdapter(context, list, resourceId, new String[]{"strArray"}, viewIdArray);
 		dialogMenuUseListView(context, topBar, width, height, selectedArray, title, adp, isMult, isOutsideCancel, clickAction);
 	}
-	
+
 	public static void dialogMenuUseListView(Context context, View topBar, int width, int height, String title, String[] strArray
 			, int[] selectedArray, boolean isMult, boolean isOutsideCancel, ClickAction clickAction) {
 		int resourceId;
@@ -769,7 +765,7 @@ public class C_subWindow {
 		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, resourceId, viewIdArray, isMult, isOutsideCancel
 				, clickAction);
 	}
-	
+
 	public static void dialogMenuUseListView(Context context, View topBar, String title, String[] strArray, int[] selectedArray
 			, boolean isMult, boolean isOutsideCancel, ClickAction clickAction) {
 		DisplayMetrics dm = new DisplayMetrics();
@@ -785,25 +781,25 @@ public class C_subWindow {
 		}
 		dialogMenuUseListView(context, topBar, width, height, title, strArray, selectedArray, isMult, isOutsideCancel, clickAction);
 	}
-	
+
 	public static void popupMenuUseButton(Context context, final View view, int width, int height, String title, final String[][] strArray
 			, final ClickAction clickAction){
 		Resources res = context.getResources();
-		
+
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
-		
+
 		int itemWi;
 		LinearLayout.LayoutParams linLayPar;
-		
+
 		LinearLayout linLay;
 		ScrollView scrollView;
 		LinearLayout scrollLinLay;
 		TextView textView;
 		Button[] buttons = new Button[strArray.length];
-		
+
 		itemWi = width;
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 		linLay = new LinearLayout(context);
@@ -811,17 +807,17 @@ public class C_subWindow {
 		linLay.setBackgroundResource(android.R.color.white);
 		linLay.setLayoutParams(linLayPar);
 		linLay.setGravity(Gravity.CENTER_HORIZONTAL);
-		
+
 		scrollView = new ScrollView(context);
 		scrollView.setLayoutParams(linLayPar);
 		linLay.addView(scrollView);
-		
+
 		scrollLinLay = new LinearLayout(context);
 		scrollLinLay.setOrientation(LinearLayout.VERTICAL);
 		scrollLinLay.setLayoutParams(linLayPar);
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
-		
+
 		if(!TextUtils.isEmpty(title)){
 			textView = new TextView(context);
 			textView.setLayoutParams(linLayPar);
@@ -831,20 +827,17 @@ public class C_subWindow {
 			textView.setText(title);
 			scrollLinLay.addView(textView);
 		}
-		
+
 		for(int i=0; i<buttons.length; i++){
 			buttons[i] = new Button(context);
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
 			buttons[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(R.color.selector_textcolor_item);
+			XmlPullParser xpp = res.getXml(+R.color.selector_textcolor_item);
 			try {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				buttons[i].setTextColor(colorList);
-			} catch (XmlPullParserException e) {
-				buttons[i].setTextColor(res.getColor(android.R.color.black));
-				e.printStackTrace();
-			} catch (IOException e) {
+			} catch (XmlPullParserException | IOException e) {
 				buttons[i].setTextColor(res.getColor(android.R.color.black));
 				e.printStackTrace();
 			}
@@ -853,10 +846,10 @@ public class C_subWindow {
 			buttons[i].setEllipsize(TruncateAt.END);
 			buttons[i].setMaxLines(2);
 			scrollLinLay.addView(buttons[i]);
-			
+
 			buttons[i].setText(strArray[i][1]);
 		}
-		
+
 		final PopupWindow popupWindow = new PopupWindow(context);
 		popupWindow.setWidth(width);
 		popupWindow.setHeight(height);
@@ -871,9 +864,9 @@ public class C_subWindow {
 		}else{
 			popupWindow.showAsDropDown(view);
 		}
-		
+
 		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
-			
+
 			@Override
 			public void onDismiss() {
 				if(clickAction != null){
@@ -881,11 +874,11 @@ public class C_subWindow {
 				}
 			}
 		});
-		
+
 		for(int i=0; i<buttons.length; i++){
 			final int count = i;
 			buttons[i].setOnClickListener(new OnClickListener() {
-				
+
 				@Override
 				public void onClick(View v) {
 					if(clickAction != null && count < strArray.length - 1){
@@ -899,7 +892,7 @@ public class C_subWindow {
 			});
 		}
 	}
-	
+
 	public static void popupMenuUseButton(Context context, View view, String title, final String[][] strArray, final ClickAction clickAction){
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
