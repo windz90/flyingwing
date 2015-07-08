@@ -1,31 +1,11 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.10
+ * @version 3.5.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.andy.library.module;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.lang.ref.SoftReference;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -49,6 +29,26 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.lang.ref.SoftReference;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
 public class C_imageProcessor {
 	
 	private static final ImageSetting IMAGESETTING = new ImageSetting();
@@ -58,16 +58,16 @@ public class C_imageProcessor {
 	private static final String SAMPLE_WORD = "_SampleSize";
 	
 	public interface DownLoadComplete {
-		public void cacheImage(String streamURL, Bitmap bitmap);
-		public void localLoadedImage(String streamURL, Bitmap bitmap);
-		public void remoteLoadedImage(String streamURL, Bitmap bitmap);
-		public void loadFail(String streamURL);
+		void cacheImage(String streamURL, Bitmap bitmap);
+		void localLoadedImage(String streamURL, Bitmap bitmap);
+		void remoteLoadedImage(String streamURL, Bitmap bitmap);
+		void loadFail(String streamURL);
 	}
 	
 	public static class ImageSetting {
 		private Bitmap.Config mBitmapConfig = Bitmap.Config.ARGB_8888;
 		private boolean mInNativeAlloc = true;
-		private boolean mPrintLoadStreamException = true;
+		private boolean mIsPrintLoadException = true;
 		private int mBufferSize = 1024 * 16;
 		private int mThreadPoolSum = 3;
 	}
@@ -88,14 +88,6 @@ public class C_imageProcessor {
 		return IMAGESETTING.mInNativeAlloc;
 	}
 	
-	public static void setPrintLoadStreamException(boolean isPrintLoadStreamException){
-		C_imageProcessor.IMAGESETTING.mPrintLoadStreamException = isPrintLoadStreamException;
-	}
-	
-	public static boolean getIsPrintLoadStreamException(){
-		return IMAGESETTING.mPrintLoadStreamException;
-	}
-	
 	public static void setInputBufferSize(int inputBufferSize){
 		C_imageProcessor.IMAGESETTING.mBufferSize = inputBufferSize;
 	}
@@ -110,6 +102,14 @@ public class C_imageProcessor {
 	
 	public static int getThreadPoolSum(){
 		return IMAGESETTING.mThreadPoolSum;
+	}
+	
+	public static void setPrintLoadStreamException(boolean isPrintLoadStreamException){
+		C_imageProcessor.IMAGESETTING.mIsPrintLoadException = isPrintLoadStreamException;
+	}
+	
+	public static boolean isPrintLoadStreamException(){
+		return IMAGESETTING.mIsPrintLoadException;
 	}
 	
 	public static Bitmap getRawBitmap(Resources res, int resource, int inSampleSize, boolean isUseBuffer){
@@ -135,10 +135,10 @@ public class C_imageProcessor {
 			}
 			return bitmap;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			bitmap = null;
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -152,13 +152,13 @@ public class C_imageProcessor {
 		try {
 			InputStream is = res.openRawResource(resource);
 			try {
-				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+				scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
 				is.close();
 				is = null;
 			}
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return getRawBitmap(res, resource, scale, isUseBuffer);
 	}
@@ -191,11 +191,11 @@ public class C_imageProcessor {
 			}
 			return bitmap;
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			assetManager = null;
 			bitmap = null;
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -210,13 +210,13 @@ public class C_imageProcessor {
 		try {
 			InputStream is = assetManager.open(imageName);
 			try {
-				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+				scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
 				is.close();
 				is = null;
 			}
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return readAssetsBitmap(context, imageName, scale, isUseBuffer);
 	}
@@ -237,8 +237,6 @@ public class C_imageProcessor {
 				fileOutStream.close();
 				fileOutStream = null;
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -266,16 +264,7 @@ public class C_imageProcessor {
 				setBufferBitmap(bitmap, imageName, SAMPLE_WORD, inSampleSize);
 			}
 			return bitmap;
-		} catch (FileNotFoundException e) {
-//			System.out.println(e);
-		} catch (IOException e) {
-//			System.out.println(e);
-		} catch (Exception e) {
-//			System.out.println(e);
-		} catch (OutOfMemoryError e) {
-			bitmap = null;
-			System.out.println(e);
-		}
+		} catch (Exception | OutOfMemoryError ignored) {}
 		return null;
 	}
 	
@@ -290,13 +279,13 @@ public class C_imageProcessor {
 		try {
 			InputStream is = context.openFileInput(imageName);
 			try {
-				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+				scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
 				is.close();
 				is = null;
 			}
 		} catch (Exception e) {
-//			System.out.println(e);
+			e.printStackTrace();
 		}
 		return readInsidePrivateImage(context, imageName, scale, isUseBuffer);
 	}
@@ -317,7 +306,9 @@ public class C_imageProcessor {
 		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
 		File file = new File(insidePath + path);
 		if(!file.exists()){
-			file.mkdirs();
+			if(!file.mkdirs()){
+				System.out.println("directory already existed");
+			}
 		}
 		file = new File(insidePath + path + imageName);
 		try {
@@ -329,8 +320,6 @@ public class C_imageProcessor {
 				fileOutStream.close();
 				fileOutStream = null;
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -348,6 +337,9 @@ public class C_imageProcessor {
 			}
 		}
 		File file = new File(insidePath + path + imageName);
+		if(!file.isFile()){
+			return null;
+		}
 		try {
 			InputStream is = new FileInputStream(file);
 			try {
@@ -360,16 +352,12 @@ public class C_imageProcessor {
 				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
 			}
 			return bitmap;
-		} catch (FileNotFoundException e) {
-//			System.out.println(e);
-		} catch (IOException e) {
-//			System.out.println(e);
 		} catch (Exception e) {
-//			System.out.println(e);
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			file = null;
 			bitmap = null;
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -383,18 +371,21 @@ public class C_imageProcessor {
 		// 取得app路徑/data/data/packageName
 		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
 		File file = new File(insidePath + path + imageName);
+		if(!file.isFile()){
+			return null;
+		}
 		InputStream is;
 		int scale = 1;
 		try {
 			is = new FileInputStream(file);
 			try {
-				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+				scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
 				is.close();
 				is = null;
 			}
 		} catch (Exception e) {
-//			System.out.println(e);
+			e.printStackTrace();
 		}
 		Bitmap bitmap;
 		try {
@@ -416,17 +407,13 @@ public class C_imageProcessor {
 				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
 			}
 			return bitmap;
-		} catch (FileNotFoundException e) {
-//			System.out.println(e);
-		} catch (IOException e) {
-//			System.out.println(e);
 		} catch (Exception e) {
-//			System.out.println(e);
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			file = null;
 			is = null;
 			bitmap = null;
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -444,7 +431,7 @@ public class C_imageProcessor {
 	}
 	
 	public static void writeSDCardImageFile(Bitmap bitmap, int quality, String directory, String imageName){
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑/mnt/sdcard
@@ -455,7 +442,9 @@ public class C_imageProcessor {
 			}
 			file = new File(sdCardPath + directory);
 			if(!file.exists()){
-				file.mkdirs();
+				if(!file.mkdirs()){
+					System.out.println("directory already existed");
+				}
 			}
 			file = new File(sdCardPath + directory + imageName);
 			try {
@@ -467,8 +456,6 @@ public class C_imageProcessor {
 					fileOutStream.close();
 					fileOutStream = null;
 				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -476,7 +463,7 @@ public class C_imageProcessor {
 	}
 	
 	public static Bitmap readSDCardImageFile(String directory, String imageName, int inSampleSize, boolean isUseBuffer){
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑/mnt/sdcard
@@ -493,6 +480,9 @@ public class C_imageProcessor {
 				}
 			}
 			file = new File(sdCardPath + directory + imageName);
+			if(!file.isFile()){
+				return null;
+			}
 			try {
 				InputStream is = new FileInputStream(file);
 				try {
@@ -505,16 +495,12 @@ public class C_imageProcessor {
 					setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
 				}
 				return bitmap;
-			} catch (FileNotFoundException e) {
-				System.out.println(e);
-			} catch (IOException e) {
-				System.out.println(e);
 			} catch (Exception e) {
-				System.out.println(e);
+				e.printStackTrace();
 			} catch (OutOfMemoryError e) {
 				file = null;
 				bitmap = null;
-				System.out.println(e);
+				e.printStackTrace();
 			}
 		}
 		return null;
@@ -525,7 +511,7 @@ public class C_imageProcessor {
 	}
 	
 	public static Bitmap readSDCardImageFile(String directory, String imageName, float specifiedSize, boolean isUseBuffer){
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑/mnt/sdcard
@@ -535,18 +521,21 @@ public class C_imageProcessor {
 				sdCardPath = "";
 			}
 			file = new File(sdCardPath + directory + imageName);
+			if(!file.isFile()){
+				return null;
+			}
 			InputStream is;
 			int scale = 1;
 			try {
 				is = new FileInputStream(file);
 				try {
-					scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+					scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 				} finally {
 					is.close();
 					is = null;
 				}
 			} catch (Exception e) {
-				System.out.println(e);
+				e.printStackTrace();
 			}
 			Bitmap bitmap;
 			try {
@@ -568,17 +557,13 @@ public class C_imageProcessor {
 					setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
 				}
 				return bitmap;
-			} catch (FileNotFoundException e) {
-				System.out.println(e);
-			} catch (IOException e) {
-				System.out.println(e);
 			} catch (Exception e) {
-				System.out.println(e);
+				e.printStackTrace();
 			} catch (OutOfMemoryError e) {
 				file = null;
 				is = null;
 				bitmap = null;
-				System.out.println(e);
+				e.printStackTrace();
 			}
 		}
 		return null;
@@ -589,7 +574,7 @@ public class C_imageProcessor {
 	}
 	
 	public static boolean deleteSDCardImageFile(Context context, String directory, String imageName){
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑/mnt/sdcard
@@ -615,8 +600,6 @@ public class C_imageProcessor {
 				fileOutStream.close();
 				fileOutStream = null;
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -627,6 +610,9 @@ public class C_imageProcessor {
 	}
 	
 	public static Bitmap readImageFile(File file, int inSampleSize, boolean isUseBuffer){
+		if(!file.isFile()){
+			return null;
+		}
 		Bitmap bitmap;
 		try {
 			if(isUseBuffer){
@@ -647,16 +633,12 @@ public class C_imageProcessor {
 				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
 			}
 			return bitmap;
-		} catch (FileNotFoundException e) {
-			System.out.println(e);
-		} catch (IOException e) {
-			System.out.println(e);
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			file = null;
 			bitmap = null;
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -678,13 +660,13 @@ public class C_imageProcessor {
 		try {
 			InputStream is = new FileInputStream(file);
 			try {
-				scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+				scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
 				is.close();
 				is = null;
 			}
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return readImageFile(file, scale, isUseBuffer);
 	}
@@ -718,7 +700,7 @@ public class C_imageProcessor {
 		if(connectManager.getActiveNetworkInfo() != null){
 			isConnect = connectManager.getActiveNetworkInfo().isAvailable();
 		}
-//		NetworkInfo[] networkInfo = ContyManager.getAllNetworkInfo();
+//		NetworkInfo[] networkInfo = connectManager.getAllNetworkInfo();
 //		if(networkInfo != null){
 //			for(int i=0; i<networkInfo.length; i++){
 //				if(networkInfo[i].getState() == NetworkInfo.State.CONNECTED){
@@ -756,14 +738,14 @@ public class C_imageProcessor {
 			} finally {
 				baos.close();
 			}
-		} catch (IOException e) {
-			System.out.println(e);
+		} catch (Exception e) {
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			is = null;
 			byteArray = null;
 			buffer = null;
 			baos = null;
-			System.out.println(e);
+			e.printStackTrace();
 		}
 		return byteArray;
 	}
@@ -851,7 +833,7 @@ public class C_imageProcessor {
 			
 			width = bitmap.getWidth() * bufferSample;
 			height = bitmap.getHeight() * bufferSample;
-			return getImagespecifiedSizeNarrowScale(new float[]{width, height}, specifiedSize);
+			return getImageSpecifiedSizeNarrowScale(new float[]{width, height}, specifiedSize);
 		}
 		return -1;
 	}
@@ -881,21 +863,21 @@ public class C_imageProcessor {
 			
 			@Override
 			public void run() {
+				Bitmap bitmap = null;
 				try {
 					byte[] byteArray = loadStream(streamURL);
 					InputStream is = new ByteArrayInputStream(byteArray);
-					int scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+					int scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 					try {
 						is.reset();
 					} catch (IOException e1) {
 						try {
 							is.close();
 							is = null;
-						} catch (Exception e2) {}
+						} catch (Exception ignored) {}
 						is = new ByteArrayInputStream(byteArray);
-						System.out.println(e1);
+						e1.printStackTrace();
 					}
-					Bitmap bitmap;
 					try {
 						bitmap = getAgileBitmap(is, scale);
 					} finally {
@@ -912,15 +894,18 @@ public class C_imageProcessor {
 							writeInsidePrivateImage(context, bitmap, quality, imageNameCopy);
 						}
 					}
-					
+				} catch (Exception e) {
+					if(IMAGESETTING.mIsPrintLoadException){e.printStackTrace();}
+				}
+				
+				if(bitmap != null){
 					Message msg = new Message();
 					msg.what = 1;
 					msg.obj = bitmap;
 					handlerDownload.sendMessage(msg);
-				} catch (Exception e) {
-					handlerDownload.sendEmptyMessage(0);
-					if(IMAGESETTING.mPrintLoadStreamException){System.out.println(e);}
+					return;
 				}
+				handlerDownload.sendEmptyMessage(0);
 			}
 		};
 		
@@ -947,10 +932,12 @@ public class C_imageProcessor {
 		}
 		if(imageName == null){
 			handlerNone.sendEmptyMessage(0);
+			return null;
 		}
 		final String imageNameCopy = imageName.trim().replace(File.separator, "_");
 		if(imageNameCopy.length() == 0){
 			handlerNone.sendEmptyMessage(0);
+			return null;
 		}
 		
 		Bitmap bitmap = getBufferBitmap(imageNameCopy, SAMPLE_WORD, getBufferSample(imageNameCopy, SAMPLE_WORD, specifiedSize));
@@ -967,7 +954,7 @@ public class C_imageProcessor {
 			@Override
 			public boolean handleMessage(Message msg) {
 				if(complete != null){
-					complete.localLoadedImage(streamURL, (Bitmap)msg.obj);
+					complete.localLoadedImage(streamURL, (Bitmap) msg.obj);
 				}
 				return false;
 			}
@@ -982,7 +969,7 @@ public class C_imageProcessor {
 					InputStream is = context.openFileInput(imageNameCopy);
 					int scale;
 					try {
-						scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+						scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 					} finally {
 						is.close();
 						is = null;
@@ -994,11 +981,10 @@ public class C_imageProcessor {
 						is.close();
 						is = null;
 					}
+					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
 					setBufferBitmap(bitmap, imageNameCopy, SAMPLE_WORD, scale);
-				} catch (FileNotFoundException e) {
-//					System.out.println(e);
 				} catch (Exception e) {
-//					System.out.println(e);
+					if(IMAGESETTING.mIsPrintLoadException){e.printStackTrace();}
 				}
 				
 				// 若此圖片已儲存在本地端，則回傳圖片
@@ -1023,7 +1009,7 @@ public class C_imageProcessor {
 			return null;
 		}
 		
-		Bitmap bitmap = getBufferBitmap(streamURL, SAMPLE_WORD, getBufferSample(streamURL, SAMPLE_WORD, specifiedSize));
+		final Bitmap bitmap = getBufferBitmap(streamURL, SAMPLE_WORD, getBufferSample(streamURL, SAMPLE_WORD, specifiedSize));
 		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
         if(bitmap != null){
 			if(complete != null){
@@ -1048,21 +1034,21 @@ public class C_imageProcessor {
 			
 			@Override
 			public void run() {
+				Bitmap bitmap = null;
 				try {
 					byte[] byteArray = loadStream(streamURL);
 					InputStream is = new ByteArrayInputStream(byteArray);
-					int scale = getImagespecifiedSizeNarrowScale(is, specifiedSize);
+					int scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 					try {
 						is.reset();
 					} catch (IOException e1) {
 						try {
 							is.close();
 							is = null;
-						} catch (IOException e2) {}
+						} catch (IOException ignored) {}
 						is = new ByteArrayInputStream(byteArray);
-						System.out.println(e1);
+						e1.printStackTrace();
 					}
-					Bitmap bitmap;
 					try {
 						bitmap = getAgileBitmap(is, scale);
 					} finally {
@@ -1071,14 +1057,18 @@ public class C_imageProcessor {
 					}
 					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
 					setBufferBitmap(bitmap, streamURL, SAMPLE_WORD, scale);
+				} catch (Exception e) {
+					if(IMAGESETTING.mIsPrintLoadException){e.printStackTrace();}
+				}
+				
+				if(bitmap != null){
 					Message msg = new Message();
 					msg.what = 1;
 					msg.obj = bitmap;
 					handlerDownload.sendMessage(msg);
-				} catch (Exception e) {
-					handlerDownload.sendEmptyMessage(0);
-					if(IMAGESETTING.mPrintLoadStreamException){System.out.println(e);}
+					return;
 				}
+				handlerDownload.sendEmptyMessage(0);
 			}
 		};
 		
@@ -1107,15 +1097,7 @@ public class C_imageProcessor {
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH){
 			try {
 				BitmapFactory.Options.class.getField("inNativeAlloc").setBoolean(options, IMAGESETTING.mInNativeAlloc);
-			} catch (IllegalArgumentException e) {
-//				e.printStackTrace();
-			} catch (SecurityException e) {
-//				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-//				e.printStackTrace();
-			} catch (NoSuchFieldException e) {
-//				e.printStackTrace();
-			}
+			} catch (IllegalArgumentException | SecurityException | IllegalAccessException | NoSuchFieldException ignored) {}
 		}
 		// 設定是否系統記憶體不足時先行回收部分的記憶體，但回收動作仍會佔用JVM的記憶體
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP){
@@ -1128,7 +1110,7 @@ public class C_imageProcessor {
 			bitmap = BitmapFactory.decodeStream(is, null, options);
 		} catch (OutOfMemoryError e) {
 			bitmap = null;
-			System.out.println(e);
+			e.printStackTrace();
 		} finally {
 			if(is != null){
 				try {
@@ -1152,7 +1134,7 @@ public class C_imageProcessor {
 		return imageSize;
 	}
 	
-	public static int getImagespecifiedSizeNarrowScale(float[] imageSize, float specifiedSize){
+	public static int getImageSpecifiedSizeNarrowScale(float[] imageSize, float specifiedSize){
 		if(specifiedSize == 0){
 			return 1;
 		}
@@ -1171,8 +1153,8 @@ public class C_imageProcessor {
 		return bigDecimal.intValue();
 	}
 	
-	public static int getImagespecifiedSizeNarrowScale(InputStream is, float specifiedSize){
-		return getImagespecifiedSizeNarrowScale(getImageSize(is), specifiedSize);
+	public static int getImageSpecifiedSizeNarrowScale(InputStream is, float specifiedSize){
+		return getImageSpecifiedSizeNarrowScale(getImageSize(is), specifiedSize);
 	}
 	
 	public static Bitmap convertMappedBitmap(Bitmap bitmap, int newWidth, int newHeight, Bitmap.Config config, File tempFile){
@@ -1222,18 +1204,16 @@ public class C_imageProcessor {
 				fileChannel.close();
 				randomAccessFile.close();
 			}
-		} catch (FileNotFoundException e) {
-			System.out.println(e);
-		} catch (IOException e) {
-			System.out.println(e);
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			bitmap = null;
-			System.out.println(e);
+			e.printStackTrace();
 		} finally {
 			if(tempFile != null){
-				tempFile.delete();
+				if(!tempFile.delete()){
+					System.out.println("not delete file " + tempFile.getPath());
+				}
 			}
 		}
 		return bitmap;
@@ -1318,7 +1298,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定顏色亮度
-	 * @param brightnessValue
 	 */
 	public static ColorMatrix setBrightness(float brightnessValue){
 		return getColorMatrix(1.0f, 1.0f, 1.0f, 1.0f, brightnessValue, brightnessValue, brightnessValue, 0);
@@ -1326,7 +1305,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定顏色對比
-	 * @param contrastValue
 	 */
 	public static ColorMatrix setContrast(float contrastValue){
 		final float offset = 127.5f * (1.0f - contrastValue);
@@ -1335,7 +1313,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定顏色飽和
-	 * @param saturationValue
 	 */
 	public static ColorMatrix setSaturation(float saturationValue){
 		// R = 0.3086, G = 0.6094, B = 0.0820
@@ -1357,7 +1334,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定顏色色相（色調）旋轉
-	 * @param hueDegreesOffsetValue
 	 */
 	public static ColorMatrix setHueRotate(float hueDegreesOffsetValue){
 		ColorMatrix colorMatrix = new ColorMatrix();
@@ -1369,9 +1345,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定顏色反相（負片、互補色）
-	 * @param offsetRed
-	 * @param offsetGreen
-	 * @param offsetBlue
 	 */
 	public static ColorMatrix setInverting(){
 		return getColorMatrix(-1.0f, -1.0f, -1.0f, 1.0f, 255, 255, 255, 0);
@@ -1379,9 +1352,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定顏色高低互補色
-	 * @param offsetRed
-	 * @param offsetGreen
-	 * @param offsetBlue
 	 */
 	public static ColorMatrix setComplementaryHighLowColor(float offsetRed, float offsetGreen, float offsetBlue
 			, float offsetAlpha){
@@ -1393,8 +1363,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定畫筆顏色亮度
-	 * @param paint
-	 * @param brightnessValue
 	 */
 	public static void setPaintBrightness(Paint paint, float brightnessValue){
 		paint.setColorFilter(new ColorMatrixColorFilter(setBrightness(brightnessValue)));
@@ -1402,8 +1370,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定畫筆顏色對比
-	 * @param paint
-	 * @param contrastValue
 	 */
 	public static void setPaintContrast(Paint paint, float contrastValue){
 		paint.setColorFilter(new ColorMatrixColorFilter(setContrast(contrastValue)));
@@ -1411,8 +1377,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定畫筆顏色飽和
-	 * @param paint
-	 * @param saturationValue
 	 */
 	public static void setPaintSaturation(Paint paint, float saturationValue){
 		paint.setColorFilter(new ColorMatrixColorFilter(setSaturation(saturationValue)));
@@ -1420,8 +1384,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定畫筆顏色色相（色調）旋轉
-	 * @param paint
-	 * @param hueDegreesOffsetValue
 	 */
 	public static void setPaintHueRotate(Paint paint, float hueDegreesOffsetValue){
 		paint.setColorFilter(new ColorMatrixColorFilter(setHueRotate(hueDegreesOffsetValue)));
@@ -1429,10 +1391,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定畫筆顏色反相（負片、互補色）
-	 * @param paint
-	 * @param offsetRed
-	 * @param offsetGreen
-	 * @param offsetBlue
 	 */
 	public static void setPaintInverting(Paint paint){
 		paint.setColorFilter(new ColorMatrixColorFilter(setInverting()));
@@ -1440,10 +1398,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定畫筆顏色高低互補色
-	 * @param paint
-	 * @param offsetRed
-	 * @param offsetGreen
-	 * @param offsetBlue
 	 */
 	public static void setPaintComplementaryHighLowColor(Paint paint, float offsetRed, float offsetGreen, float offsetBlue
 			, float offsetAlpha){
@@ -1452,8 +1406,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定圖片顏色亮度
-	 * @param bitmap
-	 * @param brightnessValue
 	 */
 	public static Bitmap drawBitmapBrightness(Bitmap bitmap, float brightnessValue){
 		Canvas canvas = getCanvas(bitmap);
@@ -1465,8 +1417,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定圖片顏色對比
-	 * @param bitmap
-	 * @param contrastValue
 	 */
 	public static Bitmap drawBitmapContrast(Bitmap bitmap, float contrastValue){
 		Canvas canvas = getCanvas(bitmap);
@@ -1479,9 +1429,6 @@ public class C_imageProcessor {
 	/**
 	 * 設定圖片顏色飽和<br>
 	 * saturationValue值等於0時為灰階效果
-	 * @param bitmap
-	 * @param saturationValue
-	 * @return
 	 */
 	public static Bitmap drawBitmapSaturation(Bitmap bitmap, float saturationValue){
 		Canvas canvas = getCanvas(bitmap);
@@ -1493,8 +1440,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定圖片顏色色相（色調）旋轉
-	 * @param bitmap
-	 * @param hueDegreesOffsetValue
 	 */
 	public static Bitmap drawBitmapHueRotate(Bitmap bitmap, float hueDegreesOffsetValue){
 		Canvas canvas = getCanvas(bitmap);
@@ -1506,8 +1451,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定圖片顏色反相（負片、互補色）
-	 * @param bitmap
-	 * @return
 	 */
 	public static Bitmap drawBitmapInverting(Bitmap bitmap){
 		Canvas canvas = getCanvas(bitmap);
@@ -1519,8 +1462,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定圖片浮雕效果
-	 * @param bitmap
-	 * @return
 	 */
 	public static Bitmap drawBitmapEmboss(Bitmap bitmap){
 		Canvas canvas = getCanvas(bitmap);
@@ -1535,10 +1476,6 @@ public class C_imageProcessor {
 	
 	/**
 	 * 設定圖片模糊效果
-	 * @param bitmap
-	 * @param radius
-	 * @param style
-	 * @return
 	 */
 	public static Bitmap drawBitmapBlur(Bitmap bitmap, float radius, BlurMaskFilter.Blur style){
 		Canvas canvas = getCanvas(bitmap);

@@ -1,17 +1,18 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 1.1.1
+ * @version 1.1.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.andy.library.module;
 
+import android.util.Base64;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import android.util.Base64;
-
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach"})
 public class C_encrypt {
 	
 	public static final String TYPE_MD2 = "MD2";
@@ -101,23 +102,21 @@ public class C_encrypt {
 			MessageDigest messageDigest = MessageDigest.getInstance(type);
 			messageDigest.update(value);
 			return messageDigest.digest();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (NullPointerException e) {
+		} catch (NoSuchAlgorithmException | NullPointerException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 	
 	private static String encodeToString(byte[] encode){
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
 		for(int i=0; i<encode.length; i++){
 			int num = 0xff & encode[i];
 			String hex = Integer.toHexString(num);
 			if(num > 0x0f){
 				sb.append(hex);
 			}else{
-				sb.append("0" + hex);
+				sb.append("0").append(hex);
 			}
 		}
 		return sb.toString();
@@ -128,7 +127,7 @@ public class C_encrypt {
 	}
 	
 	private static String getBase64EncodeToString(byte[] value){
-		return new String(Base64.encodeToString(value, Base64.DEFAULT));
+		return Base64.encodeToString(value, Base64.DEFAULT);
 	}
 	
 	private static byte[] getBase64Decode(byte[] value){

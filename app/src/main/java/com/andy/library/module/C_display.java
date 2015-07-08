@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.3
+ * @version 3.2.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable"})
 public class C_display {
 	
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;
@@ -29,7 +30,7 @@ public class C_display {
 	public static final int DISPLAY = 2;
 	
 	public interface EventCallBack{
-		public void completed(int visibleHe);
+		void completed(int visibleHe);
 	}
 	
 	public static Display getDisplayFromActivity(Activity activity){
@@ -216,19 +217,12 @@ public class C_display {
 	}
 	
 	public static boolean isOrientationPortrait(Context context){
-		if(context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
-			return true;
-		}else{
-			return false;
-		}
+		return context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
 	}
 	
 	public static boolean isFillScreen(DisplayMetrics displayMetrics, int limitDipWidth){
 		int displayAbsWidth = getAbsWidth(displayMetrics.widthPixels, displayMetrics.heightPixels);
-		if(displayAbsWidth / displayMetrics.density + 0.5f < limitDipWidth){
-			return false;
-		}
-		return true;
+		return displayAbsWidth / displayMetrics.density + 0.5f >= limitDipWidth;
 	}
 	
 	public static boolean isFillScreen(Context context, int flag, int limitDipWidth){
@@ -345,9 +339,9 @@ public class C_display {
 	}
 	
 	public static double getScreenInch(DisplayMetrics displayMetrics){
-		double widthInch = displayMetrics.widthPixels / displayMetrics.xdpi;
-		double heightInch = displayMetrics.heightPixels / displayMetrics.ydpi;
-		return Math.sqrt(Math.pow(widthInch, 2) + Math.pow(heightInch, 2));
+		float widthInch = displayMetrics.widthPixels / displayMetrics.xdpi;
+		float heightInch = displayMetrics.heightPixels / displayMetrics.ydpi;
+		return Math.sqrt(Math.pow((double)widthInch, 2) + Math.pow((double)heightInch, 2));
 	}
 	
 	public static double getScreenInch(Context context, int flag){
@@ -356,7 +350,7 @@ public class C_display {
 	
 	// dpi驗算證明
 	public double getScreenDpi(DisplayMetrics displayMetrics){
-		double diagonalPixels = Math.sqrt(Math.pow(displayMetrics.widthPixels, 2) + Math.pow(displayMetrics.heightPixels, 2));
+		double diagonalPixels = Math.sqrt(Math.pow((double)displayMetrics.widthPixels, 2) + Math.pow((double)displayMetrics.heightPixels, 2));
 		return diagonalPixels / getScreenInch(displayMetrics);
 	}
 	
@@ -366,8 +360,6 @@ public class C_display {
 	
 	/**
 	 * 取得XY平均真實螢幕密度
-	 * @param displayMetrics
-	 * @return
 	 */
 	public static float getRealXYDensity(DisplayMetrics displayMetrics){
 		return (displayMetrics.xdpi + displayMetrics.ydpi) / 2 / 160;
@@ -375,9 +367,6 @@ public class C_display {
 	
 	/**
 	 * 取得XY平均真實螢幕密度
-	 * @param context
-	 * @param flag
-	 * @return
 	 */
 	public static float getRealXYDensity(Context context, int flag){
 		return getRealXYDensity(getDisplayMetrics(context, flag));

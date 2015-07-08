@@ -13,4 +13,8 @@
     <item name="bottomCenter" type="id"/>
     <item name="bottomRight" type="id"/>
     <item name="anchorView" type="id"/>
+    <item name="positiveButton" type="id"/>
+    <item name="negativeButton" type="id"/>
+    <item name="dismissButton" type="id"/>
+    <item name="cancelButton" type="id"/>
 </resources>

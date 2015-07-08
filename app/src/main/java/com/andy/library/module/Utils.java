@@ -1,47 +1,11 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.14
+ * @version 3.4.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.andy.library.module;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -55,7 +19,6 @@ import android.content.ContentProviderOperation;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
-import android.content.OperationApplicationException;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -64,7 +27,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.content.res.ColorStateList;
-import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.content.res.Resources.Theme;
 import android.database.Cursor;
@@ -84,9 +46,7 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Handler.Callback;
 import android.os.Message;
-import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -115,6 +75,44 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
 public class Utils {
 	
 	public static final int LIMIT_DIP_WIDTH_320 = 320;
@@ -141,7 +139,7 @@ public class Utils {
 	public static final int SIZE_SUBJECT_L = 14;
 	
 	public static final String ASSETS_PATH = "file:///android_asset/";
-	public static final String SP_KEY_STATUSBAR_HEIGHT = "statusBarHe";
+	public static final String SP_KEY_STATUS_BAR_HEIGHT = "statusBarHe";
 	public static final String SP_MAP_HEAD = "/!#/spMapHead/#!/";
 	public static final String SP_MAP_ITEM_LEFT_BORDER = "(!#/";
 	public static final String SP_MAP_ITEM_RIGHT_BORDER = "/#!)=";
@@ -241,7 +239,7 @@ public class Utils {
 			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
 			try {
 				while((line = reader.readLine()) != null){
-					stringBuilder.append(line + "\n");
+					stringBuilder.append(line).append("\n");
 				}
 			} finally {
 				is.close();
@@ -363,8 +361,6 @@ public class Utils {
 				is.close();
 				is = null;
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
@@ -425,7 +421,7 @@ public class Utils {
 	
 	public static boolean writeSDCardFile(InputStream is, String directory, String fileName, int bufferSize){
 		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑
@@ -436,7 +432,9 @@ public class Utils {
 			}
 			file = new File(sdCardPath + directory);
 			if(!file.exists()){
-				file.mkdirs();
+				if(!file.mkdirs()){
+					System.out.println("directory already existed");
+				}
 			}
 			file = new File(sdCardPath + directory + fileName);
 			try {
@@ -454,7 +452,7 @@ public class Utils {
 	
 	public static byte[] readSDCardFile(String directory, String fileName){
 		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑
@@ -496,11 +494,7 @@ public class Utils {
 			}
 			
 			return file.isFile();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
+		} catch (IOException | OutOfMemoryError e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -525,11 +519,7 @@ public class Utils {
 				randomAccessFileWrite.close();
 			}
 			return file.isFile();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
+		} catch (IOException | OutOfMemoryError e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -571,11 +561,7 @@ public class Utils {
 			}
 			
 			return file.isFile();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
+		} catch (IOException | OutOfMemoryError e) {
 			e.printStackTrace();
 		}
 		return false;
@@ -587,8 +573,8 @@ public class Utils {
 			for(int i=0; i<fileArray.length; i++){
 				if(fileArray[i].isDirectory()){
 					deleteAll(fileArray[i]);
-				}else{
-					fileArray[i].delete();
+				}else if(!fileArray[i].delete()){
+					System.out.println("not delete file " + fileArray[i].getPath());
 				}
 			}
 		}
@@ -599,10 +585,7 @@ public class Utils {
 		int width = displayMetrics.widthPixels;
 		int height = displayMetrics.heightPixels;
 		int displayAbsWidth = width < height ? width : height;
-		if(displayAbsWidth / displayMetrics.density + 0.5f < limitDipWidth){
-			return false;
-		}
-		return true;
+		return displayAbsWidth / displayMetrics.density + 0.5f >= limitDipWidth;
 	}
 	
 	public static boolean isFillScreen(Context context, int limitDipWidth){
@@ -612,17 +595,17 @@ public class Utils {
 		return isFillScreen(displayMetrics, limitDipWidth);
 	}
 	
-	public static int getVisibleHeightSP(Context context, String SPname){
+	public static int getVisibleHeightSP(Context context, String spName){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, SPname);
+		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
 		return visibleHe;
 	}
 	
-	public static int getStatusBarHeightSP(Context context, String SPname){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
-		return sp.getInt(Utils.SP_KEY_STATUSBAR_HEIGHT, 0);
+	public static int getStatusBarHeightSP(Context context, String spName){
+		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return sp.getInt(Utils.SP_KEY_STATUS_BAR_HEIGHT, 0);
 	}
 	
 	public static int getVisibleHeight(DisplayMetrics displayMetrics){
@@ -657,7 +640,7 @@ public class Utils {
 		return null;
 	}
 
-	public static int getAttributeResorce(Context context, int attrResource, int defResource){
+	public static int getAttributeResource(Context context, int attrResource, int defResource){
 		TypedValue typedValue = new TypedValue();
 		Theme theme = context.getTheme();
 		if(theme != null){
@@ -679,35 +662,9 @@ public class Utils {
 		return defValue;
 	}
 
-	@SuppressLint("InlinedApi")
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defValue){
 		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defValue);
-	}
-
-	/**
-	 * 判斷螢幕尺寸<br>
-	 * Configuration.SCREENLAYOUT_SIZE_SMALL<br>
-	 * Configuration.SCREENLAYOUT_SIZE_NORMAL<br>
-	 * Configuration.SCREENLAYOUT_SIZE_LARGE<br>
-	 * Configuration.SCREENLAYOUT_SIZE_XLARGE
-	 * @param context
-	 * @param screenLayoutSize
-	 * @return isLeast
-	 */
-	public static boolean isLayoutSizeAtLeast(Context context, int screenLayoutSize) {
-		if (android.os.Build.VERSION.SDK_INT >= 11) {// honeycomb
-			// test screen size, use reflection because isLayoutSizeAtLeast is only available since 11
-			Configuration configuration = context.getResources().getConfiguration();
-			try {
-				Method method = configuration.getClass().getMethod("isLayoutSizeAtLeast", int.class);
-				boolean isLeast = (Boolean)method.invoke(configuration, screenLayoutSize);
-				return isLeast;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return false;
-			}
-		}
-		return false;
 	}
 
 	public static boolean isOnViewVisible(View parentsView, View view){
@@ -716,10 +673,7 @@ public class Utils {
 		}
 		Rect rectHit = new Rect();
 		parentsView.getHitRect(rectHit);
-		if(view.getLocalVisibleRect(rectHit)){
-			return true;
-		}
-		return false;
+		return view.getLocalVisibleRect(rectHit);
 	}
 
 	public static boolean isViewVisible(View parentsView, View view, int xOffset, int yOffset){
@@ -732,11 +686,9 @@ public class Utils {
 		rectScroll.right += xOffset;
 		rectScroll.top += yOffset;
 		rectScroll.bottom += yOffset;
-		if(rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() &&
-				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight()){
-			return true;
-		}
-		return false;
+		boolean isViewVisible = rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() && 
+				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight();
+		return isViewVisible;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -879,10 +831,7 @@ public class Utils {
 		XmlPullParser xpp = res.getXml(colorResource);
 		try {
 			colorStateList = ColorStateList.createFromXml(res, xpp);
-		} catch (XmlPullParserException e) {
-			colorStateList = ColorStateList.valueOf(defaultColor);
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (XmlPullParserException | IOException e) {
 			colorStateList = ColorStateList.valueOf(defaultColor);
 			e.printStackTrace();
 		}
@@ -921,9 +870,8 @@ public class Utils {
 	}
 	
 	public static float getTextBaselineY(Paint paint){
-		float baselineY = 0;
 		FontMetrics fontMetrics = paint.getFontMetrics();
-		baselineY = (fontMetrics.bottom - fontMetrics.top) / 2 + fontMetrics.bottom;
+		float baselineY = (fontMetrics.bottom - fontMetrics.top) / 2 + fontMetrics.bottom;
 		return baselineY;
 	}
 
@@ -938,7 +886,7 @@ public class Utils {
 		if(object == null){
 			object = replace;
 		}
-		return replace;
+		return object;
 	}
 
 	public static String removeNull(Object object, String replace){
@@ -978,7 +926,7 @@ public class Utils {
 				case '\'': stringBuilder.append("&apos;"); break;
 				default:
 					if(c>0x7e) {
-						stringBuilder.append("&#"+((int)c)+";");
+						stringBuilder.append("&#").append((int)c).append(";");
 					}else{
 						stringBuilder.append(c);
 					}
@@ -1046,11 +994,62 @@ public class Utils {
 		}
 		return text.substring(indexFront, indexRear + 1);
 	}
+
+	public static List<String> filterDigitInString(String text, boolean isAddAloneExistKeyword, String...jointKeywords){
+		List<String> list = new ArrayList<String>();
+		StringBuilder stringBuilder = new StringBuilder();
+		boolean isContainDigit = false;
+		char charFind, charKeyword;
+		int index = 0, indexKeywordArray, indexKeyword;
+		int length = text.length();
+		while (index < length) {
+			charFind = text.charAt(index);
+			if(Character.isDigit(charFind)){
+				stringBuilder.append(charFind);
+				isContainDigit = true;
+				index++;
+				continue;
+			}
+
+			findKeywords :{
+				indexKeywordArray = 0;
+				indexKeyword = 0;
+				while (indexKeywordArray < jointKeywords.length) {
+					charFind = text.charAt(index + indexKeyword);
+					charKeyword = jointKeywords[indexKeywordArray].charAt(indexKeyword);
+					while (indexKeyword < jointKeywords[indexKeywordArray].length() && charFind == charKeyword) {
+						if(indexKeyword == jointKeywords[indexKeywordArray].length() - 1){
+							stringBuilder.append(jointKeywords[indexKeywordArray]);
+							break findKeywords;
+						}
+						indexKeyword++;
+					}
+					indexKeyword = 0;
+					indexKeywordArray++;
+				}
+
+				// index not found digit and keyword
+				if(stringBuilder.length() > 0){
+					if(isContainDigit || isAddAloneExistKeyword){
+						list.add(stringBuilder.toString());
+					}
+					stringBuilder = new StringBuilder();
+					isContainDigit = false;
+				}
+			}
+			index += indexKeyword + 1;
+		}
+		return list;
+	}
+
+	public static List<String> filterDigitInString(String text, String...jointKeywords){
+		return filterDigitInString(text, false, jointKeywords);
+	}
 	
 	@SuppressLint("CommitPrefEdits")
-	public static SharedPreferences.Editor getNotYetCommitSharedPreferencesEditor(Context context, String SPname, String key, Object value
+	public static SharedPreferences.Editor getNotYetCommitSharedPreferencesEditor(Context context, String spName, String key, Object value
 			, boolean toggleMode) {
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		SharedPreferences.Editor spEdit = sp.edit();
 		if(toggleMode && sp.contains(key)){
 			spEdit.remove(key);
@@ -1070,18 +1069,18 @@ public class Utils {
 		return spEdit;
 	}
 	
-	public static boolean putSharedPreferences(final Context context, final String SPname, final String key, final Object value
+	public static boolean putSharedPreferences(final Context context, final String spName, final String key, final Object value
 			, final boolean toggleMode){
-		return getNotYetCommitSharedPreferencesEditor(context, SPname, key, value, toggleMode).commit();
+		return getNotYetCommitSharedPreferencesEditor(context, spName, key, value, toggleMode).commit();
 	}
 	
-	public static boolean putSharedPreferences(final Context context, final String SPname, final String key, final Object value){
-		return getNotYetCommitSharedPreferencesEditor(context, SPname, key, value, false).commit();
+	public static boolean putSharedPreferences(final Context context, final String spName, final String key, final Object value){
+		return getNotYetCommitSharedPreferencesEditor(context, spName, key, value, false).commit();
 	}
 	
-	public static void putSharedPreferences(final Context context, final String SPname, final String key, final Object value
+	public static void putSharedPreferences(final Context context, final String spName, final String key, final Object value
 			, final boolean toggleMode, final Handler handler){
-		final SharedPreferences.Editor spEdit = getNotYetCommitSharedPreferencesEditor(context, SPname, key, value, toggleMode);
+		final SharedPreferences.Editor spEdit = getNotYetCommitSharedPreferencesEditor(context, spName, key, value, toggleMode);
 		
 		Thread thread = new Thread(new Runnable() {
 			
@@ -1101,33 +1100,33 @@ public class Utils {
 		thread.start();
 	}
 	
-	public static void putSharedPreferences(Context context, String SPname, String key, Object value, Handler handler){
-		putSharedPreferences(context, SPname, key, value, false, handler);
+	public static void putSharedPreferences(Context context, String spName, String key, Object value, Handler handler){
+		putSharedPreferences(context, spName, key, value, false, handler);
 	}
 	
-	public static boolean removeSharedPreferences(Context context, String SPname, String key){
-		return putSharedPreferences(context, SPname, key, null, true);
+	public static boolean removeSharedPreferences(Context context, String spName, String key){
+		return putSharedPreferences(context, spName, key, null, true);
 	}
 	
-	public static void removeSharedPreferences(Context context, String SPname, String key, Handler handler){
-		putSharedPreferences(context, SPname, key, null, true, handler);
+	public static void removeSharedPreferences(Context context, String spName, String key, Handler handler){
+		putSharedPreferences(context, spName, key, null, true, handler);
 	}
 	
-	public static void putSharedPreferencesMap(Context context, String SPname, String mapSaveKey, Map<String, String> map
+	public static void putSharedPreferencesMap(Context context, String spName, String mapSaveKey, Map<String, String> map
 			, final Handler handler){
-		putSharedPreferencesMap(context, SPname, mapSaveKey, map, false, handler);
+		putSharedPreferencesMap(context, spName, mapSaveKey, map, false, handler);
 	}
 	
-	public static void putSharedPreferencesMap(final Context context, final String SPname, final String mapSaveKey
+	public static void putSharedPreferencesMap(final Context context, final String spName, final String mapSaveKey
 			, final Map<String, String> map, final boolean toggleMode, final Handler handler){
-		final SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+		final SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final SharedPreferences.Editor spEdit = sp.edit();
 		
 		Thread thread = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				putSharedPreferencesMap(context, SPname, mapSaveKey, map, toggleMode, sp, spEdit);
+				putSharedPreferencesMap(context, spName, mapSaveKey, map, toggleMode, sp, spEdit);
 				
 				boolean isSuccess = spEdit.commit();
 				if(handler != null){
@@ -1143,7 +1142,7 @@ public class Utils {
 		thread.start();
 	}
 	
-	private static void putSharedPreferencesMap(Context context, String SPname, String mapSaveKey, Map<String, String> map
+	private static void putSharedPreferencesMap(Context context, String spName, String mapSaveKey, Map<String, String> map
 			, boolean toggleMode, SharedPreferences sp, SharedPreferences.Editor spEdit){
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 		
@@ -1151,9 +1150,7 @@ public class Utils {
 		Set<String> oldKeySet = new HashSet<String>();
 		if(!TextUtils.isEmpty(spOldKey)){
 			String[] spOldKeyArray = spOldKey.split(SP_MAP_DELIMITER);
-			for(int i=0; i<spOldKeyArray.length; i++){
-				oldKeySet.add(spOldKeyArray[i]);
-			}
+			Collections.addAll(oldKeySet, spOldKeyArray);
 		}
 		
 		Iterator<Entry<String, String>> entryIterator;
@@ -1182,16 +1179,17 @@ public class Utils {
 		}
 		spEdit.putString(spMapHeadKey, spNewKey);
 		
-		if(oldKeySet.size() > 0){
+		int size = oldKeySet.size();
+		if(size > 0){
 			Iterator<String> iterator = oldKeySet.iterator();
-			for(int i=0; i<oldKeySet.size(); i++){
+			for(int i=0; i<size; i++){
 				spEdit.remove(spMapHeadKey + iterator.next());
 			}
 		}
 	}
 	
-	public static void removeSharedPreferencesMap(Context context, String SPname, final String mapSaveKey, final Handler handler){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+	public static void removeSharedPreferencesMap(Context context, String spName, final String mapSaveKey, final Handler handler){
+		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final SharedPreferences.Editor spEdit = sp.edit();
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 		
@@ -1222,15 +1220,13 @@ public class Utils {
 		thread.start();
 	}
 	
-	public static Map<String, String> getSharedPreferencesMap(Context context, String SPname, String mapSaveKey){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+	public static Map<String, String> getSharedPreferencesMap(Context context, String spName, String mapSaveKey){
+		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 		
 		String spKey = sp.getString(spMapHeadKey, "");
 		Map<String, String> map = new HashMap<String, String>();
-		if(spKey == null){
-			return null;
-		}else if(spKey.length() == 0){
+		if(TextUtils.isEmpty(spKey)){
 			return map;
 		}
 		
@@ -1246,8 +1242,8 @@ public class Utils {
 		return map;
 	}
 	
-	public static String getSharedPreferencesMapInItem(Context context, String SPname, String mapSaveKey, int location){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+	public static String getSharedPreferencesMapInItem(Context context, String spName, String mapSaveKey, int location){
+		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 		
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -1260,8 +1256,8 @@ public class Utils {
 		return spValue;
 	}
 	
-	public static String getSharedPreferencesMapInItem(Context context, String SPname, String mapSaveKey, String mapSaveItemKey){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
+	public static String getSharedPreferencesMapInItem(Context context, String spName, String mapSaveKey, String mapSaveItemKey){
+		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 		
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -1273,68 +1269,6 @@ public class Utils {
 		return spValue;
 	}
 	
-	@Deprecated
-	public static void putSharedPreferencesMapOld(Context context, String SPname, final String saveKey, Map<String, String> map
-			, boolean toggleMode, final Callback callback){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
-		final SharedPreferences.Editor spEdit = sp.edit();
-		Iterator<Entry<String, String>> entryIterator = map.entrySet().iterator();
-		Entry<String, String> entry;
-        for(int i=0; i<map.size(); i++){
-        	entry = entryIterator.next();
-    		if(toggleMode && sp.contains(saveKey + "_" + "map" + "_" + i + "_" + "key")){
-	        	spEdit.remove(saveKey + "_" + "map" + "_" + i + "_" + "key");
-	        	spEdit.remove(saveKey + "_" + "map" + "_" + i + "_" + "value");
-    		}else{
-            	spEdit.putString(saveKey + "_" + "map" + "_" + i + "_" + "key", entry.getKey());
-            	spEdit.putString(saveKey + "_" + "map" + "_" + i + "_" + "value", entry.getValue());
-    		}
-        }
-		Thread thread = new Thread(new Runnable() {
-			
-			@Override
-			public void run() {
-				boolean isSuccessfully = spEdit.commit();
-				if(callback != null){
-					Message msg = new Message();
-					Bundle bundle = new Bundle();
-					bundle.putBoolean(saveKey, isSuccessfully);
-					msg.what = 1;
-					msg.setData(bundle);
-					callback.handleMessage(msg);
-				}
-			}
-		});
-		thread.start();
-	}
-	
-	@Deprecated
-	public static void putSharedPreferencesMapOld(Context context, String SPname, String saveKey, Map<String, String> map
-			, final Callback callback){
-		removeSharedPreferencesMapOld(context, SPname, saveKey, callback);
-		putSharedPreferencesMapOld(context, SPname, saveKey, map, false, callback);
-	}
-	
-	@Deprecated
-	public static void removeSharedPreferencesMapOld(Context context, String SPname, String saveKey, final Callback callback){
-		putSharedPreferencesMapOld(context, SPname, saveKey, getSharedPreferencesMap(context, SPname, saveKey), true, callback);
-	}
-	
-	@Deprecated
-	public static Map<String, String> getSharedPreferencesMapOld(Context context, String SPname, String saveKey){
-		SharedPreferences sp = context.getSharedPreferences(SPname, Context.MODE_PRIVATE);
-		int i = 0;
-		String key, value;
-		Map<String, String> map = new HashMap<String, String>();
-		while(sp.contains(saveKey + "_" + "map" + "_" + i + "_" + "key")){
-			key = sp.getString(saveKey + "_" + "map" + "_" + i + "_" + "key", "");
-			value = sp.getString(saveKey + "_" + "map" + "_" + i + "_" + "value", "");
-			map.put(key, value);
-			i++;
-		}
-		return map;
-	}
-
 	public static String[][] getMapToArray(Map<String, ?> map, boolean isReview){
 		String[][] strArray = new String[map.size()][2];
 		Iterator<? extends Entry<String, ?>> entryIterator = map.entrySet().iterator();
@@ -1355,13 +1289,15 @@ public class Utils {
 	}
 	
 	public static void printListItem(List<?> list){
-		for(int i=0; i<list.size(); i++){
+		int size = list.size();
+		for(int i=0; i<size; i++){
 			System.out.println("count " + i + ":" + list.get(i).toString());
 		}
 	}
 	
 	public static void printListItem(List<? extends Map<String, ?>> list, String...keyArray){
-		for(int i=0; i<list.size(); i++){
+		int size = list.size();
+		for(int i=0; i<size; i++){
 			for(int j=0; j<keyArray.length; j++){
 				System.out.println("count " + i + ":" + keyArray[j] + ":" + list.get(i).get(keyArray[j]).toString());
 			}
@@ -1488,7 +1424,6 @@ public class Utils {
 	/**
 	 * 反射類別資料，包含ClassLoader、DeclaringClass、EnclosingClass、extends Superclass、EnumConstant、implements Interface、Field、Constructor、Method、InnerClass
 	 * @param class1 Instance or Class.forName("className")
-	 * @return
 	 */
 	public static void reflectionClassInfo(Class<?> class1){
 		String info;
@@ -1521,7 +1456,7 @@ public class Utils {
 
 		Class<?>[] interfaces = class1.getInterfaces();
 		if(interfaces.length > 0){
-			Log.i("Reflection implements Interface", "**** Interface count:" + interfaces.length + " ****");
+			Log.i("Reflection", "**** Implements Interface count:" + interfaces.length + " ****");
 			for(int i=0; i<interfaces.length; i++){
 				info = interfaces[i].getName();
 				Log.v("Interface", info);
@@ -1530,7 +1465,7 @@ public class Utils {
 
 		Object[] enumConstants = class1.getEnumConstants();
 		if(enumConstants != null && enumConstants.length > 0){
-			Log.i("Reflection Enum Constant", "**** Enum Constant count:" + enumConstants.length + " ****");
+			Log.i("Reflection", "**** Enum Constant count:" + enumConstants.length + " ****");
 			for(int i=0; i<enumConstants.length; i++){
 				info = enumConstants[i].getClass().getName();
 				Log.v("Enum Constant", info);
@@ -1539,7 +1474,7 @@ public class Utils {
 
 		Field[] fields = class1.getDeclaredFields();
 		if(fields.length > 0){
-			Log.i("Reflection Field", "**** Field count:" + fields.length + " ****");
+			Log.i("Reflection", "**** Field count:" + fields.length + " ****");
 			for(int i=0; i<fields.length; i++){
 				info = fields[i].toGenericString();
 				Log.v("Field", info);
@@ -1548,7 +1483,7 @@ public class Utils {
 
 		Constructor<?>[] constructors = class1.getDeclaredConstructors();
 		if(constructors.length > 0){
-			Log.i("Reflection Constructor", "**** Constructor count:" + constructors.length + " ****");
+			Log.i("Reflection", "**** Constructor count:" + constructors.length + " ****");
 			for(int i=0; i<constructors.length; i++){
 				info = constructors[i].toGenericString();
 				Log.v("Constructor", info);
@@ -1557,7 +1492,7 @@ public class Utils {
 
 		Method[] methods = class1.getDeclaredMethods();
 		if(methods.length > 0){
-			Log.i("Reflection Method", "**** Method count:" + methods.length + " ****");
+			Log.i("Reflection", "**** Method count:" + methods.length + " ****");
 			for(int i=0; i<methods.length; i++){
 				info = methods[i].toGenericString();
 				Log.v("Method", info);
@@ -1566,7 +1501,7 @@ public class Utils {
 
 		Class<?>[] classes = class1.getDeclaredClasses();
 		if(classes.length > 0){
-			Log.i("Reflection InnerClass", "**** InnerClass count:" + classes.length + " ****");
+			Log.i("Reflection", "**** InnerClass count:" + classes.length + " ****");
 			for(int i=0; i<classes.length; i++){
 				info = classes[i].getName();
 				Log.v("InnerClass", info);
@@ -1716,12 +1651,12 @@ public class Utils {
 		return intent;
 	}
 
-	public static Intent getLauncherIntent(Context packageContext, Class<?> cls){
-		return getLauncherIntent(packageContext.getPackageName(), cls.getName());
+	public static Intent getLauncherIntent(Context context, Class<?> targetClass){
+		return getLauncherIntent(context.getPackageName(), targetClass.getName());
 	}
 	
-	public static Intent getBackTaskIntent(Context context, Class<? extends Activity> targetCalss){
-		Intent intent = new Intent(context, targetCalss);
+	public static Intent getBackTaskIntent(Context context, Class<? extends Activity> targetClass){
+		Intent intent = new Intent(context, targetClass);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		return intent;
@@ -1749,7 +1684,6 @@ public class Utils {
 		return intent;
 	}
 	
-	@SuppressLint("InlinedApi")
 	public static void callContentSelection(final Activity activity, String intentType, boolean allowMultiple, final int requestCode
 			, final String title, String failInfo){
 		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
@@ -1884,7 +1818,7 @@ public class Utils {
 				cursor.close();
 			}
 		} catch (Exception e) {
-			System.out.println(e);
+			e.printStackTrace();
 		} finally {
 			if(cursor != null){
 				cursor.close();
@@ -1942,6 +1876,7 @@ public class Utils {
 		return paths;
 	}
 	
+	@SuppressWarnings("ResourceType")
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static Uri[] getIntentUrisWithPath(Context context, Intent intent){
 		Uri[] uris = getIntentUris(intent);
@@ -2093,16 +2028,12 @@ public class Utils {
 	}
 	
 	// 判斷此Activity是否正在前端執行
-	@Deprecated
+	@SuppressWarnings("deprecation")
 	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
 		String runningClassName = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
-		if(context.getClass().getName().equals(runningClassName)){
-			return true;
-		}else{
-			return false;
-		}
+		return context.getClass().getName().equals(runningClassName);
 	}
 	
 	public static boolean isRunningApp(Context context, String packageName){
@@ -2192,11 +2123,11 @@ public class Utils {
 		// Log.e()，e代表error，在Logcat中輸出顏色是紅色，代表錯誤的訊息
 		Log.v("ActivityManager", "AppProcess的記憶體限制：" + activityManager.getMemoryClass() + "MB");
 		Log.v("ActivityManager", "AppLargeHeapProcess的記憶體限制：" + activityManager.getLargeMemoryClass() + "MB");
-		Log.v("ActivityManager.MemoryInfo", "系統剩餘記憶體：" + (activityMemoryInfo.availMem >> 10) + "KB");
-		Log.v("ActivityManager.MemoryInfo", "系統目前是否執行低記憶體模式：" + activityMemoryInfo.lowMemory);
-		Log.v("ActivityManager.MemoryInfo", "系統記憶體低於" + (activityMemoryInfo.threshold >> 10) + "KB時執行低記憶體模式");
+		Log.v("ActivityManager", "ActivityManager.MemoryInfo 系統剩餘記憶體：" + (activityMemoryInfo.availMem >> 10) + "KB");
+		Log.v("ActivityManager", "ActivityManager.MemoryInfo 系統目前是否執行低記憶體模式：" + activityMemoryInfo.lowMemory);
+		Log.v("ActivityManager", "ActivityManager.MemoryInfo 系統記憶體低於" + (activityMemoryInfo.threshold >> 10) + "KB時執行低記憶體模式");
 		if(Build.VERSION.SDK_INT >= 16){
-			Log.v("ActivityManager.MemoryInfo", "系統總記憶體" + (activityMemoryInfo.totalMem >> 10) + "KB");
+			Log.v("ActivityManager", "MemoryInfo系統總記憶體" + (activityMemoryInfo.totalMem >> 10) + "KB");
 		}
 	}
 	
@@ -2246,7 +2177,7 @@ public class Utils {
 		try {
 			PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packageName, flags);
 			return packageInfo;
-		} catch (NameNotFoundException e) {}
+		} catch (NameNotFoundException ignored) {}
 		return null;
 	}
 	
@@ -2273,8 +2204,12 @@ public class Utils {
 	// 取得金鑰簽名
 	public static Signature getKeystoreSignature(Context context, String packageName){
 		PackageInfo packageInfo = getPackageInfo(context, packageName, PackageManager.GET_SIGNATURES);
-		for(Signature signature : packageInfo.signatures){
-			return signature;
+		if(packageInfo != null){
+			for(Signature signature : packageInfo.signatures){
+				if(signature != null){
+					return signature;
+				}
+			}
 		}
 		return null;
 	}
@@ -2289,8 +2224,6 @@ public class Utils {
 				if ((packageInfoList.get(i).applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) <= 0){
 					// System Default Install
 					linkedList.remove(i);
-				}else{
-					// Custom Install
 				}
 			}
 			packageInfoList = new ArrayList<PackageInfo>(linkedList);
@@ -2373,10 +2306,6 @@ public class Utils {
 			
 			context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentList);
 			return true;
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (OperationApplicationException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -2486,10 +2415,10 @@ public class Utils {
 		try {
 			try {
 				process = Runtime.getRuntime().exec("/system/bin/su");
-			} catch (Exception e) {}
+			} catch (Exception ignored) {}
 			try {
 				process = Runtime.getRuntime().exec("/system/xbin/su");
-			} catch (Exception e) {}
+			} catch (Exception ignored) {}
 //			process = Runtime.getRuntime().exec(new String[]{"/system/bin/su","-c","reboot now"});
 			
 			if(process != null){
@@ -2549,7 +2478,7 @@ public class Utils {
 		 * Test-Keys 第三方開發者自訂簽名
 		 * 一般來說Release-Keys會比Test-Keys更安全，但不一定總是如此
 		 */
-		String buildTags = android.os.Build.TAGS;
+		String buildTags = Build.TAGS;
 		if(buildTags != null && buildTags.contains("test-keys")){
 			return true;
 		}
@@ -2663,7 +2592,6 @@ public class Utils {
 			}
 		}
 		list.clear();
-		list = null;
 		return listMatch;
 	}
 	
@@ -2675,16 +2603,15 @@ public class Utils {
 		List<View> list = new ArrayList<View>();
 		getViewGroupAllView(viewGroup, list);
 		View view;
-		for(int i=0; i<list.size(); i++){
+		int size = list.size();
+		for(int i=0; i<size; i++){
 			view = list.get(i);
 			if(view != null){
 				clearViewInsideDrawable(view, true, true, false);
 				view.clearFocus();
 			}
 		}
-		view = null;
 		list.clear();
-		list = null;
 		if(isIndicatesGC){
 			System.gc();
 		}
@@ -2703,26 +2630,22 @@ public class Utils {
 		Known Indirect Subclasses
 		AnimatedStateListDrawable, AnimationDrawable, LevelListDrawable, PaintDrawable, RippleDrawable, StateListDrawable, TransitionDrawable
 		*/
-		Drawable drawable;
-		
 		if(foreground){
 			if(view instanceof ImageView){
-				drawable = ((ImageView)view).getDrawable();
+				clearDrawable(((ImageView)view).getDrawable());
 				((ImageView)view).setImageDrawable(null);
-				drawable = clearDrawable(drawable);
 			}else if(view instanceof TextView){
 				Drawable[] drawables = ((TextView)view).getCompoundDrawables();
 				((TextView)view).setCompoundDrawables(null, null, null, null);
 				for(int i=0; i<drawables.length; i++){
-					drawables[i] = clearDrawable(drawables[i]);
+					clearDrawable(drawables[i]);
 				}
 			}
 		}
 		
 		if(background){
-			drawable = view.getBackground();
+			clearDrawable(view.getBackground());
 			view.setBackgroundDrawable(null);
-			drawable = clearDrawable(drawable);
 		}
 		
 		if(isIndicatesGC){
@@ -2730,37 +2653,28 @@ public class Utils {
 		}
 	}
 	
-	public static Drawable clearDrawable(Drawable drawable){
+	public static void clearDrawable(Drawable drawable){
 		BitmapDrawable bd;
-		Bitmap bitmap;
 		if(drawable != null){
 			if(drawable instanceof BitmapDrawable){
 				bd = (BitmapDrawable)drawable;
-				if(bd != null){
-					bitmap = bd.getBitmap();
-					bd.setCallback(null);
-					bd = null;
-					bitmap = recycleBitmap(bitmap, false);
-				}
+				bd.setCallback(null);
+				recycleBitmap(bd.getBitmap(), false);
 			}else{
 				drawable.setCallback(null);
 			}
-			drawable = null;
 		}
-		return drawable;
 	}
 	
 	/**
 	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
 	 */
-	public static Bitmap recycleBitmap(Bitmap bitmap, boolean isIndicatesGC){
+	public static void recycleBitmap(Bitmap bitmap, boolean isIndicatesGC){
 		if(bitmap != null){
 			bitmap.recycle();
-			bitmap = null;
 			if(isIndicatesGC){
 				System.gc();
 			}
 		}
-		return bitmap;
 	}
 }

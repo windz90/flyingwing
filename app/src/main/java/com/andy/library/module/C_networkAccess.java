@@ -1,35 +1,19 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.5
+ * @version 3.4.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.andy.library.module;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.NetworkInfo.State;
+import android.os.Handler;
+import android.os.Handler.Callback;
+import android.os.Message;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -55,14 +39,30 @@ import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
 
-import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.net.NetworkInfo.State;
-import android.os.Handler;
-import android.os.Handler.Callback;
-import android.os.Message;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
 public class C_networkAccess {
 	
 	public static final int SPLIT_AUTO_MAX_QUANTITY = 0;
@@ -132,12 +132,7 @@ public class C_networkAccess {
 	}
 	
 	/**
-	 * @param context
-	 * @param httpUrl
-	 * @param objectArray
 	 * @param isSkipDataRead 若為true，完成連線後須調用ConnectionResult.disconnect()斷開連線
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, boolean isSkipDataRead, Handler handler){
@@ -158,17 +153,12 @@ public class C_networkAccess {
 	 * String value : map.get("1");<br>
 	 * String MIME Type : map.get("2");<br>
 	 * InputStream is : map.get("3");<br>
-	 * @param context
-	 * @param httpUrl
-	 * @param contentList
 	 * @param isSkipDataRead 若為true，完成連線後須調用ConnectionResult.disconnect()斷開連線
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, List<Map<String, Object>> contentList
 			, boolean isSkipDataRead, Handler handler){
 		Object[][] objectArray = new Object[contentList.size()][3];
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map;
 		for(int i=0; i<contentList.size(); i++){
 			map = contentList.get(i);
 			objectArray[i][0] = map.get("0");
@@ -184,11 +174,6 @@ public class C_networkAccess {
 	 * String value : map.get("1");<br>
 	 * String MIME Type : map.get("2");<br>
 	 * InputStream is : map.get("3");<br>
-	 * @param context
-	 * @param httpUrl
-	 * @param contentList
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpURLConnection(Context context, String httpUrl, List<Map<String, Object>> contentList
 			, Handler handler){
@@ -196,11 +181,7 @@ public class C_networkAccess {
 	}
 	
 	/**
-	 * @param context
-	 * @param httpUrl
-	 * @param objectArray
 	 * @param isSkipDataRead 若為true，完成連線後須調用HttpURLConnection.disconnect()斷開連線
-	 * @return
 	 */
 	public static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, boolean isSkipDataRead){
@@ -216,12 +197,8 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpURLConnection MultiPort
-	 * @param context
-	 * @param httpUrl
-	 * @param objectArray
 	 * @param requestRangeIndex 連線後要求回傳的內容區間
 	 * @param isSkipDataRead 若為true，完成連線後須調用HttpURLConnection.disconnect()斷開連線
-	 * @return
 	 */
 	private static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, String requestRangeIndex, boolean isSkipDataRead){
@@ -232,14 +209,7 @@ public class C_networkAccess {
 	}
 	
 	/**
-	 * @param context
-	 * @param httpUrl
-	 * @param objectArray
 	 * @param requestRangeIndex 連線後要求回傳的內容區間
-	 * @param isSkipDataRead
-	 * @param connectionResult
-	 * @param handler
-	 * @return
 	 */
 	private static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, String requestRangeIndex, boolean isSkipDataRead, ConnectionResult connectionResult, Handler handler){
@@ -324,7 +294,9 @@ public class C_networkAccess {
 				httpURLConnection = useHttpURLConnectionPost(url, objectArray, requestRangeIndex);
 			}
 			
-			httpURLConnection.connect();
+			if(httpURLConnection != null){
+				httpURLConnection.connect();
+			}
 			return httpURLConnection;
 //		} catch (MalformedURLException e) {
 //		} catch (IOException e) {
@@ -396,17 +368,17 @@ public class C_networkAccess {
 				dataOutputStream.writeBytes(hyphens + boundary + breakLine);
 				if(objectArray[i].length == 2){
 					dataOutputStream.write(("Content-Disposition: form-data;" + 
-							" name=\"" + (String)objectArray[i][0] + "\"").getBytes(charsetName));
+							" name=\"" + objectArray[i][0] + "\"").getBytes(charsetName));
 					dataOutputStream.writeBytes(breakLine);
 					dataOutputStream.writeBytes(breakLine);
 					
 					dataOutputStream.write(((String)objectArray[i][1]).getBytes(charsetName));
 				}else if(objectArray[i].length == 4){
 					dataOutputStream.write(("Content-Disposition: form-data;" + 
-							" name=\"" + (String)objectArray[i][0] + "\";" + 
-							" filename=\"" + (String)objectArray[i][1] + "\"").getBytes(charsetName));
+							" name=\"" + objectArray[i][0] + "\";" + 
+							" filename=\"" + objectArray[i][1] + "\"").getBytes(charsetName));
 					dataOutputStream.writeBytes(breakLine);
-					dataOutputStream.write(("Content-Type: " + (String)objectArray[i][2]).getBytes(charsetName));
+					dataOutputStream.write(("Content-Type: " + objectArray[i][2]).getBytes(charsetName));
 					dataOutputStream.writeBytes(breakLine);
 					dataOutputStream.writeBytes(breakLine);
 					
@@ -437,11 +409,6 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpGet
-	 * @param context
-	 * @param httpUrl
-	 * @param isSkipDataRead
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, boolean isSkipDataRead, Handler handler){
 		return connectUseHttpClient(context, httpUrl, null, null, isSkipDataRead, handler);
@@ -449,10 +416,6 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpGet
-	 * @param context
-	 * @param httpUrl
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, Handler handler){
 		return connectUseHttpClient(context, httpUrl, null, null, false, handler);
@@ -460,11 +423,6 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpPost UrlEncodedFormEntity
-	 * @param context
-	 * @param httpUrl
-	 * @param httpPostData
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData, Handler handler){
 		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, handler);
@@ -472,10 +430,6 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpPost UrlEncodedFormEntity
-	 * @param context
-	 * @param httpUrl
-	 * @param httpPostData
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData){
 		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, null);
@@ -483,12 +437,6 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpPost UrlEncodedFormEntity
-	 * @param context
-	 * @param httpUrl
-	 * @param httpPostData
-	 * @param isSkipDataRead
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData
 			, boolean isSkipDataRead, Handler handler){
@@ -497,12 +445,6 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpPost InputStreamEntity
-	 * @param context
-	 * @param httpUrl
-	 * @param is
-	 * @param isSkipDataRead
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, boolean isSkipDataRead
 			, Handler handler){
@@ -511,11 +453,6 @@ public class C_networkAccess {
 	
 	/**
 	 * HttpPost InputStreamEntity
-	 * @param context
-	 * @param httpUrl
-	 * @param is
-	 * @param handler
-	 * @return
 	 */
 	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, Handler handler){
 		return connectUseHttpClient(context, httpUrl, null, is, false, handler);
@@ -545,13 +482,7 @@ public class C_networkAccess {
 			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
 			SSLSocketFactory sslSocketFactory = new SSLSocketFactory(keyStore);
 			schemeRegistry.register (new Scheme ("https", sslSocketFactory, 443));
-		} catch (KeyStoreException e) {
-			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		} catch (UnrecoverableKeyException e) {
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
+		} catch (KeyStoreException | KeyManagementException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
 			e.printStackTrace();
 		}
 		ThreadSafeClientConnManager threadSafeClientConnManager = new ThreadSafeClientConnManager(httpParams, schemeRegistry);
@@ -744,9 +675,7 @@ public class C_networkAccess {
 				}
 				if(value.toLowerCase(Locale.ENGLISH).startsWith("charset=")){
 					charset = Charset.forName(value.substring("charset=".length()));
-					if(connectionResult != null){
-						connectionResult.setContentCharset(charset);
-					}
+					connectionResult.setContentCharset(charset);
 				}
 				if(isText && charset != null){
 					break;
@@ -775,7 +704,7 @@ public class C_networkAccess {
 			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
 			try {
 				while((line = reader.readLine()) != null){
-					stringBuilder.append(line + "\n");
+					stringBuilder.append(line).append("\n");
 				}
 			} finally {
 				is.close();
@@ -863,9 +792,7 @@ public class C_networkAccess {
 			} finally {
 				baos.close();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
+		} catch (IOException | ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			objectArray = null;
@@ -887,17 +814,11 @@ public class C_networkAccess {
 	}
 	
 	public static boolean isConnectedMobileNetwork(Context context) {
-		if(isConnectedSelectedType(context, ConnectivityManager.TYPE_MOBILE)){
-			return true;
-		}
-		return false;
+		return isConnectedSelectedType(context, ConnectivityManager.TYPE_MOBILE);
 	}
 	
 	public static boolean isConnectedWIFI(Context context) {
-		if(isConnectedSelectedType(context, ConnectivityManager.TYPE_WIFI)){
-			return true;
-		}
-		return false;
+		return isConnectedSelectedType(context, ConnectivityManager.TYPE_WIFI);
 	}
 	
 	public static boolean isConnect(Context context) {
@@ -906,7 +827,7 @@ public class C_networkAccess {
 		if(connectManager.getActiveNetworkInfo() != null){
 			isConnect = connectManager.getActiveNetworkInfo().isAvailable();
 		}
-//		NetworkInfo[] networkInfo = ContyManager.getAllNetworkInfo();
+//		NetworkInfo[] networkInfo = connectManager.getAllNetworkInfo();
 //		if(networkInfo != null){
 //			for(int i=0; i<networkInfo.length; i++){
 //				if(networkInfo[i].getState() == NetworkInfo.State.CONNECTED){
@@ -1061,12 +982,12 @@ public class C_networkAccess {
 		private Object[] portContentArray;
 		
 		public interface MultiPortDownLoadComplete {
-			public void connectFail(HttpURLConnection httpURLConnection);
-			public void connected(HttpURLConnection httpURLConnection);
-			public void loadFail(HttpURLConnection httpURLConnection);
-			public void loading(HttpURLConnection httpURLConnection, int count, Object objectPort);
-			public void loadExpired(HttpURLConnection httpURLConnection, int count);
-			public void loaded(HttpURLConnection httpURLConnection, int sum, Object object);
+			void connectFail(HttpURLConnection httpURLConnection);
+			void connected(HttpURLConnection httpURLConnection);
+			void loadFail(HttpURLConnection httpURLConnection);
+			void loading(HttpURLConnection httpURLConnection, int count, Object objectPort);
+			void loadExpired(HttpURLConnection httpURLConnection, int count);
+			void loaded(HttpURLConnection httpURLConnection, int sum, Object object);
 		}
 		
 		public MultiPortManager(){}
@@ -1217,7 +1138,7 @@ public class C_networkAccess {
 					Object[] objects = (Object[])msg.obj;
 					HttpURLConnection httpURLConnection = (HttpURLConnection)objects[0];
 					if(httpURLConnection == null){
-						multiPortComplete.loadExpired(httpURLConnection, count);
+						multiPortComplete.loadExpired(null, count);
 						return false;
 					}
 					String portETag = httpURLConnection.getHeaderField("ETag");
@@ -1248,6 +1169,10 @@ public class C_networkAccess {
 					Object[] objects = new Object[2];
 					HttpURLConnection httpURLConnection = connectUseHttpURLConnection(context, httpUrl, objectArray
 							, portLengthArray[count][0] + "-" + portLengthArray[count][1], false);
+					if(httpURLConnection == null){
+						return;
+					}
+					
 					objects[0] = httpURLConnection;
 					try {
 						objects[1] = deployData(httpURLConnection.getInputStream(), httpURLConnection.getContentType());
@@ -1270,10 +1195,7 @@ public class C_networkAccess {
 					count++;
 				}
 			}
-			if(count == portStatusArray.length){
-				return true;
-			}
-			return false;
+			return count == portStatusArray.length;
 		}
 	}
 }

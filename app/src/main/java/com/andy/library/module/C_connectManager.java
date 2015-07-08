@@ -1,14 +1,11 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.2
+ * @version 3.2.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.andy.library.module;
-
-import java.net.HttpURLConnection;
-import java.util.concurrent.ExecutorService;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -22,6 +19,10 @@ import android.util.Log;
 import com.andy.library.module.C_networkAccess.ConnectionResult;
 import com.andy.library.module.widget.C_progressDialog;
 
+import java.net.HttpURLConnection;
+import java.util.concurrent.ExecutorService;
+
+@SuppressWarnings("unused")
 public abstract class C_connectManager {
 	
 	public static final int RUN_MODE_FOREGROUND_SINGLE_TAG = 0x0A1;
@@ -191,12 +192,12 @@ public abstract class C_connectManager {
 	}
 	
 	public static abstract class ConnectListener {
-		public void noNetworkConnection(ConnectionResult connectionResult){};
-		public void connectFail(ConnectionResult connectionResult){};
-		public void connected(ConnectionResult connectionResult){};
+		public void noNetworkConnection(ConnectionResult connectionResult){}
+		public void connectFail(ConnectionResult connectionResult){}
+		public void connected(ConnectionResult connectionResult){}
 		public abstract void loadFail(ConnectionResult connectionResult);
 		public abstract void loaded(ConnectionResult connectionResult);
-		public void onCancelForegroundWait(DialogInterface dialog){};
+		public void onCancelForegroundWait(DialogInterface dialog){}
 	}
 	
 	public static void baseConnection(Looper looper, ConnectAction action, final ConnectListener linstener){

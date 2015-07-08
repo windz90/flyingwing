@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.4
+ * @version 2.3.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -20,6 +20,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+@SuppressWarnings("unused")
 public class C_progressDialog {
 	
 	private static C_progressDialog sProgress;
@@ -33,7 +34,7 @@ public class C_progressDialog {
 		mContext = context;
 		
 		int itemWi;
-		LinearLayout.LayoutParams linLayPar;
+		LayoutParams linLayPar;
 		
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
@@ -71,7 +72,7 @@ public class C_progressDialog {
 		windowLayPar.x = 0;
 		windowLayPar.y = 0;
 		windowLayPar.width = itemWi;
-//		dialog.getWindow().setBackgroundDrawableResource(R.color.Transparent);
+//		dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 		mDialog.getWindow().setAttributes(windowLayPar);
 	}
 	
@@ -126,7 +127,7 @@ public class C_progressDialog {
 	}
 	
 	public boolean isShowing(){
-		return mDialog == null ? false : mDialog.isShowing();
+		return mDialog != null && mDialog.isShowing();
 	}
 	
 	public void show(){
@@ -193,7 +194,7 @@ public class C_progressDialog {
 	}
 	
 	public static boolean hasInstance(){
-		return sProgress == null ? false : true;
+		return sProgress != null;
 	}
 	
 	public static Dialog getInstanceDialog(){
@@ -223,7 +224,7 @@ public class C_progressDialog {
 	}
 	
 	public static boolean isInstanceShowing(){
-		return sProgress == null ? false : sProgress.isShowing();
+		return sProgress != null && sProgress.isShowing();
 	}
 	
 	public static void showInstance(){

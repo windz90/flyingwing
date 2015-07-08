@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.5
+ * @version 1.0.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 	
 	protected OnItemClickListener mOnItemClickListener;
@@ -125,7 +126,7 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public C_customRecyclerAdapter(Context context){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-			mSelectorBgRes = Utils.getAttributeResorce(context, android.R.attr.selectableItemBackground, android.R.color.white);
+			mSelectorBgRes = Utils.getAttributeResource(context, android.R.attr.selectableItemBackground, android.R.color.white);
 		}else{
 			mSelectorBgRes = android.R.color.white;
 		}
@@ -140,27 +141,28 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	}
 
 	public void addRangeItemIn2DArray(String[][] stringArray, int positionStart){
-		if(m2DArray != null){
-			String[][] dataArrayNew = new String[m2DArray.length + stringArray.length][2];
-			if(m2DArray.length - stringArray.length == positionStart){
+		if(m2DArray == null || stringArray == null || stringArray.length == 0 || positionStart > m2DArray.length){
+			return;
+		}
+		String[][] dataArrayNew = new String[m2DArray.length + stringArray.length][2];
+		if(m2DArray.length == positionStart){
+			if(m2DArray.length > 0){
 				System.arraycopy(m2DArray, 0, dataArrayNew, 0, m2DArray.length);
-				for(int i=0; i<stringArray.length; i++){
-					dataArrayNew[positionStart + i] = stringArray[i];
-				}
-			}else{
-				for(int i=0; i< m2DArray.length; i++){
-					if(i < positionStart){
-						dataArrayNew[i] = m2DArray[i];
-					}else if(i >= positionStart + stringArray.length){
-						dataArrayNew[i] = m2DArray[i - stringArray.length];
-					}else{
-						dataArrayNew[i] = stringArray[i - positionStart];
-					}
+			}
+			System.arraycopy(stringArray, 0, dataArrayNew, positionStart, stringArray.length);
+		}else{
+			for(int i=0; i<dataArrayNew.length; i++){
+				if(i < positionStart){
+					dataArrayNew[i] = m2DArray[i];
+				}else if(i >= positionStart + stringArray.length){
+					dataArrayNew[i] = m2DArray[i - stringArray.length];
+				}else{
+					dataArrayNew[i] = stringArray[i - positionStart];
 				}
 			}
-			m2DArray = dataArrayNew;
-			notifyItemRangeInserted(positionStart, stringArray.length);
 		}
+		m2DArray = dataArrayNew;
+		notifyItemRangeInserted(positionStart, stringArray.length);
 	}
 
 	public void addItemIn2DArray(String[] stringItem, int index){
@@ -309,7 +311,7 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 			for(int i=0; i<length; i++){
 				try {
 					mJsonArray.put(positionStart + i, jsonArray.opt(i));
-				} catch (Exception e) {}
+				} catch (Exception ignored) {}
 			}
 			notifyItemRangeInserted(positionStart, length);
 		}
@@ -405,9 +407,6 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 		
 		public ViewHolder(View itemView) {
 			super(itemView);
-			if(itemView == null){
-				return;
-			}
 			if(mOnItemClickListener != null){
 				itemView.setOnClickListener(new OnClickListener() {
 					

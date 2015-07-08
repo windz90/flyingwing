@@ -1,18 +1,16 @@
 /*
  * Copyright (C) 2014 Andy Lin. All rights reserved.
- * @version 1.0.3
+ * @version 1.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.andy.library.module.widget;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -33,9 +31,13 @@ import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.RelativeLayout;
 
+import com.andy.library.R;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@SuppressWarnings({"unused", "Convert2Diamond"})
 public class C_tabView extends LinearLayout {
-	
-	private int BASE_ID = 0x5FF;
 	
 	private RelativeLayout mRelLay;
 	private Button mButton;
@@ -51,27 +53,27 @@ public class C_tabView extends LinearLayout {
 	private int mItemWi, mItemHe, mMinHeight, mMaxHeight;
 	private boolean mIsDynamicControl;
 	private Resources mRes;
-	private LinearLayout.LayoutParams mLinLayPar;
+	private LayoutParams mLinLayPar;
 	private RelativeLayout.LayoutParams mRelLayPar;
 	private DisplayMetrics mDisplayMetrics;
 	
 	public interface DynamicResizeControl{
-		public void layoutChange(int diffWidth, int diffHeight);
-		public void layoutChanged(int viewWidth, int viewHeight);
+		void layoutChange(int diffWidth, int diffHeight);
+		void layoutChanged(int viewWidth, int viewHeight);
 	}
 	
 	public interface OnTabChangeListener{
-		public void onTabSelected(int position);
-		public void onTabScrolled(int position, float positionOffset, int positionOffsetPixels);
-		public void onTabScrollStateChanged(int state);
+		void onTabSelected(int position);
+		void onTabScrolled(int position, float positionOffset, int positionOffsetPixels);
+		void onTabScrollStateChanged(int state);
 	}
 	
 	public interface OnVisibilityChangeListener{
-		public void onVisibilityChange(int visibility);
+		void onVisibilityChange(int visibility);
 	}
 	
 	public interface OnDismissListener{
-		public void onDismiss(C_tabView tabView, boolean isClickDismiss);
+		void onDismiss(C_tabView tabView, boolean isClickDismiss);
 	}
 	
 	public C_tabView(Context context){
@@ -101,11 +103,11 @@ public class C_tabView extends LinearLayout {
 		mItemWi = LayoutParams.MATCH_PARENT;
 		mItemHe = LayoutParams.WRAP_CONTENT;
 		mRelLayPar = new RelativeLayout.LayoutParams(mItemWi, mItemHe);
-		mRelLayPar.addRule(RelativeLayout.LEFT_OF, BASE_ID);
+		mRelLayPar.addRule(RelativeLayout.LEFT_OF, R.id.dismissButton);
 		HorizontalScrollView relLayHorizScrollView = new HorizontalScrollView(context){
 
 			@Override
-			public boolean onTouchEvent(MotionEvent ev) {
+			public boolean onTouchEvent(@NonNull MotionEvent ev) {
 				super.onTouchEvent(ev);
 				return false;
 			}
@@ -142,45 +144,39 @@ public class C_tabView extends LinearLayout {
 			
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
-				if(!(mIsDynamicControl && getCurrentContentView() instanceof DynamicResizeControl)){
-					if(mOnTabBarTouchListener != null){
-						return mOnTabBarTouchListener.onTouch(v, event);
-					}
-					return true;
+				if (!(mIsDynamicControl && getCurrentContentView() instanceof DynamicResizeControl)) {
+					return mOnTabBarTouchListener == null || mOnTabBarTouchListener.onTouch(v, event);
 				}
-				if(event.getAction() == MotionEvent.ACTION_DOWN){
+				if (event.getAction() == MotionEvent.ACTION_DOWN) {
 					preRawY = event.getRawY();
-					if(mOnTabBarTouchListener != null){
+					if (mOnTabBarTouchListener != null) {
 						mOnTabBarTouchListener.onTouch(v, event);
 					}
 					return true;
 				}
-				
-				dynamicResizeControl = (DynamicResizeControl)getCurrentContentView();
-				if(event.getAction() == MotionEvent.ACTION_MOVE){
-					diffHeight = (int)(preRawY - event.getRawY());
+
+				dynamicResizeControl = (DynamicResizeControl) getCurrentContentView();
+				if (event.getAction() == MotionEvent.ACTION_MOVE) {
+					diffHeight = (int) (preRawY - event.getRawY());
 					resizeHeight = getLayoutParams().height + diffHeight;
-					if(resizeHeight > mMaxHeight && mMaxHeight > 0){
+					if (resizeHeight > mMaxHeight && mMaxHeight > 0) {
 						offsetHeight = mMaxHeight - resizeHeight;
-					}else if(resizeHeight < mMinHeight){
+					} else if (resizeHeight < mMinHeight) {
 						offsetHeight = mMinHeight - resizeHeight;
-					}else{
+					} else {
 						offsetHeight = 0;
 					}
 					getLayoutParams().height = resizeHeight + offsetHeight;
 					setLayoutParams(getLayoutParams());
 					preRawY = event.getRawY();
-					
+
 					dynamicResizeControl.layoutChange(getLayoutParams().width, diffHeight + offsetHeight);
-				}else if(event.getAction() == MotionEvent.ACTION_UP){
+				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					dynamicResizeControl.layoutChanged(getLayoutParams().width, getLayoutParams().height - getTabBarLayoutParams().height);
 					v.performClick();
 				}
-				
-				if(mOnTabBarTouchListener != null){
-					return mOnTabBarTouchListener.onTouch(v, event);
-				}
-				return false;
+
+				return mOnTabBarTouchListener != null && mOnTabBarTouchListener.onTouch(v, event);
 			}
 		});
 		
@@ -192,7 +188,7 @@ public class C_tabView extends LinearLayout {
 			}
 		});
 		
-		mViewPager.setOnPageChangeListener(new OnPageChangeListener() {
+		mViewPager.addOnPageChangeListener(new OnPageChangeListener() {
 			
 			@Override
 			public void onPageSelected(int arg0) {
@@ -232,7 +228,7 @@ public class C_tabView extends LinearLayout {
 		mRelLay.setBackgroundDrawable(drawable);
 	}
 	
-	public void setTabBarLayoutParams(LinearLayout.LayoutParams linLayPar){
+	public void setTabBarLayoutParams(LayoutParams linLayPar){
 		mRelLay.setLayoutParams(linLayPar);
 	}
 	
@@ -245,7 +241,7 @@ public class C_tabView extends LinearLayout {
 		mRadioGroup.setBackgroundDrawable(drawable);
 	}
 	
-	public void setHeadGroupLayoutParams(LinearLayout.LayoutParams linLayPar){
+	public void setHeadGroupLayoutParams(LayoutParams linLayPar){
 		mRadioGroup.setLayoutParams(linLayPar);
 	}
 	
@@ -271,7 +267,7 @@ public class C_tabView extends LinearLayout {
 		mViewPager.setBackgroundDrawable(drawable);
 	}
 	
-	public void setContentGroupLayoutParams(LinearLayout.LayoutParams linLayPar){
+	public void setContentGroupLayoutParams(LayoutParams linLayPar){
 		mViewPager.setLayoutParams(linLayPar);
 	}
 	
@@ -299,7 +295,7 @@ public class C_tabView extends LinearLayout {
 	
 	@SuppressWarnings("deprecation")
 	public void addTab(CompoundButton headButton, View contentView, int location){
-		headButton.setId(BASE_ID + 1 + mList.size());
+		headButton.setId(R.id.dismissButton + 1 + mList.size());
 		
 		mList.add(location, new View[]{headButton, contentView});
 		mCustomPagerAdapter.notifyDataSetChanged();
@@ -352,7 +348,6 @@ public class C_tabView extends LinearLayout {
 	}
 	
 	/**
-	 * 
 	 * @param objectArray [[String, View], n]
 	 */
 	public void addTab(Object[]...objectArray){
@@ -361,8 +356,6 @@ public class C_tabView extends LinearLayout {
 				addTab((CompoundButton)object[0], (View)object[1], mList.size());
 			}else if(object[0] instanceof String && object[1] instanceof View){
 				addTab(buildHeadButton((String)object[0]), (View)object[1], mList.size());
-			}else{
-				continue;
 			}
 		}
 	}
@@ -379,7 +372,6 @@ public class C_tabView extends LinearLayout {
 		View[] viewArray = mList.remove(location);
 		viewArray[0] = null;
 		viewArray[1] = null;
-		viewArray = null;
 		mCustomPagerAdapter.notifyDataSetChanged();
 		
 		View view;
@@ -407,7 +399,6 @@ public class C_tabView extends LinearLayout {
 				((ViewGroup)viewArray[1]).removeAllViews();
 			}
 			viewArray[1] = null;
-			viewArray = null;
 		}
 		mRadioGroup.clearCheck();
 		mCustomPagerAdapter.notifyDataSetChanged();
@@ -417,7 +408,6 @@ public class C_tabView extends LinearLayout {
 		mRelLayPar = new RelativeLayout.LayoutParams(width, height);
 		mRelLayPar.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 		Button button = new Button(getContext());
-		button.setId(BASE_ID);
 		button.setLayoutParams(mRelLayPar);
 		button.setPadding(0, 0, 0, 0);
 		button.setGravity(Gravity.CENTER);
@@ -441,7 +431,7 @@ public class C_tabView extends LinearLayout {
 	public void setDismissButton(Button button, final boolean isDismissSelf){
 		mButton = button;
 		if(mButton != null){
-			mButton.setId(BASE_ID);
+			mButton.setId(R.id.dismissButton);
 			mRelLay.addView(mButton);
 			mRelLayPar = (RelativeLayout.LayoutParams)mRelLay.getChildAt(0).getLayoutParams();
 			mRelLayPar.leftMargin = mButton.getLayoutParams().width;
@@ -555,11 +545,15 @@ public class C_tabView extends LinearLayout {
 		removeAllTab();
 		
 		if(isDismissSelf){
-			mRelLay = null;
+			mViewPager.clearOnPageChangeListeners();
+			mViewPager = null;
+			mCustomPagerAdapter = null;
 			mButton = null;
 			mRadioGroup = null;
-			mCustomPagerAdapter = null;
-			mViewPager = null;
+			mRelLay = null;
+			mLinLayPar = null;
+			mRelLayPar = null;
+			
 			mList = null;
 			mOnTabBarTouchListener = null;
 			mOnTabChangeListener = null;
@@ -567,8 +561,6 @@ public class C_tabView extends LinearLayout {
 			mOnDismissListener = null;
 			mLeftDrawable = null; mMiddleDrawable = null; mRightDrawable = null;
 			mRes = null;
-			mLinLayPar = null;
-			mRelLayPar = null;
 			mDisplayMetrics = null;
 			this.removeAllViews();
 		}
@@ -614,7 +606,7 @@ public class C_tabView extends LinearLayout {
 		return mOnDismissListener;
 	}
 	
-	public class CustomPagerAdapter extends PagerAdapter{
+	public class CustomPagerAdapter extends PagerAdapter {
 
 		@Override
 		public int getCount() {
