@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -9,8 +9,10 @@ package com.andy.library.module.service;
 
 import android.app.Notification;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -268,19 +270,32 @@ public class C_serviceWindow extends Service {
 
 		int itemWi = WindowManager.LayoutParams.MATCH_PARENT;
 		int itemHe = WindowManager.LayoutParams.MATCH_PARENT;
-		PopupWindow popupWindow = new PopupWindow(mImageViewAnchor.getContext());
+		final PopupWindow popupWindow = new PopupWindow(mImageViewAnchor.getContext());
 		popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(contentView.getResources(), android.R.color.transparent, null));
 		popupWindow.setWidth(itemWi);
 		popupWindow.setHeight(itemHe);
 		popupWindow.setFocusable(true);
 		popupWindow.setOutsideTouchable(true);
 		popupWindow.setContentView(contentView);
+
+		final BroadcastReceiver receiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				popupWindow.dismiss();
+			}
+		};
+
+		// 監聽KEYCODE_HOME、KEYCODE_APP_SWITCH按鍵觸發廣播Intent.ACTION_CLOSE_SYSTEM_DIALOGS
+		registerReceiver(receiver, new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
+
 		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
 			@Override
 			public void onDismiss() {
 				layoutStatusListener.onDismiss();
 				contentView.getViewTreeObserver().removeGlobalOnLayoutListener(onGlobalLayoutListener);
 				mRelLayMask.setVisibility(View.INVISIBLE);
+
+				unregisterReceiver(receiver);
 
 				if (mImageView.getLayoutParams() instanceof WindowManager.LayoutParams && mImageView.getTag() instanceof Integer) {
 					WindowManager.LayoutParams windowLayPar = (WindowManager.LayoutParams) mImageView.getLayoutParams();
