@@ -35,6 +35,10 @@
 		<!-- Toolbar styles -->
 		<item name="toolbarStyle">@style/ToolbarStyleAppCompat</item>
 		<item name="toolbarNavigationButtonStyle">@style/ToolbarNavigationButtonStyleAppCompat</item>
+		<item name="android:textColorPrimary">@color/abc_primary_text_material_light</item>
+		<item name="android:textColorPrimaryInverse">@color/abc_primary_text_material_dark</item>
+		<item name="android:textColorSecondary">@color/abc_secondary_text_material_light</item>
+		<item name="android:textColorSecondaryInverse">@color/abc_secondary_text_material_dark</item>
 		
 		<!-- Action Bar styles -->
 		<item name="actionButtonStyle">@style/ActionButtonStyleAppCompat</item>
@@ -63,9 +67,12 @@
 	
 	<style name="ToolbarStyleAppCompat" parent="@style/Widget.AppCompat.Toolbar">
 		<item name="android:minHeight">@dimen/toolbarHeight</item>
+		<item name="android:paddingLeft">0dip</item>
 		<item name="android:paddingRight">0dip</item>
 		<item name="contentInsetStart">0dip</item>
 		<item name="contentInsetEnd">0dip</item>
+		<item name="titleMarginStart">0dip</item>
+		<item name="titleMarginEnd">0dip</item>
 		<!-- popupTheme : menu popup theme -->
 		<item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
 	</style>
@@ -73,7 +80,7 @@
 	<style name="ToolbarNavigationButtonStyleAppCompat" parent="@style/Widget.AppCompat.Toolbar.Button.Navigation">
 		<item name="android:minWidth">0dip</item>
 		<item name="android:padding">12dip</item>
-		<item name="android:scaleType">centerInside</item>
+		<item name="android:scaleType">center</item>
 	</style>
 	
 	<style name="ActionButtonStyleAppCompat" parent="@style/Widget.AppCompat.Light.ActionButton">
