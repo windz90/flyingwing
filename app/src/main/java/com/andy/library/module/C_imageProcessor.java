@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.0
+ * @version 3.5.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -20,14 +20,21 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.EmbossMaskFilter;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
-import android.graphics.PorterDuff.Mode;
+import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
+import android.support.v4.content.res.ResourcesCompat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -1238,19 +1245,21 @@ public class C_imageProcessor {
 	
 	public static Canvas getCanvas(Bitmap bitmap){
 		Canvas canvas = new Canvas(bitmap);
-		// 設定抗鋸齒、抖動平滑
-		PaintFlagsDrawFilter paintF = new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
-		canvas.setDrawFilter(paintF);
+		// 設定抗鋸齒、濾波處理、抖動處理
+		PaintFlagsDrawFilter paintFlagsDrawFilter = new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
+		canvas.setDrawFilter(paintFlagsDrawFilter);
 		return canvas;
 	}
 	
 	public static Paint getPaint(float strokeWidth){
-		// 設定抗鋸齒、抖動平滑
+		// 設定抗鋸齒、濾波處理、抖動處理
 		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
 		paint.setStrokeWidth(strokeWidth);
 		// 設定Paint抗鋸齒
 //		paint.setAntiAlias(true);
+		// 設定Paint濾波處理
 //		paint.setFilterBitmap(true);
+		// 設定Paint抖動處理
 //		paint.setDither(true);
 		return paint;
 	}
@@ -1265,7 +1274,7 @@ public class C_imageProcessor {
 		Paint clearPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
 		clearPaint.setAntiAlias(true);
 		clearPaint.setStrokeWidth(strokeWidth);
-		clearPaint.setXfermode(new PorterDuffXfermode(Mode.CLEAR));
+		clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
 		return clearPaint;
 	}
 	
@@ -1486,5 +1495,121 @@ public class C_imageProcessor {
 		paint.setMaskFilter(blur);
 		canvas.drawBitmap(bitmap, 0, 0, paint);
 		return bitmap;
+	}
+
+	public static Drawable bitmapToDrawable(Resources res, Bitmap bitmap){
+		return new BitmapDrawable(res, bitmap);
+	}
+
+	public static Bitmap drawableToBitmap(Drawable drawable, boolean isOptimumConfig){
+		if(drawable instanceof BitmapDrawable){
+			return ((BitmapDrawable)drawable).getBitmap();
+		}
+
+		int width = drawable.getIntrinsicWidth();
+		width = width > 0 ? width : 1;
+		int height = drawable.getIntrinsicHeight();
+		height = height > 0 ? height : 1;
+
+		Bitmap.Config config;
+		PixelFormat pixelFormat = new PixelFormat();
+		if(drawable.getOpacity() > -1){
+			PixelFormat.getPixelFormatInfo(drawable.getOpacity(), pixelFormat);
+			if(isOptimumConfig && !PixelFormat.formatHasAlpha(drawable.getOpacity())){
+				config = Bitmap.Config.RGB_565;
+			}else if(isOptimumConfig && pixelFormat.bytesPerPixel == 1 && pixelFormat.bitsPerPixel == 8){
+				config = Bitmap.Config.ALPHA_8;
+			}else{
+				config = Bitmap.Config.ARGB_8888;
+			}
+		}else if(drawable.getOpacity() == -1){
+			config = Bitmap.Config.RGB_565;
+		}else{
+			config = Bitmap.Config.ARGB_8888;
+		}
+
+		Bitmap bitmap = Bitmap.createBitmap(width, height, config);
+		Canvas canvas = new Canvas(bitmap);
+		drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+		drawable.draw(canvas);
+		return bitmap;
+	}
+
+	public static Drawable getStateListDrawable(int[][] ints, Drawable[] drawable){
+		StateListDrawable stateListDrawable = new StateListDrawable();
+		for(int i=0; i<ints.length; i++){
+			stateListDrawable.addState(ints[i], drawable[i]);
+		}
+		return stateListDrawable;
+	}
+
+	public static Drawable getStateListDrawable(Resources res, int[][] ints, int[] resourceId){
+		StateListDrawable stateListDrawable = new StateListDrawable();
+		for(int i=0; i<ints.length; i++){
+			stateListDrawable.addState(ints[i], ResourcesCompat.getDrawable(res, resourceId[i], null));
+		}
+		return stateListDrawable;
+	}
+
+	public static Bitmap drawBitmapRoundRect(Bitmap bitmap, int left, int top, int right, int bottom, Bitmap.Config config, float roundRadius){
+		Bitmap bitmapOutput = Bitmap.createBitmap(right - left, bottom - top, config == null ? bitmap.getConfig() : config);
+		Canvas canvas = getCanvas(bitmapOutput);
+		Paint paint = getPaint(1);
+
+		RectF rectF = new RectF(0, 0, bitmapOutput.getWidth(), bitmapOutput.getHeight());
+		canvas.drawRoundRect(rectF, roundRadius, roundRadius, paint);
+
+		Rect rect = new Rect(left, top, right, bottom);
+		paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+		canvas.drawBitmap(bitmap, rect, rectF, paint);
+		return bitmapOutput;
+	}
+
+	public static Bitmap drawBitmapRoundRect(Bitmap bitmap, int width, int height, Bitmap.Config config, float roundRadius){
+		return drawBitmapRoundRect(bitmap, 0, 0, width, height, config, roundRadius);
+	}
+
+	public static Bitmap drawBitmapRoundRect(Bitmap bitmap, int width, int height, float roundRadius){
+		return drawBitmapRoundRect(bitmap, 0, 0, width, height, bitmap.getConfig(), roundRadius);
+	}
+
+	public static Bitmap drawBitmapRoundRect(Bitmap bitmap, float roundRadius){
+		return drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius);
+	}
+
+	public static Bitmap drawBitmapRoundRect(Resources res, int resourceId, Bitmap.Config config, float roundRadius){
+		Drawable drawable = ResourcesCompat.getDrawable(res, resourceId, null);
+		Bitmap bitmap = drawableToBitmap(drawable, true);
+		return drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), config, roundRadius);
+	}
+
+	public static Bitmap drawBitmapRoundRect(Resources res, int resourceId, float roundRadius){
+		return drawBitmapRoundRect(res, resourceId, null, roundRadius);
+	}
+
+	public static Drawable drawDrawableRoundRect(Resources res, Drawable drawable, int width, int height, float roundRadius){
+		Bitmap bitmap = drawableToBitmap(drawable, true);
+		return new BitmapDrawable(res, drawBitmapRoundRect(bitmap, 0, 0, width, height, bitmap.getConfig(), roundRadius));
+	}
+
+	public static Drawable drawDrawableRoundRect(Resources res, Drawable drawable, float roundRadius){
+		Bitmap bitmap = drawableToBitmap(drawable, true);
+		return new BitmapDrawable(res, drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius));
+	}
+
+	public static Bitmap drawResourceBitmapRoundRect(Resources res, int resourceId, int inSampleSize, float roundRadius){
+		Bitmap bitmap = getRawBitmap(res, resourceId, inSampleSize);
+		return drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius);
+	}
+
+	public static Bitmap drawResourceBitmapRoundRect(Resources res, int resourceId, float specifiedSize, float roundRadius){
+		Bitmap bitmap = getRawBitmap(res, resourceId, specifiedSize);
+		return drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius);
+	}
+
+	public static Drawable drawResourceDrawableRoundRect(Resources res, int resourceId, float roundRadius){
+		Drawable drawable = ResourcesCompat.getDrawable(res, resourceId, null);
+		Bitmap bitmap = drawableToBitmap(drawable, true);
+		return new BitmapDrawable(res, drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius));
 	}
 }

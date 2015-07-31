@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.9
+ * @version 2.3.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -18,6 +18,7 @@ import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -149,7 +150,7 @@ public class C_subWindow {
 			if(i < 2){
 				textViews[i].setGravity(Gravity.CENTER_VERTICAL);
 			}
-			textViews[i].setTextColor(res.getColor(android.R.color.black));
+			textViews[i].setTextColor(Color.BLACK);
 			if(i == 0){
 				textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			}else if(i == 1){
@@ -343,7 +344,7 @@ public class C_subWindow {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				buttons[i].setTextColor(colorList);
 			} catch (XmlPullParserException | IOException e) {
-				buttons[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(Color.BLACK);
 				e.printStackTrace();
 			}
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
@@ -454,7 +455,7 @@ public class C_subWindow {
 			}
 			textViews[i].setLayoutParams(relLayPar);
 			textViews[i].setGravity(Gravity.CENTER);
-			textViews[i].setTextColor(res.getColor(android.R.color.black));
+			textViews[i].setTextColor(Color.BLACK);
 			if(i == 1){
 				textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
 				textViews[i].getPaint().setFakeBoldText(true);
@@ -521,7 +522,7 @@ public class C_subWindow {
 			textView.setLayoutParams(linLayPar);
 			textView.setPadding(space, 0, 0, 0);
 			textView.setGravity(Gravity.CENTER_VERTICAL);
-			textView.setTextColor(res.getColor(android.R.color.black));
+			textView.setTextColor(Color.BLACK);
 			textView.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			textView.getPaint().setFakeBoldText(true);
 			scrollLinLay.addView(textView);
@@ -541,7 +542,7 @@ public class C_subWindow {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				buttons[i].setTextColor(colorList);
 			} catch (XmlPullParserException | IOException e) {
-				buttons[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(Color.BLACK);
 				e.printStackTrace();
 			}
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
@@ -822,7 +823,7 @@ public class C_subWindow {
 			textView = new TextView(context);
 			textView.setLayoutParams(linLayPar);
 			textView.setGravity(Gravity.CENTER);
-			textView.setTextColor(res.getColor(android.R.color.black));
+			textView.setTextColor(Color.BLACK);
 			textView.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			textView.setText(title);
 			scrollLinLay.addView(textView);
@@ -838,7 +839,7 @@ public class C_subWindow {
 				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
 				buttons[i].setTextColor(colorList);
 			} catch (XmlPullParserException | IOException e) {
-				buttons[i].setTextColor(res.getColor(android.R.color.black));
+				buttons[i].setTextColor(Color.BLACK);
 				e.printStackTrace();
 			}
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
