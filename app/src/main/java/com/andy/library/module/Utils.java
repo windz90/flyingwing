@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.0
+ * @version 3.4.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -137,6 +137,11 @@ public class Utils {
 	public static final int SIZE_TITLE_L = 12;
 	public static final int SIZE_TAB_L = 13;
 	public static final int SIZE_SUBJECT_L = 14;
+	public static final int SIZE_TEXT_XL = 15;
+	public static final int SIZE_BULLET_XL = 16;
+	public static final int SIZE_TITLE_XL = 17;
+	public static final int SIZE_TAB_XL = 18;
+	public static final int SIZE_SUBJECT_XL = 19;
 	
 	public static final String ASSETS_PATH = "file:///android_asset/";
 	public static final String SP_KEY_STATUS_BAR_HEIGHT = "statusBarHe";
@@ -421,7 +426,7 @@ public class Utils {
 	
 	public static boolean writeSDCardFile(InputStream is, String directory, String fileName, int bufferSize){
 		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑
@@ -452,7 +457,7 @@ public class Utils {
 	
 	public static byte[] readSDCardFile(String directory, String fileName){
 		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑
@@ -567,12 +572,67 @@ public class Utils {
 		return false;
 	}
 	
-	public static boolean deleteAll(File file){
+	public static boolean fileCreate(File file, boolean targetIsFile, boolean isEnforce){
+		if(file.exists()){
+			if(targetIsFile){
+				if(file.isFile()){
+					return true;
+				}
+				if(isEnforce && file.canWrite() && file.delete()){
+					try {
+						return file.createNewFile();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}else{
+				if(file.isDirectory()){
+					return true;
+				}
+				if(isEnforce && file.canWrite() && file.delete()){
+					return file.mkdirs();
+				}
+			}
+			return targetIsFile ? file.isFile() : file.isDirectory();
+		}
+
+		if(!file.getParentFile().exists() || !file.getParentFile().isDirectory()){
+			if(filePathLayersCheck(file.getParentFile(), isEnforce)){
+				if(!file.getParentFile().mkdirs()){
+					return false;
+				}
+			}else{
+				return false;
+			}
+		}
+
+		if(targetIsFile){
+			try {
+				return file.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}else{
+			return file.mkdirs();
+		}
+		return false;
+	}
+	
+	public static boolean filePathLayersCheck(File file, boolean isEnforce){
+		if(file.exists()){
+			return file.isDirectory() ||
+					isEnforce && file.canWrite() && file.delete() && 
+							(file.mkdirs() || filePathLayersCheck(file.getParentFile(), true));
+		}
+		return file.mkdirs() || filePathLayersCheck(file.getParentFile(), isEnforce);
+	}
+	
+	public static boolean fileDeleteAll(File file){
 		File[] fileArray = file.listFiles();
 		if(fileArray != null){
 			for(int i=0; i<fileArray.length; i++){
 				if(fileArray[i].isDirectory()){
-					deleteAll(fileArray[i]);
+					fileDeleteAll(fileArray[i]);
 				}else if(!fileArray[i].delete()){
 					System.out.println("not delete file " + fileArray[i].getPath());
 				}
@@ -778,29 +838,14 @@ public class Utils {
 		setTextSizeMethod(context, textView, TypedValue.COMPLEX_UNIT_SP, size);
 	}
 	
-	public static int getTextSize(int flag, boolean isBigScreen){
+	private static int getTextSize(int flag){
 		int textSize = 15;
-		if(isBigScreen){
-			switch (flag) {
-			case SIZE_SUBJECT_L:textSize = 26;break;
-			case SIZE_TAB_L:textSize = 25;break;
-			case SIZE_TITLE_L:textSize = 24;break;
-			case SIZE_BULLET_L:textSize = 23;break;
-			case SIZE_TEXT_L:textSize = 22;break;
-			case SIZE_SUBJECT:textSize = 21;break;
-			case SIZE_TAB:textSize = 20;break;
-			case SIZE_TITLE:textSize = 19;break;
-			case SIZE_BULLET:textSize = 18;break;
-			case SIZE_TEXT:textSize = 17;break;
-			case SIZE_SUBJECT_S:textSize = 16;break;
-			case SIZE_TAB_S:textSize = 15;break;
-			case SIZE_TITLE_S:textSize = 14;break;
-			case SIZE_BULLET_S:textSize = 13;break;
-			// Not recommended
-			case SIZE_TEXT_S:textSize = 12;break;
-			}
-		}else{
-			switch (flag) {
+		switch (flag) {
+			case SIZE_SUBJECT_XL:textSize = 29;break;
+			case SIZE_TAB_XL:textSize = 28;break;
+			case SIZE_TITLE_XL:textSize = 27;break;
+			case SIZE_BULLET_XL:textSize = 26;break;
+			case SIZE_TEXT_XL:textSize = 25;break;
 			case SIZE_SUBJECT_L:textSize = 24;break;
 			case SIZE_TAB_L:textSize = 23;break;
 			case SIZE_TITLE_L:textSize = 22;break;
@@ -817,13 +862,20 @@ public class Utils {
 			case SIZE_TITLE_S:textSize = 12;break;
 			case SIZE_BULLET_S:textSize = 11;break;
 			case SIZE_TEXT_S:textSize = 10;break;
-			}
 		}
 		return textSize;
 	}
 	
-	public static int getTextSize(int flag){
-		return getTextSize(flag, false);
+	public static int getTextSize(int flag, boolean isBigScreen, int offsetSize){
+		int textSize = getTextSize(flag);
+		if(isBigScreen){
+			textSize = textSize + offsetSize;
+		}
+		return textSize;
+	}
+	
+	public static int getTextSize(int flag, boolean isBigScreen){
+		return getTextSize(flag, isBigScreen, 3);
 	}
 	
 	public static ColorStateList getColorStateList(Resources res, int colorResource, int defaultColor){
@@ -864,7 +916,7 @@ public class Utils {
 		float[] widths = new float[length];
 		paint.getTextWidths(text, widths);
 		for(int i=0; i<length; i++){
-			width = width + (float)Math.ceil(widths[i]);
+			width = width + (float) Math.ceil(widths[i]);
 		}
 		return width;
 	}
@@ -1010,7 +1062,7 @@ public class Utils {
 				index++;
 				continue;
 			}
-
+			
 			findKeywords :{
 				indexKeywordArray = 0;
 				indexKeyword = 0;
@@ -1027,7 +1079,7 @@ public class Utils {
 					indexKeyword = 0;
 					indexKeywordArray++;
 				}
-
+				
 				// index not found digit and keyword
 				if(stringBuilder.length() > 0){
 					if(isContainDigit || isAddAloneExistKeyword){
@@ -1247,7 +1299,7 @@ public class Utils {
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 		
 		String spKey = sp.getString(spMapHeadKey, "");
-		if(spKey == null || spKey.length() == 0){
+		if(spKey.length() == 0){
 			return null;
 		}
 		
@@ -1261,7 +1313,7 @@ public class Utils {
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 		
 		String spKey = sp.getString(spMapHeadKey, "");
-		if(spKey == null || spKey.length() == 0){
+		if(spKey.length() == 0){
 			return null;
 		}
 		
@@ -1787,7 +1839,7 @@ public class Utils {
 	
 	public static void callGoogleMapsNavigation(Context context, String sLatit, String sLongit, String dLatit, String dLongit){
 		Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.setData(Uri.parse("http://maps.google.com/maps?f=d&saddr=" + sLatit + "," + sLongit + 
+		intent.setData(Uri.parse("http://maps.google.com/maps?f=d&saddr=" + sLatit + "," + sLongit +
 				"&daddr=" + dLatit + "," + dLongit + "&hl=zh-TW"));
 		intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
 		context.startActivity(intent);
@@ -2022,6 +2074,9 @@ public class Utils {
 	// 取得手機Wifi網路卡的MAC值
 	public static String getWifiMAC(Context context){
 		// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+		if(context.checkCallingPermission(android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+			return null;
+		}
 		WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
 		return wifiInfo.getMacAddress();
@@ -2031,6 +2086,9 @@ public class Utils {
 	@SuppressWarnings("deprecation")
 	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
+		if(context.checkCallingPermission(android.Manifest.permission.GET_TASKS) == PackageManager.PERMISSION_DENIED){
+			return false;
+		}
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
 		String runningClassName = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
 		return context.getClass().getName().equals(runningClassName);
@@ -2098,7 +2156,7 @@ public class Utils {
 		for(int i=0; i<size; i++){
 			runningAppProcessInfo = runningAppProcessInfoList.get(i);
 			debugMemoryInfoArray = activityManager.getProcessMemoryInfo(pids);
-			Log.v("RunningAppProcess", "processName:" + runningAppProcessInfo.processName + 
+			Log.v("RunningAppProcess", "processName:" + runningAppProcessInfo.processName +
 					" pid:" + runningAppProcessInfo.pid + " uid:" + runningAppProcessInfo.uid);
 			logDebugMemoryInfo(debugMemoryInfoArray[i]);
 		}
@@ -2236,6 +2294,9 @@ public class Utils {
 		// <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
 		// 某些機種需要讀取權限
 		// <uses-permission android:name="android.permission.READ_CONTACTS"/>
+		if(context.checkCallingPermission(android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
+			return false;
+		}
 		try {
 			String[] contentArray = new String[8];
 			for(int i=0; i<contentArray.length; i++){
@@ -2315,6 +2376,10 @@ public class Utils {
 	// 取得手機資訊
 	public static List<Map<String, String>> getPhoneInfo(Context context){
 		// <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+		if(context.checkCallingPermission(android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
+			return null;
+		}
+
 		TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
 		
 		List<Map<String, String>> infoList = new ArrayList<Map<String,String>>();
@@ -2478,7 +2543,7 @@ public class Utils {
 		 * Test-Keys 第三方開發者自訂簽名
 		 * 一般來說Release-Keys會比Test-Keys更安全，但不一定總是如此
 		 */
-		String buildTags = Build.TAGS;
+		String buildTags = android.os.Build.TAGS;
 		if(buildTags != null && buildTags.contains("test-keys")){
 			return true;
 		}
@@ -2540,14 +2605,14 @@ public class Utils {
 	public static float spacing(MotionEvent event) {
 		float x = event.getX(0) - event.getX(1);
 		float y = event.getY(0) - event.getY(1);
-		return (float)Math.sqrt(x * x + y * y);
+		return (float) Math.sqrt(x * x + y * y);
 	}
 	
 	public static float rotate(MotionEvent event){
 		double x = event.getX(0) - event.getX(1);
 		double y = event.getY(0) - event.getY(1);
 		double radians = Math.atan2(y, x);
-		return (float)Math.toDegrees(radians);
+		return (float) Math.toDegrees(radians);
 	}
 	
 	public static void midPoint(PointF point, MotionEvent event) {
