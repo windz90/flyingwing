@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!-- Default screen margins, per the Android Design guidelines. -->
 	<dimen name="standardHeight">61.5dip</dimen>
@@ -6,30 +5,87 @@
 	<dimen name="standardHeight_1_25">76.875dip</dimen>
 	<dimen name="standardHeight_1_75">107.625dip</dimen>
 	<dimen name="toolbarHeight">@dimen/standardHeight_0_75</dimen>
+	
+	<!-- 5倍數 -->
 	<dimen name="dip5">5dip</dimen>
 	<dimen name="dip10">10dip</dimen>
 	<dimen name="dip15">15dip</dimen>
 	<dimen name="dip20">20dip</dimen>
+	<dimen name="dip25">25dip</dimen>
+	<dimen name="dip30">30dip</dimen>
+	<dimen name="dip35">35dip</dimen>
 	<dimen name="dip40">40dip</dimen>
+	<dimen name="dip45">45dip</dimen>
+	<dimen name="dip50">50dip</dimen>
+	<dimen name="dip55">55dip</dimen>
+	<dimen name="dip60">60dip</dimen>
+	<dimen name="dip65">65dip</dimen>
+	<dimen name="dip70">70dip</dimen>
+	<dimen name="dip75">75dip</dimen>
 	<dimen name="dip80">80dip</dimen>
+	<dimen name="dip85">85dip</dimen>
+	<dimen name="dip90">90dip</dimen>
+	<dimen name="dip95">95dip</dimen>
+	<dimen name="dip100">100dip</dimen>
 	
-	<!-- 24倍數 -->
+	<!-- 8倍數 -->
+	<dimen name="dip8">8dip</dimen>
+	<dimen name="dip16">16dip</dimen>
 	<dimen name="dip24">24dip</dimen>
-	<dimen name="dip48">48dip</dimen>
-	<dimen name="dip72">72dip</dimen>
-	<dimen name="dip120">120dip</dimen>
-	
-	<!-- 28倍數 -->
-	<dimen name="dip28">28dip</dimen>
-	<dimen name="dip56">56dip</dimen>
-	<dimen name="dip84">84dip</dimen>
-	<dimen name="dip112">112dip</dimen>
-	<dimen name="dip140">140dip</dimen>
-	
-	<!-- 32倍數 -->
 	<dimen name="dip32">32dip</dimen>
+	<dimen name="dip48">48dip</dimen>
+	<dimen name="dip56">56dip</dimen>
 	<dimen name="dip64">64dip</dimen>
+	<dimen name="dip72">72dip</dimen>
+	<dimen name="dip88">88dip</dimen>
 	<dimen name="dip96">96dip</dimen>
+	<dimen name="dip104">104dip</dimen>
+	<dimen name="dip112">112dip</dimen>
+	<dimen name="dip120">120dip</dimen>
 	<dimen name="dip128">128dip</dimen>
+	<dimen name="dip136">136dip</dimen>
+	<dimen name="dip144">144dip</dimen>
+	<dimen name="dip152">152dip</dimen>
 	<dimen name="dip160">160dip</dimen>
+	<dimen name="dip168">168dip</dimen>
+	<dimen name="dip176">176dip</dimen>
+	<dimen name="dip184">184dip</dimen>
+	<dimen name="dip192">192dip</dimen>
+	<dimen name="dip200">200dip</dimen>
+	<dimen name="dip208">208dip</dimen>
+	<dimen name="dip216">216dip</dimen>
+	<dimen name="dip224">224dip</dimen>
+	<dimen name="dip232">232dip</dimen>
+	<dimen name="dip240">240dip</dimen>
+	<dimen name="dip248">248dip</dimen>
+	<dimen name="dip256">256dip</dimen>
+	<dimen name="dip264">264dip</dimen>
+	<dimen name="dip272">272dip</dimen>
+	<dimen name="dip280">280dip</dimen>
+	<dimen name="dip288">288dip</dimen>
+	<dimen name="dip296">296dip</dimen>
+	<dimen name="dip304">304dip</dimen>
+	<dimen name="dip312">312dip</dimen>
+	<dimen name="dip320">320dip</dimen>
+	<dimen name="dip328">328dip</dimen>
+	<dimen name="dip336">336dip</dimen>
+	<dimen name="dip344">344dip</dimen>
+	<dimen name="dip352">352dip</dimen>
+	<dimen name="dip360">360dip</dimen>
+	<dimen name="dip368">368dip</dimen>
+	<dimen name="dip376">376dip</dimen>
+	<dimen name="dip384">384dip</dimen>
+	<dimen name="dip392">392dip</dimen>
+	<dimen name="dip400">400dip</dimen>
+	<dimen name="dip408">408dip</dimen>
+	<dimen name="dip416">416dip</dimen>
+	<dimen name="dip424">424dip</dimen>
+	<dimen name="dip432">432dip</dimen>
+	<dimen name="dip440">440dip</dimen>
+	<dimen name="dip448">448dip</dimen>
+	<dimen name="dip456">456dip</dimen>
+	<dimen name="dip464">464dip</dimen>
+	<dimen name="dip472">472dip</dimen>
+	<dimen name="dip480">480dip</dimen>
+	
 </resources>
