@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.4
+ * @version 3.2.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -131,8 +131,6 @@ public class C_display {
 	public static int measureVisibleWidthForOnDraw(View view){
 		Rect rect = new Rect();
 		view.getWindowVisibleDisplayFrame(rect);
-//		rect.left = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getLeft();
-//		rect.right = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getRight();
 		return Math.abs(rect.left - rect.right);
 	}
 	
@@ -140,11 +138,22 @@ public class C_display {
 		return measureVisibleWidthForOnDraw(activity.getWindow().getDecorView());
 	}
 	
+	/**
+	 * Not contain StatusBar
+	 */
 	public static int measureVisibleHeightForOnDraw(View view){
 		Rect rect = new Rect();
 		view.getWindowVisibleDisplayFrame(rect);
-//		rect.top = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
-//		rect.bottom = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getBottom();
+		return Math.abs(rect.top - rect.bottom);
+	}
+	
+	/**
+	 * Not contain StatusBar and TitleBar
+	 */
+	public static int measureContentHeightForOnDraw(Activity activity){
+		Rect rect = new Rect();
+		rect.top = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
+		rect.bottom = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getBottom();
 		return Math.abs(rect.top - rect.bottom);
 	}
 	
@@ -184,6 +193,10 @@ public class C_display {
 		}
 		if(visibleDisplayFrameHe == 0){
 			return displayHe - statusBarHe;
+		}
+		// statusBar沒有單獨配置空間時
+		if(visibleDisplayFrameHe == displayHe){
+			return visibleDisplayFrameHe;
 		}
 		return visibleDisplayFrameHe < displayHe - statusBarHe ? visibleDisplayFrameHe : displayHe - statusBarHe;
 	}
