@@ -4,7 +4,7 @@
 			<solid android:color="@android:color/transparent"/>
 		</shape>
 	</item>
-	<item android:bottom="40dip">
+	<item android:id="@+id/item2" android:bottom="40dip">
 		<shape android:shape="line">
 			<stroke
 				android:color="@android:color/black"
