@@ -1,10 +1,11 @@
 <resources>
 	<!-- Default screen margins, per the Android Design guidelines. -->
-	<dimen name="standardHeight">61.5dip</dimen>
-	<dimen name="standardHeight_0_75">46.125dip</dimen>
-	<dimen name="standardHeight_1_25">76.875dip</dimen>
-	<dimen name="standardHeight_1_75">107.625dip</dimen>
-	<dimen name="toolbarHeight">@dimen/standardHeight_0_75</dimen>
+	<dimen name="standardHeight">@dimen/dip64</dimen>
+	<dimen name="standardHeight_1_25">@dimen/dip80</dimen>
+	<dimen name="standardHeight_1_5">@dimen/dip96</dimen>
+	<dimen name="standardHeight_1_75">@dimen/dip112</dimen>
+	<dimen name="toolbarHeight">@dimen/dip56</dimen>
+	<dimen name="tabBarHeight">@dimen/dip48</dimen>
 	
 	<!-- 5倍數 -->
 	<dimen name="dip5">5dip</dimen>
