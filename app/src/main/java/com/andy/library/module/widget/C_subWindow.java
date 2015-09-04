@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.10
+ * @version 2.3.11
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -35,6 +35,7 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListAdapter;
@@ -75,7 +76,7 @@ public class C_subWindow {
 
 			@Override
 			public void onCancel(DialogInterface dialog) {
-				if(click != null){
+				if (click != null) {
 					click.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
 				}
 			}
@@ -421,7 +422,8 @@ public class C_subWindow {
 		alertMenuUseButton(context, width, height, title, strArray, isOutsideCancel, clickAction);
 	}
 
-	public static RelativeLayout getTopBar(Context context, DisplayMetrics displayMetrics, int width, int height, int btnWidth, int space){
+	public static RelativeLayout getTopBarWithTextView(Context context, DisplayMetrics displayMetrics, int width, int height
+			, int btnWidth, int space){
 		Resources res = context.getResources();
 
 		boolean isBigScreen = Utils.isFillScreen(displayMetrics, Utils.LIMIT_DIP_WIDTH);
@@ -474,11 +476,75 @@ public class C_subWindow {
 		return relLay;
 	}
 
-	public static RelativeLayout getTopBar(Context context, int width, int height, int btnWidth, int space){
+	public static RelativeLayout getTopBarWithSideImageView(Context context, DisplayMetrics displayMetrics, int width, int height
+			, int btnWidth, int space){
+		Resources res = context.getResources();
+
+		boolean isBigScreen = Utils.isFillScreen(displayMetrics, Utils.LIMIT_DIP_WIDTH);
+
+		RelativeLayout.LayoutParams relLayPar;
+
+		RelativeLayout relLay;
+		ImageView[] imageViews = new ImageView[2];
+		TextView[] textViews = new TextView[1];
+
+		relLay = new RelativeLayout(context);
+		relLay.setId(R.id.topLayout);
+		relLay.setLayoutParams(new ViewGroup.LayoutParams(width, LayoutParams.WRAP_CONTENT));
+		relLay.setPadding(space, 0, space, 0);
+
+		for(int i=0; i<imageViews.length; i++){
+			imageViews[i] = new ImageView(context);
+			if(i == 0){
+				imageViews[i].setId(R.id.topLeft);
+				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
+				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+				relLayPar.setMargins(0, space, space, space);
+			}else{
+				imageViews[i].setId(R.id.topRight);
+				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
+				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+				relLayPar.setMargins(space, space, 0, space);
+			}
+			imageViews[i].setLayoutParams(relLayPar);
+			imageViews[i].setScaleType(ImageView.ScaleType.FIT_CENTER);
+			relLay.addView(imageViews[i]);
+		}
+
+		for(int i=0; i<textViews.length; i++){
+			relLayPar = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
+			relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLeft);
+			textViews[i] = new TextView(context);
+			textViews[i].setId(R.id.topCenter);
+			textViews[i].setLayoutParams(relLayPar);
+			textViews[i].setGravity(Gravity.CENTER);
+			textViews[i].setTextColor(Color.BLACK);
+			textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
+			textViews[i].getPaint().setFakeBoldText(true);
+			textViews[i].setEllipsize(TruncateAt.END);
+			textViews[i].setMaxLines(2);
+			relLay.addView(textViews[i]);
+		}
+
+		// 偏移位置設定
+		relLayPar = (RelativeLayout.LayoutParams)textViews[0].getLayoutParams();
+		relLayPar.addRule(RelativeLayout.LEFT_OF, R.id.topRight);
+
+		return relLay;
+	}
+
+	public static RelativeLayout getTopBarWithTextView(Context context, int width, int height, int btnWidth, int space){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		return getTopBar(context, displayMetrics, width, height, btnWidth, space);
+		return getTopBarWithTextView(context, displayMetrics, width, height, btnWidth, space);
+	}
+
+	public static RelativeLayout getTopBarWithSideImageView(Context context, int width, int height, int btnWidth, int space){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		return getTopBarWithSideImageView(context, displayMetrics, width, height, btnWidth, space);
 	}
 
 	public static void dialogMenuUseButton(final Context context, int width, int height, String title, final String[][] strArray
@@ -639,7 +705,7 @@ public class C_subWindow {
 		if(topBar == null){
 			itemWi = res.getDimensionPixelSize(R.dimen.dip72);
 			itemHe = (int)(61.5f * 1.0f * dm.density);
-			topBar = getTopBar(context, dm, width, itemHe, itemWi, space);
+			topBar = getTopBarWithTextView(context, dm, width, itemHe, itemWi, space);
 
 			topBar.setBackgroundColor(0xFFC0C0C0);
 			topBar.findViewById(R.id.topLeft).setBackgroundResource(android.R.color.white);
