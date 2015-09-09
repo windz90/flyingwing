@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.3
+ * @version 3.2.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -200,9 +200,9 @@ public abstract class C_connectManager {
 		public void onCancelForegroundWait(DialogInterface dialog){}
 	}
 	
-	public static void baseConnection(Looper looper, ConnectAction action, final ConnectListener linstener){
+	public static void baseConnection(Looper looper, ConnectAction action, final ConnectListener listener){
 		if(!C_networkAccess.isConnect(action.getContext())){
-			reply(noNetworkConnection(), linstener);
+			reply(noNetworkConnection(), listener);
 			return;
 		}
 		Handler handler = null;
@@ -211,7 +211,7 @@ public abstract class C_connectManager {
 
 				@Override
 				public boolean handleMessage(Message msg) {
-					reply(msg, linstener);
+					reply(msg, listener);
 					return false;
 				}
 			};
@@ -224,22 +224,22 @@ public abstract class C_connectManager {
 			e.printStackTrace();
 		}
 		action.setConnectStatusHandler(handler);
-		reply(connecting(action), linstener);
+		reply(connecting(action), listener);
 	}
 	
-	public static void baseConnection(ConnectAction action, ConnectListener linstener){
-		baseConnection(null, action, linstener);
+	public static void baseConnection(ConnectAction action, ConnectListener listener){
+		baseConnection(null, action, listener);
 	}
 	
 	public static void customConnection(Looper looper, final ConnectAction action, final ConnectSetting setting
-			, final ConnectListener linstener){
+			, final ConnectListener listener){
 		Handler handler = null;
 		try {
 			Callback callback = new Callback() {
 
 				@Override
 				public boolean handleMessage(Message msg) {
-					reply(msg, linstener);
+					reply(msg, listener);
 					return false;
 				}
 			};
@@ -260,7 +260,7 @@ public abstract class C_connectManager {
 					handler.sendMessage(msg);
 				}
 			}else{
-				reply(msg, linstener);
+				reply(msg, listener);
 			}
 			return;
 		}
@@ -273,7 +273,7 @@ public abstract class C_connectManager {
 				@Override
 				public void onCancel(DialogInterface dialog) {
 					C_progressDialog.clearInstance();
-					linstener.onCancelForegroundWait(dialog);
+					listener.onCancelForegroundWait(dialog);
 				}
 			});
 		}else if(setting.mHintText != null){
@@ -302,7 +302,7 @@ public abstract class C_connectManager {
 							action.getConnectStatusHandler().sendMessage(msg);
 						}
 					}else{
-						reply(msg, linstener);
+						reply(msg, listener);
 					}
 				}
 			};
@@ -320,21 +320,21 @@ public abstract class C_connectManager {
 					handler.sendMessage(msg);
 				}
 			}else{
-				reply(msg, linstener);
+				reply(msg, listener);
 			}
 		}
 	}
 	
-	public static void customConnection(ConnectAction action, ConnectSetting setting, ConnectListener linstener){
-		customConnection(null, action, setting, linstener);
+	public static void customConnection(ConnectAction action, ConnectSetting setting, ConnectListener listener){
+		customConnection(null, action, setting, listener);
 	}
 	
-	public static void syncConnection(Looper looper, ConnectAction action, final ConnectListener linstener){
+	public static void syncConnection(Looper looper, ConnectAction action, final ConnectListener listener){
 		Handler handler = new Handler(looper, new Callback() {
 			
 			@Override
 			public boolean handleMessage(Message msg) {
-				reply(msg, linstener);
+				reply(msg, listener);
 				return false;
 			}
 		});
@@ -347,14 +347,14 @@ public abstract class C_connectManager {
 	}
 	
 	public static void asyncConnection(Looper looper, final ConnectAction action, final int runMode, boolean isShow
-			, final boolean isDismiss, String text, final ConnectListener linstener){
+			, final boolean isDismiss, String text, final ConnectListener listener){
 		Handler handler = null;
 		try {
 			Callback callback = new Callback() {
 
 				@Override
 				public boolean handleMessage(Message msg) {
-					reply(msg, linstener);
+					reply(msg, listener);
 					return false;
 				}
 			};
@@ -382,7 +382,7 @@ public abstract class C_connectManager {
 				@Override
 				public void onCancel(DialogInterface dialog) {
 					C_progressDialog.clearInstance();
-					linstener.onCancelForegroundWait(dialog);
+					listener.onCancelForegroundWait(dialog);
 				}
 			});
 		}else if(text != null){
@@ -405,20 +405,20 @@ public abstract class C_connectManager {
 	}
 	
 	public static void asyncConnection(ConnectAction action, int runMode, boolean isShow, boolean isDismiss, String text
-			, ConnectListener linstener){
-		asyncConnection(null, action, runMode, isShow, isDismiss, text, linstener);
+			, ConnectListener listener){
+		asyncConnection(null, action, runMode, isShow, isDismiss, text, listener);
 	}
 	
-	public static void asyncConnection(ConnectAction action, int runMode, ConnectListener linstener){
-		asyncConnection(action, runMode, true, true, null, linstener);
+	public static void asyncConnection(ConnectAction action, int runMode, ConnectListener listener){
+		asyncConnection(action, runMode, true, true, null, listener);
 	}
 	
-	public static void asyncConnection(ConnectAction action, int runMode, boolean isShow, boolean isDismiss, ConnectListener linstener){
-		asyncConnection(action, runMode, isShow, isDismiss, null, linstener);
+	public static void asyncConnection(ConnectAction action, int runMode, boolean isShow, boolean isDismiss, ConnectListener listener){
+		asyncConnection(action, runMode, isShow, isDismiss, null, listener);
 	}
 	
-	public static void asyncConnection(ConnectAction action, int runMode, String text, ConnectListener linstener){
-		asyncConnection(action, runMode, true, true, text, linstener);
+	public static void asyncConnection(ConnectAction action, int runMode, String text, ConnectListener listener){
+		asyncConnection(action, runMode, true, true, text, listener);
 	}
 	
 	private static Message noNetworkConnection(){
@@ -465,19 +465,19 @@ public abstract class C_connectManager {
 		return msg;
 	}
 	
-	private static void reply(Message msg, ConnectListener linstener){
+	private static void reply(Message msg, ConnectListener listener){
 		if(msg.what == 0 || msg.what == C_networkAccess.CONNECTION_CONNECT_FAIL){
 			if(msg.what == 0){
-				linstener.noNetworkConnection((ConnectionResult)msg.obj);
+				listener.noNetworkConnection((ConnectionResult)msg.obj);
 			}
-			linstener.connectFail((ConnectionResult)msg.obj);
-			linstener.loadFail((ConnectionResult)msg.obj);
+			listener.connectFail((ConnectionResult)msg.obj);
+			listener.loadFail((ConnectionResult)msg.obj);
 		}else if(msg.what == C_networkAccess.CONNECTION_CONNECTED){
-			linstener.connected((ConnectionResult)msg.obj);
+			listener.connected((ConnectionResult)msg.obj);
 		}else if(msg.what == C_networkAccess.CONNECTION_LOAD_FAIL){
-			linstener.loadFail((ConnectionResult)msg.obj);
+			listener.loadFail((ConnectionResult)msg.obj);
 		}else if(msg.what == C_networkAccess.CONNECTION_LOADED){
-			linstener.loaded((ConnectionResult)msg.obj);
+			listener.loaded((ConnectionResult)msg.obj);
 		}
 	}
 }
