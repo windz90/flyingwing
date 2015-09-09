@@ -1,6 +1,7 @@
 <resources>
 	<!-- Default screen margins, per the Android Design guidelines. -->
 	<dimen name="standardHeight">@dimen/dip64</dimen>
+	<dimen name="standardHeight_0_75">@dimen/dip48</dimen>
 	<dimen name="standardHeight_1_25">@dimen/dip80</dimen>
 	<dimen name="standardHeight_1_5">@dimen/dip96</dimen>
 	<dimen name="standardHeight_1_75">@dimen/dip112</dimen>
