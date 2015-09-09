@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.1.1
+ * @version 2.1.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
  * Comparator是在集合外定義Comparator接口實現的排序<br>
  * Comparable是在集合內部實作Comparable接口實現的排序<br><br>
  */
+@SuppressWarnings("unused")
 public class C_comparator implements Comparator<Map<String, String>>{
 	
 	public static final int STYLE_STRING = 1;
@@ -39,7 +40,7 @@ public class C_comparator implements Comparator<Map<String, String>>{
 	private Pattern pattern;
 	private Matcher matcher;
 	private String compareKey;
-	private int style, orderBy, compareResult;
+	private int style, orderBy;
 	private boolean isRunDefaultSort;
 	private RuleBasedCollator collator;
 	
@@ -57,6 +58,7 @@ public class C_comparator implements Comparator<Map<String, String>>{
 	
 	@Override
 	public int compare(Map<String, String> lhs, Map<String, String> rhs) {
+		int compareResult;
 		switch (style) {
 		case STYLE_INT:
 			compareResult = compareByInt(lhs, rhs, compareKey, orderBy);
