@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.1
+ * @version 3.5.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -34,7 +34,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
-import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.content.ContextCompat;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -1543,10 +1543,10 @@ public class C_imageProcessor {
 		return stateListDrawable;
 	}
 
-	public static Drawable getStateListDrawable(Resources res, int[][] ints, int[] resourceId){
+	public static Drawable getStateListDrawable(Context context, int[][] ints, int[] resourceId){
 		StateListDrawable stateListDrawable = new StateListDrawable();
 		for(int i=0; i<ints.length; i++){
-			stateListDrawable.addState(ints[i], ResourcesCompat.getDrawable(res, resourceId[i], null));
+			stateListDrawable.addState(ints[i], ContextCompat.getDrawable(context, resourceId[i]));
 		}
 		return stateListDrawable;
 	}
@@ -1577,14 +1577,14 @@ public class C_imageProcessor {
 		return drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius);
 	}
 
-	public static Bitmap drawBitmapRoundRect(Resources res, int resourceId, Bitmap.Config config, float roundRadius){
-		Drawable drawable = ResourcesCompat.getDrawable(res, resourceId, null);
+	public static Bitmap drawBitmapRoundRect(Context context, int resourceId, Bitmap.Config config, float roundRadius){
+		Drawable drawable = ContextCompat.getDrawable(context, resourceId);
 		Bitmap bitmap = drawableToBitmap(drawable, true);
 		return drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), config, roundRadius);
 	}
 
-	public static Bitmap drawBitmapRoundRect(Resources res, int resourceId, float roundRadius){
-		return drawBitmapRoundRect(res, resourceId, null, roundRadius);
+	public static Bitmap drawBitmapRoundRect(Context context, int resourceId, float roundRadius){
+		return drawBitmapRoundRect(context, resourceId, null, roundRadius);
 	}
 
 	public static Drawable drawDrawableRoundRect(Resources res, Drawable drawable, int width, int height, float roundRadius){
@@ -1607,9 +1607,9 @@ public class C_imageProcessor {
 		return drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius);
 	}
 
-	public static Drawable drawResourceDrawableRoundRect(Resources res, int resourceId, float roundRadius){
-		Drawable drawable = ResourcesCompat.getDrawable(res, resourceId, null);
+	public static Drawable drawResourceDrawableRoundRect(Context context, int resourceId, float roundRadius){
+		Drawable drawable = ContextCompat.getDrawable(context, resourceId);
 		Bitmap bitmap = drawableToBitmap(drawable, true);
-		return new BitmapDrawable(res, drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius));
+		return new BitmapDrawable(context.getResources(), drawBitmapRoundRect(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), bitmap.getConfig(), roundRadius));
 	}
 }

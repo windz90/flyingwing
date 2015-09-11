@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.1
+ * @version 3.4.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -37,6 +37,7 @@ import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
@@ -47,6 +48,7 @@ import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -58,11 +60,13 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
+import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,8 +81,6 @@ import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -426,7 +428,7 @@ public class Utils {
 	
 	public static boolean writeSDCardFile(InputStream is, String directory, String fileName, int bufferSize){
 		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑
@@ -457,7 +459,7 @@ public class Utils {
 	
 	public static byte[] readSDCardFile(String directory, String fileName){
 		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-		boolean sdCardExist = Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
 		if(sdCardExist){
 			// 取得sdCard路徑
@@ -878,12 +880,11 @@ public class Utils {
 		return getTextSize(flag, isBigScreen, 3);
 	}
 	
-	public static ColorStateList getColorStateList(Resources res, int colorResource, int defaultColor){
+	public static ColorStateList getColorStateList(Context context, int colorResource, int defaultColor){
 		ColorStateList colorStateList;
-		XmlPullParser xpp = res.getXml(colorResource);
 		try {
-			colorStateList = ColorStateList.createFromXml(res, xpp);
-		} catch (XmlPullParserException | IOException e) {
+			colorStateList = ContextCompat.getColorStateList(context, colorResource);
+		} catch (Exception e) {
 			colorStateList = ColorStateList.valueOf(defaultColor);
 			e.printStackTrace();
 		}
@@ -916,7 +917,7 @@ public class Utils {
 		float[] widths = new float[length];
 		paint.getTextWidths(text, widths);
 		for(int i=0; i<length; i++){
-			width = width + (float) Math.ceil(widths[i]);
+			width = width + (float)Math.ceil(widths[i]);
 		}
 		return width;
 	}
@@ -1839,7 +1840,7 @@ public class Utils {
 	
 	public static void callGoogleMapsNavigation(Context context, String sLatit, String sLongit, String dLatit, String dLongit){
 		Intent intent = new Intent(Intent.ACTION_VIEW);
-		intent.setData(Uri.parse("http://maps.google.com/maps?f=d&saddr=" + sLatit + "," + sLongit +
+		intent.setData(Uri.parse("http://maps.google.com/maps?f=d&saddr=" + sLatit + "," + sLongit + 
 				"&daddr=" + dLatit + "," + dLongit + "&hl=zh-TW"));
 		intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
 		context.startActivity(intent);
@@ -2082,6 +2083,23 @@ public class Utils {
 		return wifiInfo.getMacAddress();
 	}
 	
+	public static boolean isScreenOn(Context context, boolean isCheckInteractive){
+		PowerManager powerManager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH){
+			if(isCheckInteractive){
+				return powerManager.isInteractive();
+			}
+			DisplayManager displayManager = (DisplayManager)context.getSystemService(Context.DISPLAY_SERVICE);
+			for(Display display : displayManager.getDisplays()){
+				if(display.getState() != Display.STATE_OFF){
+					return true;
+				}
+			}
+			return false;
+		}
+		return powerManager.isScreenOn();
+	}
+
 	// 判斷此Activity是否正在前端執行
 	@SuppressWarnings("deprecation")
 	public static boolean isRunningTopActivity(Context context){
@@ -2107,6 +2125,35 @@ public class Utils {
 			}
 		}
 		return false;
+	}
+	
+	public static boolean isRunningAppOnState(Context context, String packageName, int importance/* RunningAppProcessInfo.importance */){
+		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
+			if(packageName.equals(runningAppProcessInfo.processName) && runningAppProcessInfo.importance == importance){
+				return true;
+			}
+			for(String packageNameItem : runningAppProcessInfo.pkgList){
+				if(packageName.equals(packageNameItem) && runningAppProcessInfo.importance == importance){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	public static boolean isRunningAppOnForeground(Context context, String packageName){
+		return isRunningAppOnState(context, packageName, RunningAppProcessInfo.IMPORTANCE_FOREGROUND);
+	}
+	
+	// Click Home key or App switch key
+	public static boolean isRunningAppOnKeep(Context context, String packageName){
+		return isRunningAppOnState(context, packageName, RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE);
+	}
+	
+	// Click Back key finish app
+	public static boolean isRunningAppOnBackground(Context context, String packageName){
+		return isRunningAppOnState(context, packageName, RunningAppProcessInfo.IMPORTANCE_BACKGROUND);
 	}
 	
 	public static boolean isRunningAppProcess(Context context, int processId){
@@ -2156,7 +2203,7 @@ public class Utils {
 		for(int i=0; i<size; i++){
 			runningAppProcessInfo = runningAppProcessInfoList.get(i);
 			debugMemoryInfoArray = activityManager.getProcessMemoryInfo(pids);
-			Log.v("RunningAppProcess", "processName:" + runningAppProcessInfo.processName +
+			Log.v("RunningAppProcess", "processName:" + runningAppProcessInfo.processName + 
 					" pid:" + runningAppProcessInfo.pid + " uid:" + runningAppProcessInfo.uid);
 			logDebugMemoryInfo(debugMemoryInfoArray[i]);
 		}
@@ -2543,7 +2590,7 @@ public class Utils {
 		 * Test-Keys 第三方開發者自訂簽名
 		 * 一般來說Release-Keys會比Test-Keys更安全，但不一定總是如此
 		 */
-		String buildTags = android.os.Build.TAGS;
+		String buildTags = Build.TAGS;
 		if(buildTags != null && buildTags.contains("test-keys")){
 			return true;
 		}
@@ -2605,14 +2652,14 @@ public class Utils {
 	public static float spacing(MotionEvent event) {
 		float x = event.getX(0) - event.getX(1);
 		float y = event.getY(0) - event.getY(1);
-		return (float) Math.sqrt(x * x + y * y);
+		return (float)Math.sqrt(x * x + y * y);
 	}
 	
 	public static float rotate(MotionEvent event){
 		double x = event.getX(0) - event.getX(1);
 		double y = event.getY(0) - event.getY(1);
 		double radians = Math.atan2(y, x);
-		return (float) Math.toDegrees(radians);
+		return (float)Math.toDegrees(radians);
 	}
 	
 	public static void midPoint(PointF point, MotionEvent event) {

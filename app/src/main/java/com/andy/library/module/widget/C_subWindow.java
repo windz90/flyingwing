@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.11
+ * @version 2.3.12
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -22,7 +22,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.DisplayMetrics;
@@ -49,10 +49,6 @@ import android.widget.TextView;
 import com.andy.library.R;
 import com.andy.library.module.Utils;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -185,9 +181,9 @@ public class C_subWindow {
 
 		PopupWindow popupWindow = new PopupWindow(context);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-			popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(res, android.R.drawable.dialog_holo_light_frame, null));
+			popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(context, android.R.drawable.dialog_holo_light_frame));
 		}else{
-			popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(res, android.R.drawable.dialog_frame, null));
+			popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(context, android.R.drawable.dialog_frame));
 		}
 		popupWindow.setWidth(width);
 		popupWindow.setHeight(height);
@@ -340,14 +336,8 @@ public class C_subWindow {
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
 			buttons[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(+R.color.selector_textcolor_item);
-			try {
-				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
-				buttons[i].setTextColor(colorList);
-			} catch (XmlPullParserException | IOException e) {
-				buttons[i].setTextColor(Color.BLACK);
-				e.printStackTrace();
-			}
+			ColorStateList colorList = ContextCompat.getColorStateList(context, R.color.selector_textcolor_item);
+			buttons[i].setTextColor(colorList);
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			buttons[i].getPaint().setFakeBoldText(true);
 			buttons[i].setEllipsize(TruncateAt.END);
@@ -603,14 +593,8 @@ public class C_subWindow {
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
 			buttons[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(+R.color.selector_textcolor_item);
-			try {
-				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
-				buttons[i].setTextColor(colorList);
-			} catch (XmlPullParserException | IOException e) {
-				buttons[i].setTextColor(Color.BLACK);
-				e.printStackTrace();
-			}
+			ColorStateList colorList = ContextCompat.getColorStateList(context, R.color.selector_textcolor_item);
+			buttons[i].setTextColor(colorList);
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			buttons[i].getPaint().setFakeBoldText(true);
 			buttons[i].setEllipsize(TruncateAt.END);
@@ -900,14 +884,8 @@ public class C_subWindow {
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
 			buttons[i].setGravity(Gravity.CENTER);
-			XmlPullParser xpp = res.getXml(+R.color.selector_textcolor_item);
-			try {
-				ColorStateList colorList = ColorStateList.createFromXml(res, xpp);
-				buttons[i].setTextColor(colorList);
-			} catch (XmlPullParserException | IOException e) {
-				buttons[i].setTextColor(Color.BLACK);
-				e.printStackTrace();
-			}
+			ColorStateList colorList = ContextCompat.getColorStateList(context, R.color.selector_textcolor_item);
+			buttons[i].setTextColor(colorList);
 			buttons[i].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
 			buttons[i].getPaint().setFakeBoldText(true);
 			buttons[i].setEllipsize(TruncateAt.END);

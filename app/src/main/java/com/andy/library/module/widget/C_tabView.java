@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Andy Lin. All rights reserved.
- * @version 1.0.4
+ * @version 1.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -257,9 +258,9 @@ public class C_tabView extends LinearLayout {
 	
 	@SuppressWarnings("deprecation")
 	public void setHeadButtonBackground(int leftId, int rightId, int middleId){
-		mLeftDrawable = mRes.getDrawable(leftId);
-		mRightDrawable = mRes.getDrawable(rightId);
-		mMiddleDrawable = mRes.getDrawable(middleId);
+		mLeftDrawable = ContextCompat.getDrawable(getContext(), leftId);
+		mRightDrawable = ContextCompat.getDrawable(getContext(), rightId);
+		mMiddleDrawable = ContextCompat.getDrawable(getContext(), middleId);
 	}
 	
 	@SuppressWarnings("deprecation")

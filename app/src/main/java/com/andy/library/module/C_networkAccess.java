@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.6
+ * @version 3.4.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -15,30 +15,6 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.scheme.PlainSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreProtocolPNames;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -48,16 +24,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -405,228 +374,6 @@ public class C_networkAccess {
 			printInfo("HttpPostSetting, Exception " + e, C_networkAccess.NETWORKSETTING.mIsPrintConnectException);
 		}
 		return null;
-	}
-	
-	/**
-	 * HttpGet
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, boolean isSkipDataRead, Handler handler){
-		return connectUseHttpClient(context, httpUrl, null, null, isSkipDataRead, handler);
-	}
-	
-	/**
-	 * HttpGet
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, Handler handler){
-		return connectUseHttpClient(context, httpUrl, null, null, false, handler);
-	}
-	
-	/**
-	 * HttpPost UrlEncodedFormEntity
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData, Handler handler){
-		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, handler);
-	}
-	
-	/**
-	 * HttpPost UrlEncodedFormEntity
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData){
-		return connectUseHttpClient(context, httpUrl, httpPostData, null, false, null);
-	}
-	
-	/**
-	 * HttpPost UrlEncodedFormEntity
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData
-			, boolean isSkipDataRead, Handler handler){
-		return connectUseHttpClient(context, httpUrl, httpPostData, null, isSkipDataRead, handler);
-	}
-	
-	/**
-	 * HttpPost InputStreamEntity
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, boolean isSkipDataRead
-			, Handler handler){
-		return connectUseHttpClient(context, httpUrl, null, is, isSkipDataRead, handler);
-	}
-	
-	/**
-	 * HttpPost InputStreamEntity
-	 */
-	public static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, InputStream is, Handler handler){
-		return connectUseHttpClient(context, httpUrl, null, is, false, handler);
-	}
-	
-	private static ConnectionResult connectUseHttpClient(final Context context, String httpUrl, String[][] httpPostData
-			, InputStream is, boolean isSkipDataRead, Handler handler){
-		ConnectionResult connectionResult = new ConnectionResult();
-		connectionResult.setStatusMessage("Connect Fail No Network Connection");
-		if(isConnect(context)){
-			connectUseHttpClientImplementConnection(httpUrl, getHttpPost(httpUrl, httpPostData, is), connectionResult, isSkipDataRead, handler);
-		}
-		return connectionResult;
-	}
-	
-	public static ConnectionResult connectUseHttpClientImplementConnection(String httpUrl, HttpPost httpPost
-			, ConnectionResult connectionResult, boolean isSkipDataRead, Handler handler){
-		HttpResponse httpResponse = null;
-		HttpParams httpParams = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParams, NETWORKSETTING.mConnectTimeout);
-		HttpConnectionParams.setSoTimeout(httpParams, NETWORKSETTING.mReadTimeout);
-		HttpConnectionParams.setSocketBufferSize(httpParams, NETWORKSETTING.mBufferSize);
-		
-		SchemeRegistry schemeRegistry = new SchemeRegistry();
-		schemeRegistry.register (new Scheme ("http", PlainSocketFactory.getSocketFactory(), 80));
-		try {
-			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			SSLSocketFactory sslSocketFactory = new SSLSocketFactory(keyStore);
-			schemeRegistry.register (new Scheme ("https", sslSocketFactory, 443));
-		} catch (KeyStoreException | KeyManagementException | NoSuchAlgorithmException | UnrecoverableKeyException e) {
-			e.printStackTrace();
-		}
-		ThreadSafeClientConnManager threadSafeClientConnManager = new ThreadSafeClientConnManager(httpParams, schemeRegistry);
-		
-		HttpClient httpClient = new DefaultHttpClient(threadSafeClientConnManager, httpParams);
-		httpClient.getParams().setParameter(CoreProtocolPNames.USER_AGENT, System.getProperty("http.agent"));
-		connectionResult.setConnectUrl(httpUrl);
-		connectionResult.setStatusMessage("Connect Success");
-		
-		try {
-			if(httpPost == null){
-				// HttpGet方法
-				connectionResult.setRequestType(REQUEST_GET);
-				HttpGet httpGet = new HttpGet(httpUrl);
-				httpResponse = httpClient.execute(httpGet);
-			}else{
-				// HttpPost方法
-				connectionResult.setRequestType(REQUEST_POST);
-				httpResponse = httpClient.execute(httpPost);
-			}
-//		} catch (ClientProtocolException e) {
-//		} catch (IOException e) {
-		} catch (Exception e) {
-			printInfo("Connecting, Exception " + e, C_networkAccess.NETWORKSETTING.mIsPrintConnectException);
-			connectionResult.setStatusMessage("Connecting, Connect Fail Exception " + e);
-		}finally{
-			printInfo(connectionResult.getRequestType() + ", " + httpUrl, C_networkAccess.NETWORKSETTING.mIsPrintConnectionUrl);
-		}
-		
-		if(httpResponse == null){
-			return connectionResult;
-		}
-		StatusLine statusLine = httpResponse.getStatusLine();
-		if(statusLine == null){
-			return connectionResult;
-		}
-		connectionResult.setResponseCode(statusLine.getStatusCode());
-		connectionResult.setResponseMessage(statusLine.getReasonPhrase());
-		if(statusLine.getStatusCode() != HttpStatus.SC_OK){
-			printInfo("Connect Fail StatusCode " + statusLine.getStatusCode(), C_networkAccess.NETWORKSETTING.mIsPrintConnectException);
-			connectionResult.setStatusMessage("Connect Fail StatusCode " + statusLine.getStatusCode());
-			
-			if(handler != null){
-				Message msg = new Message();
-				msg.what = CONNECTION_CONNECT_FAIL;
-				msg.obj = connectionResult;
-				handler.sendMessage(msg);
-			}
-			return connectionResult;
-		}
-		
-		HttpEntity httpEntity = httpResponse.getEntity();
-		Header header = httpEntity.getContentEncoding();
-		connectionResult.setContentEncoding(header == null ? null : header.getValue());
-		connectionResult.setContentLength(httpEntity.getContentLength());
-		header = httpEntity.getContentType();
-		connectionResult.setContentType(header == null ? null : header.getValue());
-		
-		if(handler != null){
-			Message msg = new Message();
-			msg.what = CONNECTION_CONNECTED;
-			msg.obj = connectionResult;
-			handler.sendMessage(msg);
-		}
-		
-		try{
-			if(isSkipDataRead){
-				connectionResult.setContent(httpEntity.getContent());
-				return connectionResult;
-			}
-			deployDataForConnectionResult(httpEntity.getContent(), connectionResult);
-//		} catch (IllegalStateException e) {
-//		} catch (IOException e) {
-		} catch (Exception e) {
-			printInfo("LoadData, Exception " + e, C_networkAccess.NETWORKSETTING.mIsPrintConnectException);
-			connectionResult.setStatusMessage("LoadData, Connect Fail Exception " + e);
-		}
-		printInfo("Connect ok StatusCode " + httpResponse.getStatusLine().getStatusCode(), false);
-		return connectionResult;
-	}
-	
-	private static HttpPost getHttpPost(String httpUrl, String[][] httpPostData, InputStream is){
-		/*
-		 * AbstractHttpEntity, BasicHttpEntity, BufferedHttpEntity, ByteArrayEntity, EntityTemplate
-		 * , FileEntity, HttpEntityWrapper, InputStreamEntity, SerializableEntity, StringEntity
-		 */
-		HttpPost httpPost = null;
-		if(httpPostData != null){
-			httpPost = getUrlEncodedFormEntity(httpUrl, httpPostData);
-		}else if(is != null){
-			httpPost = getInputStreamEntity(httpUrl, is);
-		}
-		return httpPost;
-	}
-	
-	public static HttpPost getUrlEncodedFormEntity(String httpUrl, String[][] httpPostData){
-		if(httpPostData == null){
-			return null;
-		}
-		HttpPost httpPost = new HttpPost(httpUrl);
-		List<NameValuePair> putNvpArrayList = new ArrayList<NameValuePair>();
-		for(int i=0; i<httpPostData.length; i++){
-			putNvpArrayList.add(new BasicNameValuePair(httpPostData[i][0], httpPostData[i][1]));
-		}
-		try {
-			httpPost.setEntity(new UrlEncodedFormEntity(putNvpArrayList, HTTP.UTF_8));
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-		return httpPost;
-	}
-	
-	public static HttpPost getInputStreamEntity(String httpUrl, InputStream is){
-		if(is == null){
-			return null;
-		}
-		HttpPost httpPost = new HttpPost(httpUrl);
-		httpPost.addHeader("Content-Type", "application/octet-stream");
-		
-		int progress;
-		byte[] buffer = new byte[NETWORKSETTING.mBufferSize];
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			try {
-				while((progress = is.read(buffer)) != -1){
-					baos.write(buffer, 0, progress);
-				}
-				baos.flush();
-			} finally {
-				is.close();
-			}
-			try {
-				byte[] byteArray = baos.toByteArray();
-				httpPost.setEntity(new InputStreamEntity(new ByteArrayInputStream(byteArray), byteArray.length));
-			} finally {
-				baos.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			buffer = null;
-			e.printStackTrace();
-		}
-		return httpPost;
 	}
 	
 	private static Object deployData(InputStream is, String contentType){

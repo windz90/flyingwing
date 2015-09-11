@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.1
+ * @version 1.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -19,7 +19,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -271,7 +271,7 @@ public class C_serviceWindow extends Service {
 		int itemWi = WindowManager.LayoutParams.MATCH_PARENT;
 		int itemHe = WindowManager.LayoutParams.MATCH_PARENT;
 		final PopupWindow popupWindow = new PopupWindow(mImageViewAnchor.getContext());
-		popupWindow.setBackgroundDrawable(ResourcesCompat.getDrawable(contentView.getResources(), android.R.color.transparent, null));
+		popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(contentView.getContext(), android.R.color.transparent));
 		popupWindow.setWidth(itemWi);
 		popupWindow.setHeight(itemHe);
 		popupWindow.setFocusable(true);
