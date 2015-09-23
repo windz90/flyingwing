@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.2
+ * @version 3.4.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -921,11 +921,17 @@ public class Utils {
 		}
 		return width;
 	}
-	
-	public static float getTextBaselineY(Paint paint){
+
+	public static float getTextBaselineY(Paint paint, int canvasHeight){
 		FontMetrics fontMetrics = paint.getFontMetrics();
-		float baselineY = (fontMetrics.bottom - fontMetrics.top) / 2 + fontMetrics.bottom;
+		float baselineY = canvasHeight / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
 		return baselineY;
+	}
+
+	public static float getTextStaticLayoutVerticalCenterOffsetY(Paint paint){
+		FontMetrics fontMetrics = paint.getFontMetrics();
+		float offsetY = (fontMetrics.descent - fontMetrics.ascent) / 2 + fontMetrics.descent;
+		return offsetY;
 	}
 
 	public static String neatString(String string){
