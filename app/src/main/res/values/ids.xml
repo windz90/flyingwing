@@ -17,4 +17,7 @@
     <item name="negativeButton" type="id"/>
     <item name="dismissButton" type="id"/>
     <item name="cancelButton" type="id"/>
+
+    <item name="tag" type="id"/>
+    <item name="flag" type="id"/>
 </resources>
