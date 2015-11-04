@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"unused", "Convert2Diamond"})
-public class C_tabView extends LinearLayout {
+public class CustomTabView extends LinearLayout {
 	
 	private RelativeLayout mRelLay;
 	private Button mButton;
@@ -74,10 +74,10 @@ public class C_tabView extends LinearLayout {
 	}
 	
 	public interface OnDismissListener{
-		void onDismiss(C_tabView tabView, boolean isClickDismiss);
+		void onDismiss(CustomTabView tabView, boolean isClickDismiss);
 	}
 	
-	public C_tabView(Context context){
+	public CustomTabView(Context context){
 		super(context);
 		mRes = context.getResources();
 		

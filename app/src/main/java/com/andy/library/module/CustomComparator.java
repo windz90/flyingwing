@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  * Comparable是在集合內部實作Comparable接口實現的排序<br><br>
  */
 @SuppressWarnings("unused")
-public class C_comparator implements Comparator<Map<String, String>>{
+public class CustomComparator implements Comparator<Map<String, String>>{
 	
 	public static final int STYLE_STRING = 1;
 	public static final int STYLE_INT = 2;
@@ -44,7 +44,7 @@ public class C_comparator implements Comparator<Map<String, String>>{
 	private boolean isRunDefaultSort;
 	private RuleBasedCollator collator;
 	
-	public C_comparator(String compareKey, int style, int orderBy, Locale locale, boolean isRunDefaultSort){
+	public CustomComparator(String compareKey, int style, int orderBy, Locale locale, boolean isRunDefaultSort){
 		this.compareKey = compareKey;
 		this.style = style;
 		this.orderBy = orderBy;
@@ -52,7 +52,7 @@ public class C_comparator implements Comparator<Map<String, String>>{
 		this.isRunDefaultSort = isRunDefaultSort;
 	}
 	
-	public C_comparator(String compareStr, int style, int orderBy){
+	public CustomComparator(String compareStr, int style, int orderBy){
 		this(compareStr, style, orderBy, Locale.getDefault(), false);
 	}
 	

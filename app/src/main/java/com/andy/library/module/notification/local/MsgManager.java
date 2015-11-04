@@ -12,7 +12,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Window;
 
-public class C_msgManager extends Activity {
+public class MsgManager extends Activity {
 	
 	private String managerStatus = "init";
 	private C_serviceReceiver broadcastR;
@@ -30,7 +30,7 @@ public class C_msgManager extends Activity {
 	protected void onStart() {
 		super.onStart();
 		try{
-			IntentFilter intentF = new IntentFilter(C_msgService.gjunMsg);
+			IntentFilter intentF = new IntentFilter(MsgService.gjunMsg);
 			broadcastR = new C_serviceReceiver();
 			registerReceiver(broadcastR, intentF);
 			managerStatus = "registerReceiver";
@@ -39,7 +39,7 @@ public class C_msgManager extends Activity {
 			managerStatus = "register fail";
 			System.out.println("register fail " + e);
 		}
-		Intent intentService = new Intent(this, C_msgService.class);
+		Intent intentService = new Intent(this, MsgService.class);
 		intentService.putExtra("timeWake", true);
 		intentService.putExtra("managerStatus", managerStatus);
 		startService(intentService);
@@ -86,12 +86,12 @@ public class C_msgManager extends Activity {
 				notifi.tickerText = bundle.getString("iconTxt");
 				notifi.defaults = Notification.DEFAULT_ALL;
 				
-		        Intent intent = new Intent(C_msgManager.this, C_msgPrompt.class);
+		        Intent intent = new Intent(MsgManager.this, MsgPrompt.class);
 		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		        intent.putExtras(bundle);
-				PendingIntent penIntent = PendingIntent.getActivity(C_msgManager.this, 0, intent, 0);
+				PendingIntent penIntent = PendingIntent.getActivity(MsgManager.this, 0, intent, 0);
 				
-				notifi.setLatestEventInfo(C_msgManager.this, bundle.getString("title"), bundle.getString("msg"), penIntent);
+				notifi.setLatestEventInfo(MsgManager.this, bundle.getString("title"), bundle.getString("msg"), penIntent);
 				notifiManager.notify(0, notifi);
 				managerStatus = "notify end";
 				System.out.println("notify end");

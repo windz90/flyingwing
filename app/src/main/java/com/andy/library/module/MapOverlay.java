@@ -35,7 +35,7 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 import com.google.android.maps.Projection;
 
-public class C_mapOverlay extends Overlay{
+public class MapOverlay extends Overlay{
 	
 	private Activity activity;
 	private MapView mapView;
@@ -54,7 +54,7 @@ public class C_mapOverlay extends Overlay{
 //	private final static int CWJ_HEAP_SIZE = 6 * 1024 * 1024;
 //	private final static float TARGET_HEAP_UTILIZATION = 0.75f;
 	
-	public C_mapOverlay(Activity activity, MapView mapView, View subView, GeoPoint geoPointSelf, List<Map<String, String>> mapDataList){
+	public MapOverlay(Activity activity, MapView mapView, View subView, GeoPoint geoPointSelf, List<Map<String, String>> mapDataList){
 		// 設定最小Heap記憶體，2.3以後已被移除
 //		VMRuntime.getRuntime().setMinimumHeapSize(CWJ_HEAP_SIZE);
 		// 設定Heap記憶體處理效率，調整GC工作，2.3以後已被移除
@@ -322,13 +322,13 @@ public class C_mapOverlay extends Overlay{
 						
 						Bitmap bitmap;
 						if(mapDataList.get(listIndex).get("deptc").equals("1")){
-							bitmap = C_imageProcessor.getRawBitmap(res, R.drawable.gjunlogo, 1);
+							bitmap = ImageProcessor.getRawBitmap(res, R.drawable.gjunlogo, 1);
 							overlayItemImgLeft.setImageBitmap(bitmap);
 						}else if(mapDataList.get(listIndex).get("deptc").equals("2")){
-							bitmap = C_imageProcessor.getRawBitmap(res, R.drawable.gjunlogo2, 1);
+							bitmap = ImageProcessor.getRawBitmap(res, R.drawable.gjunlogo2, 1);
 							overlayItemImgLeft.setImageBitmap(bitmap);
 						}
-						bitmap = C_imageProcessor.getRawBitmap(res, R.drawable.arrowicon, 1);
+						bitmap = ImageProcessor.getRawBitmap(res, R.drawable.arrowicon, 1);
 						overlayItemImgRight.setImageBitmap(bitmap);
 						
 						overlayRelLayLinLay.setPadding(0, 0, 0, 0);

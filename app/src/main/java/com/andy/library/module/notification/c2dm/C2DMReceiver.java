@@ -4,7 +4,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import com.andy.library.R;
-import com.andy.library.module.C_networkAccess;
+import com.andy.library.module.NetworkAccess;
 
 import android.annotation.TargetApi;
 import android.app.Notification;
@@ -22,7 +22,7 @@ import android.os.Handler.Callback;
 import android.os.Message;
 import android.provider.Settings.Secure;
 
-public class C_c2dmReceiver extends BroadcastReceiver{
+public class C2DMReceiver extends BroadcastReceiver{
 	
     private static SharedPreferences sp;
     private static SharedPreferences.Editor spEdit;
@@ -80,7 +80,7 @@ public class C_c2dmReceiver extends BroadcastReceiver{
 		try{
 			NotificationManager notifiManager = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
 			
-	        intent = new Intent(context, C_c2dmPrompt.class);
+	        intent = new Intent(context, C2DMPrompt.class);
 	        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	        intent.putExtras(bundle);
 	        PendingIntent penIntent = PendingIntent.getActivity(context, 0, intent, 0);
@@ -106,7 +106,7 @@ public class C_c2dmReceiver extends BroadcastReceiver{
 	}
 	
 	public static void c2dmRegister(Context context, String senderID){
-		C_c2dmReceiver.senderID = senderID;
+		C2DMReceiver.senderID = senderID;
 		Intent intentService = new Intent("com.google.android.c2dm.intent.REGISTER");
 		intentService.putExtra("app", PendingIntent.getBroadcast(context, 0, new Intent(), 0));
 		intentService.putExtra("sender", senderID);
@@ -142,10 +142,10 @@ public class C_c2dmReceiver extends BroadcastReceiver{
 				String[][] postData = new String[][]{{"id", id}
 				, {"email", androidID}
 				, {"PushToken", registrationId}, {"platform", "1"}, {"ver", ver}};
-				C_networkAccess.connectUseHttpClient(context, urlPost, postData);
+				NetworkAccess.connectUseHttpClient(context, urlPost, postData);
 			}
 		});
-		if(C_networkAccess.isConnect(context)){
+		if(NetworkAccess.isConnect(context)){
 			thread.start();
 		}else{
 			System.out.println("c2dmID Send Fail No Network Connection");

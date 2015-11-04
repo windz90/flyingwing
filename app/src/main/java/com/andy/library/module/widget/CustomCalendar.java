@@ -37,7 +37,7 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.ListView;
 import android.widget.TextView;
 
-public class C_calendar {
+public class CustomCalendar {
 	
 	public static int calendarBackgroundResource = 0xFFBBBBBB;
 	public static int toDay = 0xff6dcff6;
@@ -57,12 +57,12 @@ public class C_calendar {
 	private Date dateOriginal, dateVaria;
 	private List<Map<String, String>> dataListContainsIndex;
 	private List<Map<String, String>> everyDayList;
-	private C_customAdapter cadp;
+	private CustomBaseAdapter cadp;
 	private Activity activity;
 	private int size;
 	private Resources res;
 	
-	public C_calendar(Activity activity, TextView calendarCalHeadCenter, LinearLayout calendarCalLinLayCal){
+	public CustomCalendar(Activity activity, TextView calendarCalHeadCenter, LinearLayout calendarCalLinLayCal){
 		this.calendarCalLinLayCal = calendarCalLinLayCal;
 		this.calendarCalHeadCenter = calendarCalHeadCenter;
 		this.activity = activity;
@@ -205,7 +205,7 @@ public class C_calendar {
 		}else{
 			everyDayList = new ArrayList<Map<String,String>>();
 		}
-		cadp = new C_customAdapter(activity, everyDayList, C_customAdapter.STYLE_CALENDAR_FOR_DAY);
+		cadp = new CustomBaseAdapter(activity, everyDayList, CustomBaseAdapter.STYLE_CALENDAR_FOR_DAY);
 		listView.setAdapter(cadp);
 		this.listView = listView;
 	}

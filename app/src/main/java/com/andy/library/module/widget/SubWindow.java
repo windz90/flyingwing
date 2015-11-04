@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond"})
-public class C_subWindow {
+public class SubWindow {
 
 	public static boolean sIsInstanceShow;
 

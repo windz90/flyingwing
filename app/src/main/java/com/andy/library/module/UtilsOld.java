@@ -32,7 +32,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
-import com.andy.library.module.database.DBhelper;
+import com.andy.library.module.database.DataBaseHelper;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -137,7 +137,7 @@ public class UtilsOld {
 			}
 			
 			InputStream dataBaseOnCloud = dataBaseConn.getInputStream();
-			String outFileName = DBhelper.DATABASE_TEMP_FILE_PATH + DataBaseName;
+			String outFileName = DataBaseHelper.DATABASE_TEMP_FILE_PATH + DataBaseName;
 			
 			OutputStream dataBaseInPhone = new FileOutputStream(outFileName);
 	
@@ -161,15 +161,15 @@ public class UtilsOld {
 	public static void copyDB(Context c, String DataBaseName) throws IOException {
 		c.deleteDatabase(DataBaseName);
 		
-		InputStream myInput= new FileInputStream(DBhelper.DATABASE_TEMP_FILE_PATH + DataBaseName);
-		String outFileName = DBhelper.DATABASE_PATH + DataBaseName;
+		InputStream myInput= new FileInputStream(DataBaseHelper.DATABASE_TEMP_FILE_PATH + DataBaseName);
+		String outFileName = DataBaseHelper.DATABASE_PATH + DataBaseName;
 		OutputStream myOutput = new FileOutputStream(outFileName);
 		byte[] buffer = new byte[1024];
 		int length;
 		while ((length = myInput.read(buffer)) > 0) {
 			myOutput.write(buffer, 0, length);
 		}
-		File file = new File(DBhelper.DATABASE_TEMP_FILE_PATH + DataBaseName);
+		File file = new File(DataBaseHelper.DATABASE_TEMP_FILE_PATH + DataBaseName);
 		file.delete();
 		
 		myOutput.flush();

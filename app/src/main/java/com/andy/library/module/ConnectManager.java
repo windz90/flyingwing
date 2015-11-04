@@ -16,14 +16,14 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.andy.library.module.C_networkAccess.ConnectionResult;
-import com.andy.library.module.widget.C_progressDialog;
+import com.andy.library.module.NetworkAccess.ConnectionResult;
+import com.andy.library.module.widget.CustomProgressDialog;
 
 import java.net.HttpURLConnection;
 import java.util.concurrent.ExecutorService;
 
 @SuppressWarnings("unused")
-public abstract class C_connectManager {
+public abstract class ConnectManager {
 	
 	public static final int RUN_MODE_FOREGROUND_SINGLE_TAG = 0x0A1;
 	public static final int RUN_MODE_BACKGROUND_ALLOW = 0x0A2;
@@ -201,7 +201,7 @@ public abstract class C_connectManager {
 	}
 	
 	public static void baseConnection(Looper looper, ConnectAction action, final ConnectListener listener){
-		if(!C_networkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isConnect(action.getContext())){
 			reply(noNetworkConnection(), listener);
 			return;
 		}
@@ -251,7 +251,7 @@ public abstract class C_connectManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if(!C_networkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isConnect(action.getContext())){
 			Message msg = runModeHandle(noNetworkConnection(), setting.mRunMode, setting.mDialogDismiss);
 			if(setting.mUseHandler){
 				if(handler == null){
@@ -267,17 +267,17 @@ public abstract class C_connectManager {
 		
 		if((setting.mRunMode == RUN_MODE_FOREGROUND_SINGLE_TAG || setting.mRunMode == RUN_MODE_BACKGROUND_ALLOW) && 
 				setting.mDialogShow){
-			C_progressDialog.getInstance(action.getContext(), setting.mHintText).show();
-			C_progressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
+			CustomProgressDialog.getInstance(action.getContext(), setting.mHintText).show();
+			CustomProgressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
 				
 				@Override
 				public void onCancel(DialogInterface dialog) {
-					C_progressDialog.clearInstance();
+					CustomProgressDialog.clearInstance();
 					listener.onCancelForegroundWait(dialog);
 				}
 			});
 		}else if(setting.mHintText != null){
-			C_progressDialog.setInstanceMessage(setting.mHintText);
+			CustomProgressDialog.setInstanceMessage(setting.mHintText);
 		}
 		
 		action.setConnectStatusHandler(handler);
@@ -339,7 +339,7 @@ public abstract class C_connectManager {
 			}
 		});
 		action.setConnectStatusHandler(handler);
-		if(!C_networkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isConnect(action.getContext())){
 			handler.sendMessage(noNetworkConnection());
 			return;
 		}
@@ -366,7 +366,7 @@ public abstract class C_connectManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if(!C_networkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isConnect(action.getContext())){
 			if(handler == null){
 				Log.w("Handler", "Can't create handler inside thread that has not called Looper.prepare()");
 			}else{
@@ -376,17 +376,17 @@ public abstract class C_connectManager {
 		}
 		
 		if((runMode == RUN_MODE_FOREGROUND_SINGLE_TAG || runMode == RUN_MODE_BACKGROUND_ALLOW) && isShow){
-			C_progressDialog.getInstance(action.getContext(), text).show();
-			C_progressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
+			CustomProgressDialog.getInstance(action.getContext(), text).show();
+			CustomProgressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
 				
 				@Override
 				public void onCancel(DialogInterface dialog) {
-					C_progressDialog.clearInstance();
+					CustomProgressDialog.clearInstance();
 					listener.onCancelForegroundWait(dialog);
 				}
 			});
 		}else if(text != null){
-			C_progressDialog.setInstanceMessage(text);
+			CustomProgressDialog.setInstanceMessage(text);
 		}
 		
 		action.setConnectStatusHandler(handler);
@@ -434,12 +434,12 @@ public abstract class C_connectManager {
 		Message msg = new Message();
 		msg.obj = connectionResult;
 		if(connectionResult.getStatusMessage().contains("Connect Fail StatusCode ")){
-			// C_networkAccess.CONNECTION_CONNECT_FAIL已即時回調，故此時的回調略過不處理。
+			// NetworkAccess.CONNECTION_CONNECT_FAIL已即時回調，故此時的回調略過不處理。
 			msg.what = -1;
 		}else if(connectionResult.getStatusMessage().contains("Connect Fail ")){
-			msg.what = C_networkAccess.CONNECTION_LOAD_FAIL;
+			msg.what = NetworkAccess.CONNECTION_LOAD_FAIL;
 		}else{
-			msg.what = C_networkAccess.CONNECTION_LOADED;
+			msg.what = NetworkAccess.CONNECTION_LOADED;
 		}
 		return msg;
 	}
@@ -451,14 +451,14 @@ public abstract class C_connectManager {
 	private static Message runModeHandle(Message msg, int runMode, boolean isDismiss){
 		// RUN_FOREGROUND_SINGLE_TAG若顯式Tag被使用者取消，後續不進行任何處理
 		if(runMode == RUN_MODE_FOREGROUND_SINGLE_TAG && msg.what != 0 && 
-				(!C_progressDialog.hasInstance() || !C_progressDialog.isInstanceShowing())){
+				(!CustomProgressDialog.hasInstance() || !CustomProgressDialog.isInstanceShowing())){
 			msg.what = -1;
 			return msg;
 		}
 		if(runMode == RUN_MODE_FOREGROUND_SINGLE_TAG || runMode == RUN_MODE_BACKGROUND_ALLOW){
-			if(C_progressDialog.hasInstance() && C_progressDialog.isInstanceShowing()){
-				if(isDismiss || msg.what == 0 || msg.what == C_networkAccess.CONNECTION_LOAD_FAIL){
-					C_progressDialog.clearInstance();
+			if(CustomProgressDialog.hasInstance() && CustomProgressDialog.isInstanceShowing()){
+				if(isDismiss || msg.what == 0 || msg.what == NetworkAccess.CONNECTION_LOAD_FAIL){
+					CustomProgressDialog.clearInstance();
 				}
 			}
 		}
@@ -466,17 +466,17 @@ public abstract class C_connectManager {
 	}
 	
 	private static void reply(Message msg, ConnectListener listener){
-		if(msg.what == 0 || msg.what == C_networkAccess.CONNECTION_CONNECT_FAIL){
+		if(msg.what == 0 || msg.what == NetworkAccess.CONNECTION_CONNECT_FAIL){
 			if(msg.what == 0){
 				listener.noNetworkConnection((ConnectionResult)msg.obj);
 			}
 			listener.connectFail((ConnectionResult)msg.obj);
 			listener.loadFail((ConnectionResult)msg.obj);
-		}else if(msg.what == C_networkAccess.CONNECTION_CONNECTED){
+		}else if(msg.what == NetworkAccess.CONNECTION_CONNECTED){
 			listener.connected((ConnectionResult)msg.obj);
-		}else if(msg.what == C_networkAccess.CONNECTION_LOAD_FAIL){
+		}else if(msg.what == NetworkAccess.CONNECTION_LOAD_FAIL){
 			listener.loadFail((ConnectionResult)msg.obj);
-		}else if(msg.what == C_networkAccess.CONNECTION_LOADED){
+		}else if(msg.what == NetworkAccess.CONNECTION_LOADED){
 			listener.loaded((ConnectionResult)msg.obj);
 		}
 	}

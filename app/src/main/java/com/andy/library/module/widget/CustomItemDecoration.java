@@ -15,25 +15,25 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 @SuppressWarnings("unused")
-public class C_defaultItemDecoration extends RecyclerView.ItemDecoration {
+public class CustomItemDecoration extends RecyclerView.ItemDecoration {
 
 	private Drawable mDrawable;
 	private int mStroke;
 	private Rect mRectPadding;
 	private boolean mIsPreDraw;
 
-	public C_defaultItemDecoration(Drawable drawable, int stroke, Rect rectPadding, boolean isPreDraw){
+	public CustomItemDecoration(Drawable drawable, int stroke, Rect rectPadding, boolean isPreDraw){
 		mDrawable = drawable;
 		mStroke = stroke;
 		mRectPadding = rectPadding;
 		mIsPreDraw = isPreDraw;
 	}
 
-	public C_defaultItemDecoration(Drawable drawable, int stroke, boolean isPreDraw){
+	public CustomItemDecoration(Drawable drawable, int stroke, boolean isPreDraw){
 		this(drawable, stroke, null, isPreDraw);
 	}
 
-	public C_defaultItemDecoration(Drawable drawable, int stroke){
+	public CustomItemDecoration(Drawable drawable, int stroke){
 		this(drawable, stroke, null, false);
 	}
 

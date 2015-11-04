@@ -21,16 +21,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 @SuppressWarnings("unused")
-public class C_progressDialog {
+public class CustomProgressDialog {
 	
-	private static C_progressDialog sProgress;
+	private static CustomProgressDialog sProgress;
 	
 	private Context mContext;
 	private Dialog mDialog;
 	private LinearLayout mLinLay;
 	private TextView mTextView;
 	
-	public C_progressDialog(Context context, String message){
+	public CustomProgressDialog(Context context, String message){
 		mContext = context;
 		
 		int itemWi;
@@ -76,7 +76,7 @@ public class C_progressDialog {
 		mDialog.getWindow().setAttributes(windowLayPar);
 	}
 	
-	public C_progressDialog(Context context){
+	public CustomProgressDialog(Context context){
 		this(context, null);
 	}
 	
@@ -176,20 +176,20 @@ public class C_progressDialog {
 		}
 	}
 	
-	public static C_progressDialog getInstance(Context context, String message){
+	public static CustomProgressDialog getInstance(Context context, String message){
 		if(sProgress == null){
-			sProgress = new C_progressDialog(context, message);
+			sProgress = new CustomProgressDialog(context, message);
 		}else{
 			sProgress.setMessage(message);
 		}
 		return sProgress;
 	}
 	
-	public static C_progressDialog getInstance(Context context){
+	public static CustomProgressDialog getInstance(Context context){
 		return getInstance(context, null);
 	}
 	
-	public static C_progressDialog getInstance(){
+	public static CustomProgressDialog getInstance(){
 		return sProgress;
 	}
 	

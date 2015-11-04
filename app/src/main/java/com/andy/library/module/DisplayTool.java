@@ -23,7 +23,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 @SuppressWarnings({"unused", "UnnecessaryLocalVariable"})
-public class C_display {
+public class DisplayTool {
 	
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;

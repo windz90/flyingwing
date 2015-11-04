@@ -12,7 +12,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Window;
 
-public class C_c2dmPrompt extends Activity {
+public class C2DMPrompt extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +31,7 @@ public class C_c2dmPrompt extends Activity {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == AlertDialog.BUTTON_POSITIVE){
-		            Intent intent = new Intent(C_c2dmPrompt.this, Main.class);
+		            Intent intent = new Intent(C2DMPrompt.this, Main.class);
 		            intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 		            startActivity(intent);
 		            finish();

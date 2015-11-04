@@ -1,7 +1,7 @@
 package com.andy.library.view;
 
 import com.andy.library.R;
-import com.andy.library.module.C_imageProcessor;
+import com.andy.library.module.ImageProcessor;
 
 import android.app.TabActivity;
 import android.content.Intent;
@@ -113,23 +113,23 @@ public class TabRecord extends TabActivity {
 		switch (tabNum) {
 		case 0:
 			if(isSelect){
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.record_tab1down, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.record_tab1down, 1));
 			}else{
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.record_tab1, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.record_tab1, 1));
 			}
 			break;
 		case 1:
 			if(isSelect){
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.record_tab2down, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.record_tab2down, 1));
 			}else{
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.record_tab2, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.record_tab2, 1));
 			}
 			break;
 		case 2:
 			if(isSelect){
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.record_tab3down, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.record_tab3down, 1));
 			}else{
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.record_tab3, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.record_tab3, 1));
 			}
 			break;
 		}

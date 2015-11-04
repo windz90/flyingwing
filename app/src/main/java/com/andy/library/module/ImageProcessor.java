@@ -56,7 +56,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
-public class C_imageProcessor {
+public class ImageProcessor {
 	
 	private static final ImageSetting IMAGESETTING = new ImageSetting();
 	private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(IMAGESETTING.mThreadPoolSum);
@@ -80,7 +80,7 @@ public class C_imageProcessor {
 	}
 	
 	public static void setBitmapConfig(Bitmap.Config bitmapConfig){
-		C_imageProcessor.IMAGESETTING.mBitmapConfig = bitmapConfig;
+		ImageProcessor.IMAGESETTING.mBitmapConfig = bitmapConfig;
 	}
 	
 	public static Bitmap.Config getBitmapConfig(){
@@ -88,7 +88,7 @@ public class C_imageProcessor {
 	}
 	
 	public static void setInNativeAlloc(boolean inNativeAlloc){
-		C_imageProcessor.IMAGESETTING.mInNativeAlloc = inNativeAlloc;
+		ImageProcessor.IMAGESETTING.mInNativeAlloc = inNativeAlloc;
 	}
 	
 	public static boolean getInNativeAlloc(){
@@ -96,7 +96,7 @@ public class C_imageProcessor {
 	}
 	
 	public static void setInputBufferSize(int inputBufferSize){
-		C_imageProcessor.IMAGESETTING.mBufferSize = inputBufferSize;
+		ImageProcessor.IMAGESETTING.mBufferSize = inputBufferSize;
 	}
 	
 	public static int getInputBufferSize(){
@@ -104,7 +104,7 @@ public class C_imageProcessor {
 	}
 	
 	public static void setThreadPoolSum(int threadPoolSum){
-		C_imageProcessor.IMAGESETTING.mThreadPoolSum = threadPoolSum;
+		ImageProcessor.IMAGESETTING.mThreadPoolSum = threadPoolSum;
 	}
 	
 	public static int getThreadPoolSum(){
@@ -112,7 +112,7 @@ public class C_imageProcessor {
 	}
 	
 	public static void setPrintLoadStreamException(boolean isPrintLoadStreamException){
-		C_imageProcessor.IMAGESETTING.mIsPrintLoadException = isPrintLoadStreamException;
+		ImageProcessor.IMAGESETTING.mIsPrintLoadException = isPrintLoadStreamException;
 	}
 	
 	public static boolean isPrintLoadStreamException(){

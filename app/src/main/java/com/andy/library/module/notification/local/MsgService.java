@@ -16,7 +16,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 
-public class C_msgService extends Service {
+public class MsgService extends Service {
 	
 	static String gjunMsg = "NewMsg";
 	
@@ -46,7 +46,7 @@ public class C_msgService extends Service {
 				cal.set(Calendar.SECOND, 0);
 				cal.set(Calendar.MILLISECOND, 0);
 				
-		        intent = new Intent(this, C_msgService.class);
+		        intent = new Intent(this, MsgService.class);
 		        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		        bundle = new Bundle();
 		        bundle.putBoolean("timeWake", true);
@@ -108,12 +108,12 @@ public class C_msgService extends Service {
 			notifi.tickerText = bundle.getString("iconTxt");
 			notifi.defaults = Notification.DEFAULT_ALL;
 			
-	        Intent intent = new Intent(C_msgService.this, C_msgPrompt.class);
+	        Intent intent = new Intent(MsgService.this, MsgPrompt.class);
 	        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	        intent.putExtras(bundle);
-			penIntent = PendingIntent.getActivity(C_msgService.this, 0, intent, 0);
+			penIntent = PendingIntent.getActivity(MsgService.this, 0, intent, 0);
 			
-			notifi.setLatestEventInfo(C_msgService.this, bundle.getString("title"), bundle.getString("msg"), penIntent);
+			notifi.setLatestEventInfo(MsgService.this, bundle.getString("title"), bundle.getString("msg"), penIntent);
 			notifiManager.notify(0, notifi);
 			System.out.println("notify end");
 		}catch (Exception e) {

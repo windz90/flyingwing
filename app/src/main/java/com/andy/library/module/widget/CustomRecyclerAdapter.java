@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unused")
-public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 	
 	protected OnItemClickListener mOnItemClickListener;
 	protected OnItemLongClickListener mOnItemLongClickListener;
@@ -43,11 +43,11 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	private long timeClick;
 
 	public interface OnItemClickListener {
-		void onItemClick(C_customRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
+		void onItemClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
 	}
 
 	public interface OnItemLongClickListener {
-		void onItemLongClick(C_customRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
+		void onItemLongClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
 	}
 	
 	public static abstract class OnItemClickSimpleListener implements RecyclerView.OnItemTouchListener {
@@ -124,7 +124,7 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 	}
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public C_customRecyclerAdapter(Context context){
+	public CustomRecyclerAdapter(Context context){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
 			mSelectorBgRes = Utils.getAttributeResource(context, android.R.attr.selectableItemBackground, android.R.color.white);
 		}else{
@@ -414,7 +414,7 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 					public void onClick(View v) {
 						// 提升對Android 4.0的相容性，避免RecyclerView.ViewHolder的itemView.OnClick重複執行
 						if(System.currentTimeMillis() - timeClick > 300L){
-							mOnItemClickListener.onItemClick(C_customRecyclerAdapter.this, ViewHolder.this, getAdapterPosition());
+							mOnItemClickListener.onItemClick(CustomRecyclerAdapter.this, ViewHolder.this, getAdapterPosition());
 							timeClick = System.currentTimeMillis();
 						}
 					}
@@ -425,7 +425,7 @@ public abstract class C_customRecyclerAdapter extends RecyclerView.Adapter<Recyc
 					
 					@Override
 					public boolean onLongClick(View v) {
-						mOnItemLongClickListener.onItemLongClick(C_customRecyclerAdapter.this, ViewHolder.this, getAdapterPosition());
+						mOnItemLongClickListener.onItemLongClick(CustomRecyclerAdapter.this, ViewHolder.this, getAdapterPosition());
 						return false;
 					}
 				});

@@ -33,7 +33,7 @@ import android.widget.RelativeLayout;
 import com.andy.library.R;
 
 @SuppressWarnings("unused")
-public class C_serviceWindow extends Service {
+public class WindowService extends Service {
 
 	public static final String SERVICE_RUNNING = "serviceRunning";
 	public static final String SERVICE_FOREGROUND_TOGGLE_TRIGGER = "serviceForegroundToggleTrigger";

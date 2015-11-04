@@ -29,7 +29,7 @@ import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
-public class C_imageMatrix{
+public class ImageMatrix {
 	
 	public interface ClickAction{
 		public void distClick(int position);

@@ -1,11 +1,11 @@
 package com.andy.library;
 
 import com.andy.library.R;
-import com.andy.library.module.C_display;
-import com.andy.library.module.C_networkAccess;
+import com.andy.library.module.DisplayTool;
+import com.andy.library.module.NetworkAccess;
 import com.andy.library.module.Utils;
-import com.andy.library.module.C_display.EventCallBack;
-import com.andy.library.module.widget.C_progressDialog;
+import com.andy.library.module.DisplayTool.EventCallBack;
+import com.andy.library.module.widget.CustomProgressDialog;
 import com.andy.library.view.Main;
 
 import android.app.Activity;
@@ -30,14 +30,14 @@ public class First extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.first);
         
-		C_display.setVisibleHeightWaitOnDraw(this, new EventCallBack() {
-			
+		DisplayTool.setVisibleHeightWaitOnDraw(this, new EventCallBack() {
+
 			@Override
 			public void completed(int visibleHe) {
 				Utils.putSharedPreferences(First.this, SP_NAME, Utils.SP_KEY_STATUSBAR_HEIGHT, visibleHe, null);
-				
+
 				isGetVisibleHe = true;
-				if(isLoaded && isGetVisibleHe){
+				if (isLoaded && isGetVisibleHe) {
 					goHome();
 				}
 			}
@@ -54,9 +54,9 @@ public class First extends Activity {
 			}
 		});
         
-        if(C_networkAccess.isConnect(this)){
-        	C_progressDialog.getInstance(this);
-        	C_progressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
+        if(NetworkAccess.isConnect(this)){
+        	CustomProgressDialog.getInstance(this);
+        	CustomProgressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
 				
 				@Override
 				public void onCancel(DialogInterface dialog) {
@@ -78,12 +78,12 @@ public class First extends Activity {
     
 	@Override
 	protected void onDestroy() {
-		C_progressDialog.dismissInstance();
+		CustomProgressDialog.dismissInstance();
 		super.onDestroy();
 	}
     
 	private void goHome(){
-		C_progressDialog.dismissInstance();
+		CustomProgressDialog.dismissInstance();
         Intent intent = new Intent(this, Main.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);

@@ -13,7 +13,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 @SuppressWarnings({"unused", "ForLoopReplaceableByForEach"})
-public class C_encrypt {
+public class EncryptTool {
 	
 	public static final String TYPE_MD2 = "MD2";
 	public static final String TYPE_MD5 = "MD5";

@@ -8,7 +8,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Window;
 
-public class C_msgPrompt extends Activity {
+public class MsgPrompt extends Activity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

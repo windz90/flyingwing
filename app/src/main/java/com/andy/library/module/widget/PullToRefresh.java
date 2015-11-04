@@ -40,7 +40,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 @SuppressLint("NewApi")
-public class C_pullToRefresh {
+public class PullToRefresh {
 	
 	public static int NONE = -1;
 	
@@ -73,9 +73,9 @@ public class C_pullToRefresh {
 	
 	public static abstract class OnRefreshListener{
 		
-		C_pullToRefresh pullToRefresh;
+		PullToRefresh pullToRefresh;
 		
-		public OnRefreshListener(C_pullToRefresh pullToRefresh){
+		public OnRefreshListener(PullToRefresh pullToRefresh){
 			this.pullToRefresh = pullToRefresh;
 		}
 		
@@ -96,7 +96,7 @@ public class C_pullToRefresh {
 		}
 	}
 	
-	public C_pullToRefresh(Context context, int progressViewBackgroundColor, int progressBarDrawableColor, AttributeSet progressBarAttrs
+	public PullToRefresh(Context context, int progressViewBackgroundColor, int progressBarDrawableColor, AttributeSet progressBarAttrs
 			, int progressBarStyleResourceId){
 		if(context == null){
 			throw new IllegalArgumentException("activity cannot be null");
@@ -122,11 +122,11 @@ public class C_pullToRefresh {
 		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
 	}
 	
-	public C_pullToRefresh(Context context, int progressViewBackgroundColor, int progressBarDrawableColor){
+	public PullToRefresh(Context context, int progressViewBackgroundColor, int progressBarDrawableColor){
 		this(context, progressViewBackgroundColor, progressBarDrawableColor, null, android.R.attr.progressBarStyleHorizontal);
 	}
 	
-	public C_pullToRefresh(Context context){
+	public PullToRefresh(Context context){
 		this(context, android.R.color.holo_blue_light, -1, null, android.R.attr.progressBarStyleHorizontal);
 	}
 	

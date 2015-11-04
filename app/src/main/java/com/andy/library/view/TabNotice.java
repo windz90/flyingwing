@@ -1,7 +1,7 @@
 package com.andy.library.view;
 
 import com.andy.library.R;
-import com.andy.library.module.C_imageProcessor;
+import com.andy.library.module.ImageProcessor;
 
 import android.app.TabActivity;
 import android.content.Intent;
@@ -101,17 +101,17 @@ public class TabNotice extends TabActivity {
 		case 0:
 			tabhostLinLay.setGravity(Gravity.RIGHT);
 			if(isSelect){
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.bulletin_tab1down, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.bulletin_tab1down, 1));
 			}else{
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.bulletin_tab1, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.bulletin_tab1, 1));
 			}
 			break;
 		case 1:
 			tabhostLinLay.setGravity(Gravity.LEFT);
 			if(isSelect){
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.bulletin_tab2down, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.bulletin_tab2down, 1));
 			}else{
-				tabhostImg.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.bulletin_tab2, 1));
+				tabhostImg.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.bulletin_tab2, 1));
 			}
 			break;
 		}

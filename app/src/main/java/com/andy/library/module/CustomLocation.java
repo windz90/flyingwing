@@ -30,7 +30,7 @@ import android.os.Handler.Callback;
 import android.provider.Settings;
 import android.widget.Toast;
 
-public class C_customLocation implements LocationListener {
+public class CustomLocation implements LocationListener {
 	
 	public static final int NETWORK = 10;
 	public static final int GPS = 11;
@@ -48,7 +48,7 @@ public class C_customLocation implements LocationListener {
 	private GeoPoint geoPoint;
 	private double longit, latit;
 	
-	public C_customLocation(Context context, MapController mapController){
+	public CustomLocation(Context context, MapController mapController){
 		this.context = context;
 		className = context.getClass().getSimpleName();
 		this.mapController = mapController;

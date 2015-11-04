@@ -25,19 +25,19 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 
 @SuppressWarnings({"unused", "deprecation"})
-public class C_mediaOperator {
+public class MediaOperator {
 	
 	private Context mContext;
 	private MediaPlayer mMediaPlayer;
 	private MediaController mMediaController;
 
-	public C_mediaOperator(Context context, View anchorView){
+	public MediaOperator(Context context, View anchorView){
 		initMediaPlayerAndMediaController(context);
 		setAnchorView(anchorView);
 		mContext = context;
 	}
 
-	public C_mediaOperator(Context context){
+	public MediaOperator(Context context){
 		initMediaPlayerAndMediaController(context);
 		mContext = context;
 	}

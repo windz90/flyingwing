@@ -12,7 +12,7 @@ import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-public class DBhelper extends SQLiteOpenHelper {
+public class DataBaseHelper extends SQLiteOpenHelper {
 	
 	public final static String DATABASE_TEMP_FILE_PATH = "/data/data/com.perfect.test/";
 	public final static String DATABASE_PATH = "/data/data/com.perfect.test/databases/";
@@ -21,7 +21,7 @@ public class DBhelper extends SQLiteOpenHelper {
 	private SQLiteDatabase myDataBase;
 	private Context myContext;
 	
-	public DBhelper(Context context, String name) {
+	public DataBaseHelper(Context context, String name) {
 		super(context, name,  null, DATABASE_VERSION);
 		this.myContext = context;
 	}
@@ -39,11 +39,11 @@ public class DBhelper extends SQLiteOpenHelper {
 			this.getReadableDatabase();
 			try {
 				copyDataBase(name);
-				/*if(name.equals(DBhelper.INFO_DATABASE_NAME)){
-	        		newsVer = share.edit().putString(DBhelper.INFO_DATABASE_NAME, "1.0");
+				/*if(name.equals(DataBaseHelper.INFO_DATABASE_NAME)){
+	        		newsVer = share.edit().putString(DataBaseHelper.INFO_DATABASE_NAME, "1.0");
 	        		newsVer.commit();
-				}else if(name.equals(DBhelper.NOTIFICATION_DATANASE_NAME)){
-					notifyVer = share.edit().putString(DBhelper.NOTIFICATION_DATANASE_NAME, "1.0");
+				}else if(name.equals(DataBaseHelper.NOTIFICATION_DATANASE_NAME)){
+					notifyVer = share.edit().putString(DataBaseHelper.NOTIFICATION_DATANASE_NAME, "1.0");
 					notifyVer.commit();
 				}*/
 			} catch (IOException e) {

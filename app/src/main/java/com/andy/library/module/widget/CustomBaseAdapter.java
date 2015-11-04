@@ -33,10 +33,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.andy.library.R;
-import com.andy.library.module.C_imageProcessor;
-import com.andy.library.module.C_imageProcessor.DownLoadComplete;
+import com.andy.library.module.ImageProcessor;
+import com.andy.library.module.ImageProcessor.DownLoadComplete;
 
-public class C_customAdapter extends BaseAdapter{
+public class CustomBaseAdapter extends BaseAdapter{
 	
 	public static final int STYLE_SIMPLE_LIST = 1;
 	public static final int STYLE_ITEM_LIST = 2;
@@ -59,7 +59,7 @@ public class C_customAdapter extends BaseAdapter{
 	private LayoutInflater itemInflater;
 	private Resources res;
 	
-	public C_customAdapter(Context context, int style){
+	public CustomBaseAdapter(Context context, int style){
 		this.context = context;
 		this.style = style;
 		itemInflater = LayoutInflater.from(context);
@@ -70,36 +70,36 @@ public class C_customAdapter extends BaseAdapter{
 		windowManager.getDefaultDisplay().getMetrics(dm);
 	}
 	
-	public C_customAdapter(Context context, String[] dataArray, int style){
+	public CustomBaseAdapter(Context context, String[] dataArray, int style){
 		this(context, style);
 		setDataArray(dataArray);
 	}
 	
-	public C_customAdapter(Context context, String[][] data2DArray, int style){
+	public CustomBaseAdapter(Context context, String[][] data2DArray, int style){
 		this(context, style);
 		setData2DArray(data2DArray);
 	}
 	
-	public C_customAdapter(Context context, String[][][] data3DArray, int style){
+	public CustomBaseAdapter(Context context, String[][][] data3DArray, int style){
 		this(context, style);
 		setData3DArray(data3DArray);
 	}
 	
-	public C_customAdapter(Context context, Map<String, String> map, int style){
+	public CustomBaseAdapter(Context context, Map<String, String> map, int style){
 		this(context, style);
 	}
 	
-	public C_customAdapter(Context context, List<Map<String, String>> dataList, int style){
+	public CustomBaseAdapter(Context context, List<Map<String, String>> dataList, int style){
 		this(context, style);
 		setDataList(dataList);
 	}
 	
-	public C_customAdapter(Context context, int[] intArray, int style){
+	public CustomBaseAdapter(Context context, int[] intArray, int style){
 		this(context, style);
 		setIntArray(intArray);
 	}
 	
-	public C_customAdapter(Context context, Bitmap[] bitmapArray, int style){
+	public CustomBaseAdapter(Context context, Bitmap[] bitmapArray, int style){
 		this(context, style);
 		setBitmapArray(bitmapArray);
 	}
@@ -294,9 +294,9 @@ public class C_customAdapter extends BaseAdapter{
 		if(style < 10){
 			Bitmap bitmap;
 			if(position % 2 == 1){
-				bitmap = C_imageProcessor.getRawBitmap(res, R.drawable.list_back02, 1);
+				bitmap = ImageProcessor.getRawBitmap(res, R.drawable.list_back02, 1);
 			}else{
-				bitmap = C_imageProcessor.getRawBitmap(res, R.drawable.list_back01, 1);
+				bitmap = ImageProcessor.getRawBitmap(res, R.drawable.list_back01, 1);
 			}
 			BitmapDrawable bd = new BitmapDrawable(res, bitmap);
 			Drawable drawable = bd;
@@ -354,7 +354,7 @@ public class C_customAdapter extends BaseAdapter{
 			TextPaint txtPaint = cadpSimpleListTitle.getPaint();
 			txtPaint.setFakeBoldText(true);
 			
-//			cadpSimpleListImgRight.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.arrow, 1));
+//			cadpSimpleListImgRight.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.arrow, 1));
 			
 			viewArray = new C_viewArray(cadpSimpleListLinLay, cadpSimpleListLinLayHoriz, cadpSimpleListLinLayHorizLeft
 					, cadpSimpleListId, cadpSimpleListArea, cadpSimpleListTitle
@@ -433,7 +433,7 @@ public class C_customAdapter extends BaseAdapter{
 			TextPaint txtPaint = cadpItemListTitle.getPaint();
 			txtPaint.setFakeBoldText(true);
 			
-//			cadpItemListImgRight.setImageBitmap(C_imageProcessor.getRawBitmap(res, R.drawable.arrow, 1));
+//			cadpItemListImgRight.setImageBitmap(ImageProcessor.getRawBitmap(res, R.drawable.arrow, 1));
 			
 			viewArray = new C_viewArray(cadpItemListLinLay, cadpItemListLinLayHoriz, cadpItemListRelLayHorizLeft
 					, cadpItemListLinLayHorizCenter, cadpItemListImgLeft, cadpItemListImgLeftMask
@@ -536,8 +536,8 @@ public class C_customAdapter extends BaseAdapter{
 			return checkImage(bitmap, imageName);
 		}
 		view.setTag(itemURL);
-		bitmap = C_imageProcessor.getImageAsync(context, itemURL, limitSize, 100, imageName, new DownLoadComplete() {
-			
+		bitmap = ImageProcessor.getImageAsync(context, itemURL, limitSize, 100, imageName, new DownLoadComplete() {
+
 			@Override
 			public void cacheImage(String streamURL, Bitmap bitmap) {
 				remoteLoadedImage(streamURL, bitmap);
@@ -547,26 +547,27 @@ public class C_customAdapter extends BaseAdapter{
 			public void localLoadedImage(String streamURL, Bitmap bitmap) {
 				remoteLoadedImage(streamURL, bitmap);
 			}
-			
+
 			@Override
 			public void remoteLoadedImage(String streamURL, Bitmap bitmap) {
-				ImageView imageViewByTag = (ImageView)adapterView.findViewWithTag(streamURL);
-				if(imageViewByTag != null){
-					if(bitmap != null){
+				ImageView imageViewByTag = (ImageView) adapterView.findViewWithTag(streamURL);
+				if (imageViewByTag != null) {
+					if (bitmap != null) {
 						imageViewByTag.setImageBitmap(bitmap);
 					}
 				}
 			}
 
 			@Override
-			public void loadFail(String streamURL) {}
+			public void loadFail(String streamURL) {
+			}
 		});
 		return checkImage(bitmap, imageName);
 	}
 	
 	public Bitmap checkImage(Bitmap bitmap, String imageName){
 		if(bitmap == null){
-			bitmap = C_imageProcessor.getRawBitmap(res, R.drawable.tensile_bg, 1);
+			bitmap = ImageProcessor.getRawBitmap(res, R.drawable.tensile_bg, 1);
 		}
 		return bitmap;
 	}

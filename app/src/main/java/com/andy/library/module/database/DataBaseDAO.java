@@ -41,7 +41,7 @@ public class DataBaseDAO {
 	}
 	
 	public static List<Map<String, String>> findBySQL(Context context, String sql) {
-		DBhelper helper = new DBhelper(context, dataBaseName);
+		DataBaseHelper helper = new DataBaseHelper(context, dataBaseName);
 		SQLiteDatabase dataBase = null;
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		
@@ -72,7 +72,7 @@ public class DataBaseDAO {
 	}
 	
 	public static void findByKey(Context context, String[]getField, String queryField, String appendSql, QueryComplete complete) {
-		DBhelper helper = new DBhelper(context, dataBaseName);
+		DataBaseHelper helper = new DataBaseHelper(context, dataBaseName);
 		SQLiteDatabase dataBase = null;
 		
 		try {
@@ -97,7 +97,7 @@ public class DataBaseDAO {
 	}
 	
 	public static List<Map<String, String>> findByKey(Context context, String[]getField, String queryField, String appendSql) {
-		DBhelper helper = new DBhelper(context, dataBaseName);
+		DataBaseHelper helper = new DataBaseHelper(context, dataBaseName);
 		SQLiteDatabase dataBase = null;
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		
@@ -141,7 +141,7 @@ public class DataBaseDAO {
 	}
 	
 	public static List<Map<String, String>> findByKeyWhere(Context context, String[]getField, String queryField, String key, String value, String appendSql) {
-		DBhelper helper = new DBhelper(context, dataBaseName);
+		DataBaseHelper helper = new DataBaseHelper(context, dataBaseName);
 		SQLiteDatabase dataBase = null;
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		
@@ -188,7 +188,7 @@ public class DataBaseDAO {
 	}
 	
 	public static List<Map<String, String>> findByKeyWhereLike(Context context, String[]getField, String queryField, String key, String value, String appendSql) {
-		DBhelper helper = new DBhelper(context, dataBaseName);
+		DataBaseHelper helper = new DataBaseHelper(context, dataBaseName);
 		SQLiteDatabase dataBase = null;
 		List<Map<String, String>> dataList = new ArrayList<Map<String, String>>();
 		

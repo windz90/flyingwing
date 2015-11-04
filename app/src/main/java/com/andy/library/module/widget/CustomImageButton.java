@@ -15,12 +15,12 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
 
-public class C_customImageButton extends ImageButton{
+public class CustomImageButton extends ImageButton{
 	
 	private String text = "";
 	private TextPaint txtPaint;
 	
-	public C_customImageButton(Context context, AttributeSet attrs) {
+	public CustomImageButton(Context context, AttributeSet attrs) {
 		super(context, attrs);
 		txtPaint = new TextPaint();
 	}
