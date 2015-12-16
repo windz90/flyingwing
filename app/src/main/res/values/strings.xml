@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!-- 首頁 -->
-	<string name="app_name">AndyLibrary</string>
+	<string name="app_name">FlyingWingLibrary</string>
 	
 	<!-- 公用提示 -->
 	<string name="confirm">是否執行？</string>
