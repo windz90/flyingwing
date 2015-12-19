@@ -5,10 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module;
-
-import java.util.Timer;
-import java.util.TimerTask;
+package com.flyingwing.base.graphics;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -28,6 +25,9 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ImageMatrix {
 	

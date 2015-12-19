@@ -1,9 +1,4 @@
-package com.flyingwing.base.module.database;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+package com.flyingwing.base.database;
 
 import android.content.Context;
 import android.database.SQLException;
@@ -11,6 +6,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class DataBaseHelper extends SQLiteOpenHelper {
 	

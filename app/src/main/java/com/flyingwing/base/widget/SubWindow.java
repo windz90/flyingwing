@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module.widget;
+package com.flyingwing.base.widget;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -46,8 +46,8 @@ import android.widget.ScrollView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
-import com.flyingwing.base.R;
-import com.flyingwing.base.module.Utils;
+import com.flyingwing.R;
+import com.flyingwing.base.util.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

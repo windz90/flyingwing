@@ -1,13 +1,5 @@
 package com.flyingwing.base;
 
-import com.flyingwing.base.R;
-import com.flyingwing.base.module.DisplayTool;
-import com.flyingwing.base.module.NetworkAccess;
-import com.flyingwing.base.module.Utils;
-import com.flyingwing.base.module.DisplayTool.EventCallBack;
-import com.flyingwing.base.module.widget.CustomProgressDialog;
-import com.flyingwing.base.view.Main;
-
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -15,6 +7,14 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.Window;
+
+import com.flyingwing.R;
+import com.flyingwing.base.net.NetworkAccess;
+import com.flyingwing.base.util.DisplayUtils;
+import com.flyingwing.base.util.DisplayUtils.EventCallBack;
+import com.flyingwing.base.util.Utils;
+import com.flyingwing.base.view.Main;
+import com.flyingwing.base.widget.CustomProgressDialog;
 
 public class First extends Activity {
 	
@@ -30,11 +30,11 @@ public class First extends Activity {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.first);
         
-		DisplayTool.setVisibleHeightWaitOnDraw(this, new EventCallBack() {
+		DisplayUtils.setVisibleHeightWaitOnDraw(this, new EventCallBack() {
 
 			@Override
 			public void completed(int visibleHe) {
-				Utils.putSharedPreferences(First.this, SP_NAME, Utils.SP_KEY_STATUSBAR_HEIGHT, visibleHe, null);
+				Utils.putSharedPreferences(First.this, SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT, visibleHe, null);
 
 				isGetVisibleHe = true;
 				if (isLoaded && isGetVisibleHe) {

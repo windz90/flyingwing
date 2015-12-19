@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module.widget;
+package com.flyingwing.base.widget;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -18,7 +18,7 @@ import java.util.Map;
 
 import org.xmlpull.v1.XmlPullParserException;
 
-import com.flyingwing.base.R;
+import com.flyingwing.R;
 
 import android.app.Activity;
 import android.content.res.ColorStateList;

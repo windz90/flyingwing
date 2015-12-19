@@ -1,12 +1,12 @@
 package com.flyingwing.base.view;
 
-import com.flyingwing.base.R;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+
+import com.flyingwing.R;
 
 public class CustomActivity extends Activity {
 

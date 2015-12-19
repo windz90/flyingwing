@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module;
+package com.flyingwing.base.net;
 
 import android.content.Context;
 import android.net.ConnectivityManager;

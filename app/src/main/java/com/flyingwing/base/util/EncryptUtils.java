@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module;
+package com.flyingwing.base.util;
 
 import android.util.Base64;
 
@@ -13,7 +13,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 @SuppressWarnings({"unused", "ForLoopReplaceableByForEach"})
-public class EncryptTool {
+public class EncryptUtils {
 	
 	public static final String TYPE_MD2 = "MD2";
 	public static final String TYPE_MD5 = "MD5";

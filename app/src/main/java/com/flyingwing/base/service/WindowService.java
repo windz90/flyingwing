@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module.service;
+package com.flyingwing.base.service;
 
 import android.app.Notification;
 import android.app.Service;
@@ -30,7 +30,7 @@ import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 
-import com.flyingwing.base.R;
+import com.flyingwing.R;
 
 @SuppressWarnings("unused")
 public class WindowService extends Service {

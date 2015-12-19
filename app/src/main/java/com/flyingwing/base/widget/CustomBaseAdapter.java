@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module.widget;
+package com.flyingwing.base.widget;
 
 import java.util.List;
 import java.util.Map;
@@ -32,9 +32,9 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.flyingwing.base.R;
-import com.flyingwing.base.module.ImageProcessor;
-import com.flyingwing.base.module.ImageProcessor.DownLoadComplete;
+import com.flyingwing.R;
+import com.flyingwing.base.graphics.ImageProcessor;
+import com.flyingwing.base.graphics.ImageProcessor.DownLoadComplete;
 
 public class CustomBaseAdapter extends BaseAdapter{
 	

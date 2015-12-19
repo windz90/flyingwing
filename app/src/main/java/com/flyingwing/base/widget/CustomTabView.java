@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module.widget;
+package com.flyingwing.base.widget;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -32,7 +32,7 @@ import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.RelativeLayout;
 
-import com.flyingwing.base.R;
+import com.flyingwing.R;
 
 import java.util.ArrayList;
 import java.util.List;

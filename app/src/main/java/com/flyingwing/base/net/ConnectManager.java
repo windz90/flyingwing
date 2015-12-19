@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module;
+package com.flyingwing.base.net;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,8 +16,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.flyingwing.base.module.NetworkAccess.ConnectionResult;
-import com.flyingwing.base.module.widget.CustomProgressDialog;
+import com.flyingwing.base.widget.CustomProgressDialog;
 
 import java.net.HttpURLConnection;
 import java.util.concurrent.ExecutorService;
@@ -61,7 +60,7 @@ public abstract class ConnectManager {
 			return mHandler;
 		}
 		
-		public abstract ConnectionResult runConnectAction();
+		public abstract NetworkAccess.ConnectionResult runConnectAction();
 		
 		public abstract HttpURLConnection runHttpURLConnection();
 	}
@@ -192,11 +191,11 @@ public abstract class ConnectManager {
 	}
 	
 	public static abstract class ConnectListener {
-		public void noNetworkConnection(ConnectionResult connectionResult){}
-		public void connectFail(ConnectionResult connectionResult){}
-		public void connected(ConnectionResult connectionResult){}
-		public abstract void loadFail(ConnectionResult connectionResult);
-		public abstract void loaded(ConnectionResult connectionResult);
+		public void noNetworkConnection(NetworkAccess.ConnectionResult connectionResult){}
+		public void connectFail(NetworkAccess.ConnectionResult connectionResult){}
+		public void connected(NetworkAccess.ConnectionResult connectionResult){}
+		public abstract void loadFail(NetworkAccess.ConnectionResult connectionResult);
+		public abstract void loaded(NetworkAccess.ConnectionResult connectionResult);
 		public void onCancelForegroundWait(DialogInterface dialog){}
 	}
 	
@@ -422,7 +421,7 @@ public abstract class ConnectManager {
 	}
 	
 	private static Message noNetworkConnection(){
-		ConnectionResult connectionResult = new ConnectionResult();
+		NetworkAccess.ConnectionResult connectionResult = new NetworkAccess.ConnectionResult();
 		connectionResult.setStatusMessage("Connect Fail No Network Connection");
 		Message msg = new Message();
 		msg.obj = connectionResult;
@@ -430,7 +429,7 @@ public abstract class ConnectManager {
 	}
 	
 	private static Message connecting(ConnectAction action){
-		ConnectionResult connectionResult = action.runConnectAction();
+		NetworkAccess.ConnectionResult connectionResult = action.runConnectAction();
 		Message msg = new Message();
 		msg.obj = connectionResult;
 		if(connectionResult.getStatusMessage().contains("Connect Fail StatusCode ")){
@@ -468,16 +467,16 @@ public abstract class ConnectManager {
 	private static void reply(Message msg, ConnectListener listener){
 		if(msg.what == 0 || msg.what == NetworkAccess.CONNECTION_CONNECT_FAIL){
 			if(msg.what == 0){
-				listener.noNetworkConnection((ConnectionResult)msg.obj);
+				listener.noNetworkConnection((NetworkAccess.ConnectionResult)msg.obj);
 			}
-			listener.connectFail((ConnectionResult)msg.obj);
-			listener.loadFail((ConnectionResult)msg.obj);
+			listener.connectFail((NetworkAccess.ConnectionResult)msg.obj);
+			listener.loadFail((NetworkAccess.ConnectionResult)msg.obj);
 		}else if(msg.what == NetworkAccess.CONNECTION_CONNECTED){
-			listener.connected((ConnectionResult)msg.obj);
+			listener.connected((NetworkAccess.ConnectionResult)msg.obj);
 		}else if(msg.what == NetworkAccess.CONNECTION_LOAD_FAIL){
-			listener.loadFail((ConnectionResult)msg.obj);
+			listener.loadFail((NetworkAccess.ConnectionResult)msg.obj);
 		}else if(msg.what == NetworkAccess.CONNECTION_LOADED){
-			listener.loaded((ConnectionResult)msg.obj);
+			listener.loaded((NetworkAccess.ConnectionResult)msg.obj);
 		}
 	}
 }

@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.module;
+package com.flyingwing.base.util;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -23,7 +23,7 @@ import android.view.Window;
 import android.view.WindowManager;
 
 @SuppressWarnings({"unused", "UnnecessaryLocalVariable"})
-public class DisplayTool {
+public class DisplayUtils {
 	
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;
