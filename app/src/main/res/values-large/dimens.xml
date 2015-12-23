@@ -1,3 +1,4 @@
 <resources>
-    <dimen name="toolbarHeight">@dimen/dip64</dimen>
+	<!-- 480dp of available width. -->
+	<dimen name="toolbarHeight">@dimen/dip64</dimen>
 </resources>
