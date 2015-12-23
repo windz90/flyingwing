@@ -74,6 +74,7 @@
 		<!-- colorAccent : widgets checked tint -->
 		<item name="colorAccent">@color/accent_material_light</item>
 		
+		<!-- navigation icon and overflow menu icon color -->
 		<item name="colorControlNormal">?android:attr/textColorSecondary</item>
 		<item name="colorControlActivated">?attr/colorAccent</item>
 		<item name="colorControlHighlight">@color/ripple_material_light</item>
