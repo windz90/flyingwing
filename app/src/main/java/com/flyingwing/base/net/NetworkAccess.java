@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.7
+ * @version 3.4.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -10,7 +10,6 @@ package com.flyingwing.base.net;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.NetworkInfo.State;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
@@ -107,7 +106,7 @@ public class NetworkAccess {
 			, boolean isSkipDataRead, Handler handler){
 		ConnectionResult connectionResult = new ConnectionResult();
 		connectionResult.setStatusMessage("Connect Fail No Network Connection");
-		if(isConnect(context)){
+		if(isAvailable(context)){
 			connectUseHttpURLConnection(context, httpUrl, objectArray, null, isSkipDataRead, connectionResult, handler);
 		}
 		return connectionResult;
@@ -154,7 +153,7 @@ public class NetworkAccess {
 	 */
 	public static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, boolean isSkipDataRead){
-		if(isConnect(context)){
+		if(isAvailable(context)){
 			return connectUseHttpURLConnection(context, httpUrl, objectArray, null, isSkipDataRead, null, null);
 		}
 		return null;
@@ -171,7 +170,7 @@ public class NetworkAccess {
 	 */
 	private static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, String requestRangeIndex, boolean isSkipDataRead){
-		if(isConnect(context)){
+		if(isAvailable(context)){
 			return connectUseHttpURLConnection(context, httpUrl, objectArray, requestRangeIndex, isSkipDataRead, null, null);
 		}
 		return null;
@@ -548,41 +547,10 @@ public class NetworkAccess {
 		return object;
 	}
 	
-	public static boolean isConnectedSelectedType(Context context, int connectivityManagerType) {
+	public static boolean isAvailable(Context context) {
 		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo networkInfo = connectivityManager.getNetworkInfo(connectivityManagerType);
-		if(networkInfo != null){
-			State state = networkInfo.getState();
-			if(state == State.CONNECTED){
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public static boolean isConnectedMobileNetwork(Context context) {
-		return isConnectedSelectedType(context, ConnectivityManager.TYPE_MOBILE);
-	}
-	
-	public static boolean isConnectedWIFI(Context context) {
-		return isConnectedSelectedType(context, ConnectivityManager.TYPE_WIFI);
-	}
-	
-	public static boolean isConnect(Context context) {
-		boolean isConnect = false;
-		ConnectivityManager connectManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-		if(connectManager.getActiveNetworkInfo() != null){
-			isConnect = connectManager.getActiveNetworkInfo().isAvailable();
-		}
-//		NetworkInfo[] networkInfo = connectManager.getAllNetworkInfo();
-//		if(networkInfo != null){
-//			for(int i=0; i<networkInfo.length; i++){
-//				if(networkInfo[i].getState() == NetworkInfo.State.CONNECTED){
-//					return true;
-//				}
-//			}
-//		}
-		return isConnect;
+		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+		return networkInfo != null && networkInfo.isAvailable();
 	}
 	
 	public static class ConnectionResult {

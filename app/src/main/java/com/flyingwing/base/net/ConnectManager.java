@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.4
+ * @version 3.2.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -200,7 +200,7 @@ public abstract class ConnectManager {
 	}
 	
 	public static void baseConnection(Looper looper, ConnectAction action, final ConnectListener listener){
-		if(!NetworkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isAvailable(action.getContext())){
 			reply(noNetworkConnection(), listener);
 			return;
 		}
@@ -250,7 +250,7 @@ public abstract class ConnectManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if(!NetworkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isAvailable(action.getContext())){
 			Message msg = runModeHandle(noNetworkConnection(), setting.mRunMode, setting.mDialogDismiss);
 			if(setting.mUseHandler){
 				if(handler == null){
@@ -338,7 +338,7 @@ public abstract class ConnectManager {
 			}
 		});
 		action.setConnectStatusHandler(handler);
-		if(!NetworkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isAvailable(action.getContext())){
 			handler.sendMessage(noNetworkConnection());
 			return;
 		}
@@ -365,7 +365,7 @@ public abstract class ConnectManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		if(!NetworkAccess.isConnect(action.getContext())){
+		if(!NetworkAccess.isAvailable(action.getContext())){
 			if(handler == null){
 				Log.w("Handler", "Can't create handler inside thread that has not called Looper.prepare()");
 			}else{
