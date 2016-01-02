@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.7
+ * @version 1.0.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -23,7 +23,6 @@ import com.flyingwing.base.util.Utils;
 
 import org.json.JSONArray;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,8 +33,8 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	protected OnItemLongClickListener mOnItemLongClickListener;
 	protected Handler mHandler;
 	protected String[][] m2DArray;
-	protected List<Object> mList;
-	protected List<Map<String, Object>> mComplexList;
+	protected List<? super Object> mList;
+	protected List<Map<String, ? super Object>> mComplexList;
 	protected JSONArray mJsonArray;
 	protected int mSelectorBgRes;
 	protected int mItemWidth, mItemHeight;
@@ -109,10 +108,10 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	}
 
 	public void addRangeItemIn2DArray(String[][] stringArray, int positionStart){
-		if(m2DArray == null || stringArray == null || stringArray.length == 0 || positionStart > m2DArray.length){
+		if(m2DArray == null || stringArray == null || stringArray.length == 0 || m2DArray.length < positionStart){
 			return;
 		}
-		String[][] dataArrayNew = new String[m2DArray.length + stringArray.length][2];
+		String[][] dataArrayNew = new String[m2DArray.length + stringArray.length][];
 		if(m2DArray.length == positionStart){
 			if(m2DArray.length > 0){
 				System.arraycopy(m2DArray, 0, dataArrayNew, 0, m2DArray.length);
@@ -131,6 +130,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		}
 		m2DArray = dataArrayNew;
 		notifyItemRangeInserted(positionStart, stringArray.length);
+		notifyItemRangeChanged(positionStart, stringArray.length);
 	}
 
 	public void addItemIn2DArray(String[] stringItem, int index){
@@ -145,12 +145,15 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	}
 
 	public void updateItemForm2DArray(String[] stringItem, int index){
-		updateRangeItemForm2DArray(new String[][]{stringItem}, index);
+		if(m2DArray != null && m2DArray.length > index){
+			m2DArray[index] = stringItem;
+			notifyItemRangeChanged(index, 1);
+		}
 	}
 
 	public void removeRangeItemFrom2DArray(int positionStart, int itemCount){
 		if(m2DArray != null && m2DArray.length >= positionStart + itemCount){
-			String[][] dataArrayNew = new String[m2DArray.length - itemCount][2];
+			String[][] dataArrayNew = new String[m2DArray.length - itemCount][];
 			for(int i=0; i< m2DArray.length; i++){
 				if(i < positionStart){
 					dataArrayNew[i] = m2DArray[i];
@@ -160,6 +163,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 			}
 			m2DArray = dataArrayNew;
 			notifyItemRangeRemoved(positionStart, itemCount);
+			notifyItemRangeChanged(positionStart, itemCount);
 		}
 	}
 
@@ -167,29 +171,34 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		removeRangeItemFrom2DArray(index, 1);
 	}
 
-	public void setComplexList(List<Map<String, Object>> list){
+	public void setComplexList(List<Map<String, ? super Object>> list){
 		mComplexList = list;
 	}
 	
-	public List<Map<String, Object>> getComplexList(){
+	public List<Map<String, ? super Object>> getComplexList(){
 		return mComplexList;
 	}
 
-	public void addRangeItemInComplexList(List<Map<String, Object>> list, int positionStart){
-		if(mComplexList != null) {
+	public void addRangeItemInComplexList(List<Map<String, ? super Object>> list, int positionStart){
+		if(mComplexList != null && mComplexList.size() >= positionStart){
 			int size = list.size();
 			for(int i=0; i<size; i++){
 				mComplexList.add(positionStart + i, list.get(i));
 			}
 			notifyItemRangeInserted(positionStart, size);
+			notifyItemRangeChanged(positionStart, size);
 		}
 	}
 
-	public void addItemInComplexList(Map<String, Object> map, int index){
-		addRangeItemInComplexList(Collections.singletonList(map), index);
+	public void addItemInComplexList(Map<String, ? super Object> map, int index){
+		if(mComplexList != null && mComplexList.size() >= index){
+			mComplexList.add(index, map);
+			notifyItemRangeInserted(index, 1);
+			notifyItemRangeChanged(index, 1);
+		}
 	}
 
-	public void updateRangeItemFormComplexList(List<Map<String, Object>> list, int positionStart){
+	public void updateRangeItemFormComplexList(List<Map<String, ? super Object>> list, int positionStart){
 		int size = list.size();
 		if(mComplexList != null && mComplexList.size() >= positionStart + size){
 			for (int i = 0; i < size; i++) {
@@ -199,8 +208,11 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		}
 	}
 
-	public void updateItemFormComplexList(Map<String, Object> map, int index){
-		updateRangeItemFormComplexList(Collections.singletonList(map), index);
+	public void updateItemFormComplexList(Map<String, ? super Object> map, int index){
+		if(mComplexList != null && mComplexList.size() > index){
+			mComplexList.set(index, map);
+			notifyItemRangeChanged(index, 1);
+		}
 	}
 
 	public void removeRangeItemFromComplexList(int positionStart, int itemCount){
@@ -209,6 +221,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 				mComplexList.remove(positionStart + i);
 			}
 			notifyItemRangeRemoved(positionStart, itemCount);
+			notifyItemRangeChanged(positionStart, itemCount);
 		}
 	}
 
@@ -216,29 +229,34 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		removeRangeItemFromComplexList(index, 1);
 	}
 
-	public void setList(List<Object> list){
+	public void setList(List<? super Object> list){
 		mList = list;
 	}
 
-	public List<Object> getList(){
+	public List<? super Object> getList(){
 		return mList;
 	}
 
-	public void addRangeItemInList(List<Object> list, int positionStart){
-		if(mList != null) {
+	public void addRangeItemInList(List<? super Object> list, int positionStart){
+		if(mList != null && mList.size() >= positionStart){
 			int size = list.size();
 			for(int i=0; i<size; i++){
 				mList.add(positionStart + i, list.get(i));
 			}
 			notifyItemRangeInserted(positionStart, size);
+			notifyItemRangeChanged(positionStart, size);
 		}
 	}
 
 	public void addItemInList(Object object, int index){
-		addRangeItemInList(Collections.singletonList(object), index);
+		if(mList != null && mList.size() >= index){
+			mList.add(index, object);
+			notifyItemRangeInserted(index, 1);
+			notifyItemRangeChanged(index, 1);
+		}
 	}
 
-	public void updateRangeItemFormList(List<Object> list, int positionStart){
+	public void updateRangeItemFormList(List<? super Object> list, int positionStart){
 		int size = list.size();
 		if(mList != null && mList.size() >= positionStart + size){
 			for (int i = 0; i < size; i++) {
@@ -249,7 +267,10 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	}
 
 	public void updateItemFormComplexList(Object object, int index){
-		updateRangeItemFormList(Collections.singletonList(object), index);
+		if(mList != null && mList.size() > index){
+			mList.set(index, object);
+			notifyItemRangeChanged(index, 1);
+		}
 	}
 
 	public void removeRangeItemFromList(int positionStart, int itemCount){
@@ -258,6 +279,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 				mList.remove(positionStart + i);
 			}
 			notifyItemRangeRemoved(positionStart, itemCount);
+			notifyItemRangeChanged(positionStart, itemCount);
 		}
 	}
 
@@ -274,7 +296,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	}
 	
 	public void addRangeItemInJSONArray(JSONArray jsonArray, int positionStart){
-		if(mJsonArray != null){
+		if(mJsonArray != null && mJsonArray.length() >= positionStart){
 			int length = jsonArray.length();
 			for(int i=0; i<length; i++){
 				try {
@@ -282,11 +304,18 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 				} catch (Exception ignored) {}
 			}
 			notifyItemRangeInserted(positionStart, length);
+			notifyItemRangeChanged(positionStart, length);
 		}
 	}
 
 	public void addItemInJSONArray(Object object, int index){
-		addRangeItemInJSONArray(new JSONArray(Collections.singletonList(object)), index);
+		if(mJsonArray != null && mJsonArray.length() >= index){
+			try {
+				mJsonArray.put(index, object);
+			} catch (Exception ignored) {}
+		}
+		notifyItemRangeInserted(index, 1);
+		notifyItemRangeChanged(index, 1);
 	}
 
 	public void updateRangeItemFormJSONArray(JSONArray jsonArray, int positionStart){
@@ -304,16 +333,23 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	}
 
 	public void updateItemFormJSONArray(Object object, int index){
-		updateRangeItemFormJSONArray(new JSONArray(Collections.singletonList(object)), index);
+		if(mJsonArray != null && mJsonArray.length() > index){
+			List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
+			if(list != null){
+				list.set(index, object);
+				notifyItemRangeChanged(index, 1);
+			}
+		}
 	}
 
 	public void removeRangeItemFromJSONArray(int positionStart, int itemCount){
 		if(mJsonArray != null && mJsonArray.length() >= positionStart + itemCount){
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 				for(int i=0; i<itemCount; i++){
-					mJsonArray.remove(positionStart + itemCount);
+					mJsonArray.remove(positionStart + i);
 				}
 				notifyItemRangeRemoved(positionStart, itemCount);
+				notifyItemRangeChanged(positionStart, itemCount);
 				return;
 			}
 			List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
@@ -322,6 +358,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 					list.remove(positionStart + i);
 				}
 				notifyItemRangeRemoved(positionStart, itemCount);
+				notifyItemRangeChanged(positionStart, itemCount);
 			}
 		}
 	}
