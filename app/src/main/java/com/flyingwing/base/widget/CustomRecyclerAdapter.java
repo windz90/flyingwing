@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.6
+ * @version 1.0.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -43,53 +43,21 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	private long timeClick;
 
 	public interface OnItemClickListener {
-		void onItemClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
+		void onItemClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, String clickDescription, int position);
 	}
 
 	public interface OnItemLongClickListener {
-		void onItemLongClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, int position);
+		void onItemLongClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, String clickDescription, int position);
 	}
 	
-	public static abstract class OnItemClickSimpleListener implements RecyclerView.OnItemTouchListener {
+	public static abstract class OnItemTouchListener implements RecyclerView.OnItemTouchListener {
 		
 		GestureDetector mGestureDetector;
 		
-		public abstract void onItemClick(RecyclerView recyclerView, View childView, int position);
+		public abstract void onItemClick(RecyclerView recyclerView, View itemView, String clickDescription, int position);
+		public void onItemLongClick(RecyclerView recyclerView, View itemView, String clickDescription, int position){}
 		
-		public OnItemClickSimpleListener(Context context){
-			mGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener(){
-
-				@Override
-				public boolean onSingleTapUp(MotionEvent e) {
-					return true;
-				}
-			});
-		}
-		
-		@Override
-		public boolean onInterceptTouchEvent(RecyclerView recyclerView, MotionEvent e) {
-			if(mGestureDetector != null){
-				View childView = recyclerView.findChildViewUnder(e.getX(), e.getY());
-				if(childView != null && mGestureDetector.onTouchEvent(e)){
-					onItemClick(recyclerView, childView, recyclerView.getChildAdapterPosition(childView));
-					return true;
-				}
-			}
-			return false;
-		}
-
-		@Override
-		public void onTouchEvent(RecyclerView recyclerView, MotionEvent Event) {}
-	}
-	
-	public static abstract class OnItemClickMultipleListener implements RecyclerView.OnItemTouchListener {
-		
-		GestureDetector mGestureDetector;
-		
-		public abstract void onItemClick(RecyclerView recyclerView, View childView, int position);
-		public abstract void onItemLongClick(RecyclerView recyclerView, View childView, int position);
-		
-		public OnItemClickMultipleListener(Context context, final RecyclerView recyclerView){
+		public OnItemTouchListener(Context context, final RecyclerView recyclerView){
 			mGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener(){
 
 				@Override
@@ -101,7 +69,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 				public void onLongPress(MotionEvent e) {
 					View childView = recyclerView.findChildViewUnder(e.getX(), e.getY());
 					if(childView != null){
-						onItemLongClick(recyclerView, childView, recyclerView.getChildAdapterPosition(childView));
+						onItemLongClick(recyclerView, childView, "itemView", recyclerView.getChildAdapterPosition(childView));
 					}
 				}
 			});
@@ -112,7 +80,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 			if(mGestureDetector != null){
 				View childView = recyclerView.findChildViewUnder(e.getX(), e.getY());
 				if(childView != null && mGestureDetector.onTouchEvent(e)){
-					onItemClick(recyclerView, childView, recyclerView.getChildAdapterPosition(childView));
+					onItemClick(recyclerView, childView, "itemView", recyclerView.getChildAdapterPosition(childView));
 					return true;
 				}
 			}
@@ -120,7 +88,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		}
 
 		@Override
-		public void onTouchEvent(RecyclerView recyclerView, MotionEvent Event) {}
+		public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
 	}
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -414,7 +382,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 					public void onClick(View v) {
 						// 提升對Android 4.0的相容性，避免RecyclerView.ViewHolder的itemView.OnClick重複執行
 						if(System.currentTimeMillis() - timeClick > 300L){
-							mOnItemClickListener.onItemClick(CustomRecyclerAdapter.this, ViewHolder.this, getAdapterPosition());
+							mOnItemClickListener.onItemClick(CustomRecyclerAdapter.this, ViewHolder.this, "itemView", getAdapterPosition());
 							timeClick = System.currentTimeMillis();
 						}
 					}
@@ -425,7 +393,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 					
 					@Override
 					public boolean onLongClick(View v) {
-						mOnItemLongClickListener.onItemLongClick(CustomRecyclerAdapter.this, ViewHolder.this, getAdapterPosition());
+						mOnItemLongClickListener.onItemLongClick(CustomRecyclerAdapter.this, ViewHolder.this, "itemView", getAdapterPosition());
 						return false;
 					}
 				});
