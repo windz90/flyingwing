@@ -1,4 +1,4 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 23
@@ -10,7 +10,7 @@ android {
         }
     }
     defaultConfig {
-        applicationId "com.flyingwing"
+//        applicationId "com.flyingwing"
         manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/icon"]
         minSdkVersion 8
         targetSdkVersion 23
@@ -49,9 +49,9 @@ android {
             buildConfigField "boolean", "DEBUG_LOG", "false"
             shrinkResources true
             zipAlignEnabled true
-            minifyEnabled true
+//            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.andy
+//            signingConfig signingConfigs.andy
         }
     }
 

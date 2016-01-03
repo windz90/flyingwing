@@ -3,7 +3,6 @@
           package="com.flyingwing">
 
     <application
-        android:name="com.flyingwing.base.Global"
         android:allowBackup="true"
         android:fullBackupContent="@xml/backup_content"
         android:icon="@mipmap/ic_launcher"
@@ -12,10 +11,6 @@
         <activity
             android:name="com.flyingwing.base.First"
             android:configChanges="orientation|screenSize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
         </activity>
         <activity
             android:name="com.flyingwing.base.view.Main"
