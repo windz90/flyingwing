@@ -20,8 +20,6 @@ import com.flyingwing.base.widget.CustomProgressDialog;
 
 public class First extends Activity {
 
-	public static final String SP_NAME = "test";
-
 	private boolean isLoaded;
 	private boolean isGetVisibleHe;
 
@@ -45,11 +43,11 @@ public class First extends Activity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.layout_relative);
 
-		DisplayUtils.setVisibleHeightWaitOnDraw(this, new EventCallback() {
+		DisplayUtils.measureVisibleHeightWaitOnDraw(this, new EventCallback() {
 
 			@Override
 			public void completed(int visibleHe) {
-				Utils.putSharedPreferences(First.this, SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT
+				Utils.putSharedPreferences(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT
 						, DisplayUtils.getDisplayMetricsFromWindowManager(First.this).heightPixels - visibleHe, null);
 
 				isGetVisibleHe = true;
