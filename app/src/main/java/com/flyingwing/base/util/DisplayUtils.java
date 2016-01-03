@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.5
+ * @version 3.2.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -19,6 +19,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 
@@ -29,7 +30,7 @@ public class DisplayUtils {
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;
 	public static final int DISPLAY = 2;
 	
-	public interface EventCallBack{
+	public interface EventCallback {
 		void completed(int visibleHe);
 	}
 	
@@ -97,12 +98,12 @@ public class DisplayUtils {
 	}
 	
 	public static void printDisplayMetrics(DisplayMetrics displayMetrics){
-		System.out.println("widthPixels " + displayMetrics.widthPixels + "\n" + 
-				"heightPixels " + displayMetrics.heightPixels + "\n" + 
-				"density " + displayMetrics.density + "\n" + 
-				"scaledDensity " + displayMetrics.scaledDensity + "\n" + 
-				"densityDpi " + displayMetrics.densityDpi + "\n" + 
-				"xdpi " + displayMetrics.xdpi + "\n" + 
+		System.out.println("widthPixels " + displayMetrics.widthPixels + "\n" +
+				"heightPixels " + displayMetrics.heightPixels + "\n" +
+				"density " + displayMetrics.density + "\n" +
+				"scaledDensity " + displayMetrics.scaledDensity + "\n" +
+				"densityDpi " + displayMetrics.densityDpi + "\n" +
+				"xdpi " + displayMetrics.xdpi + "\n" +
 				"ydpi " + displayMetrics.ydpi);
 	}
 	
@@ -118,14 +119,23 @@ public class DisplayUtils {
 		return width < height ? height : width;
 	}
 	
-	public static void setVisibleHeightWaitOnDraw(final Activity activity, final EventCallBack callBack){
-        activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).post(new Runnable() {
-			
+	public static void measureVisibleHeightWaitOnDraw(final View view, final EventCallback eventCallback){
+		view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 			@Override
-			public void run() {
-				callBack.completed(measureVisibleHeightForOnDraw(activity));
+			public void onGlobalLayout() {
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+					view.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+				} else {
+					//noinspection deprecation
+					view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+				}
+				eventCallback.completed(measureVisibleHeightForOnDraw(view));
 			}
 		});
+	}
+	
+	public static void measureVisibleHeightWaitOnDraw(Activity activity, EventCallback eventCallback){
+		measureVisibleHeightWaitOnDraw(activity.getWindow().getDecorView(), eventCallback);
 	}
 	
 	public static int measureVisibleWidthForOnDraw(View view){
@@ -147,6 +157,10 @@ public class DisplayUtils {
 		return Math.abs(rect.top - rect.bottom);
 	}
 	
+	public static int measureVisibleHeightForOnDraw(Activity activity){
+		return measureVisibleHeightForOnDraw(activity.getWindow().getDecorView());
+	}
+	
 	/**
 	 * Not contain StatusBar and TitleBar
 	 */
@@ -155,10 +169,6 @@ public class DisplayUtils {
 		rect.top = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getTop();
 		rect.bottom = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getBottom();
 		return Math.abs(rect.top - rect.bottom);
-	}
-	
-	public static int measureVisibleHeightForOnDraw(Activity activity){
-		return measureVisibleHeightForOnDraw(activity.getWindow().getDecorView());
 	}
 	
 	public static int measureStatusBarHeightForOnDraw(Activity activity){

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.3
+ * @version 3.4.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -27,7 +27,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
 import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.content.res.Resources.Theme;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -40,8 +39,6 @@ import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Debug;
@@ -60,6 +57,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
@@ -657,12 +655,16 @@ public class Utils {
 		return isFillScreen(displayMetrics, limitDipWidth);
 	}
 	
+	public static int getVisibleHeightSP(Context context, DisplayMetrics displayMetrics, String spName){
+		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
+		return visibleHe;
+	}
+	
 	public static int getVisibleHeightSP(Context context, String spName){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
-		return visibleHe;
+		return getVisibleHeightSP(context, displayMetrics, spName);
 	}
 	
 	public static int getStatusBarHeightSP(Context context, String spName){
@@ -670,27 +672,6 @@ public class Utils {
 		return sp.getInt(Utils.SP_KEY_STATUS_BAR_HEIGHT, 0);
 	}
 	
-	public static int getVisibleHeight(DisplayMetrics displayMetrics){
-		int visibleHe = displayMetrics.heightPixels - getStatusBarHeight(0);
-		return visibleHe;
-	}
-
-	public static int getStatusBarHeight(int defValue){
-		Resources res = Resources.getSystem();
-		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
-		if(resourceId > 0){
-			return res.getDimensionPixelSize(resourceId);
-		}
-		return defValue;
-	}
-	
-	public static int getVisibleHeight(Context context){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		return getVisibleHeight(displayMetrics);
-	}
-
 	public static TypedValue getAttribute(Context context, int attrResource){
 		TypedValue typedValue = new TypedValue();
 		Theme theme = context.getTheme();
@@ -1417,6 +1398,19 @@ public class Utils {
 		return null;
 	}
 	
+	public static Object removeJSONArrayItem(JSONArray jsonArray, int index){
+		if(jsonArray != null && jsonArray.length() > index){
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+				return jsonArray.remove(index);
+			}
+			List list = Utils.reflectionJSONArrayToList(jsonArray);
+			if(list != null && list.size() > index){
+				return list.remove(index);
+			}
+		}
+		return null;
+	}
+	
 	public static JSONObject newJSONObject(String data){
 		try {
 			return new JSONObject(data);
@@ -1629,7 +1623,7 @@ public class Utils {
 		return intent;
 	}
 	
-	public static Intent getActionSendtoIntentForEmail(String mailToUri, String subject, String text){
+	public static Intent getActionSendToIntentForEmail(String mailToUri, String subject, String text){
 		if(!TextUtils.isEmpty(mailToUri)){
 			return null;
 		}
@@ -1741,6 +1735,19 @@ public class Utils {
 			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
 		}
 		return intent;
+	}
+	
+	public static void finishAPP(Activity activity){
+		// Force kill process
+//		android.os.Process.killProcess(android.os.Process.myPid());
+		// Finish current task
+//		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+//			activity.finishAffinity();
+//		}
+		Intent intent = new Intent(Intent.ACTION_MAIN);
+		intent.addCategory(Intent.CATEGORY_HOME);
+		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		activity.startActivity(intent);
 	}
 	
 	public static void callContentSelection(final Activity activity, String intentType, boolean allowMultiple, final int requestCode
@@ -2078,17 +2085,6 @@ public class Utils {
 		return androidID;
 	}
 	
-	// 取得手機Wifi網路卡的MAC值
-	public static String getWifiMAC(Context context){
-		// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-		if(context.checkCallingPermission(android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
-			return null;
-		}
-		WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-		return wifiInfo.getMacAddress();
-	}
-	
 	public static boolean isScreenOn(Context context, boolean isCheckInteractive){
 		PowerManager powerManager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH){
@@ -2103,18 +2099,54 @@ public class Utils {
 			}
 			return false;
 		}
+		//noinspection deprecation
 		return powerManager.isScreenOn();
 	}
 
+	public static String[] checkRequestPermissions(Context context, String[] permissions){
+		String textNeedRequestPermissions = "";
+		for(int i=0; i<permissions.length; i++){
+			if(ContextCompat.checkSelfPermission(context, permissions[i]) == PackageManager.PERMISSION_DENIED){
+				textNeedRequestPermissions += i == 0 ? "" : "\n" + permissions[i];
+			}
+		}
+		return textNeedRequestPermissions.split("\n");
+	}
+
+	public static String[] checkNeedRationaleRequestPermissions(Activity activity, String[] permissions){
+		String textNeedRationalePermissions = "";
+		for(int i=0; i<permissions.length; i++){
+			if(ContextCompat.checkSelfPermission(activity, permissions[i]) == PackageManager.PERMISSION_DENIED){
+				if(ActivityCompat.shouldShowRequestPermissionRationale(activity, permissions[i])){
+					textNeedRationalePermissions += i == 0 ? "" : "\n" + permissions[i];
+				}
+			}
+		}
+		return textNeedRationalePermissions.split("\n");
+	}
+
+	public static void requestPermissionsForResult(Activity activity, String[] permissions, int requestCode){
+		String textNeedRequestPermissions = "";
+		for(int i=0; i<permissions.length; i++){
+			if(ContextCompat.checkSelfPermission(activity, permissions[i]) == PackageManager.PERMISSION_DENIED){
+				textNeedRequestPermissions += i == 0 ? "" : "\n" + permissions[i];
+			}
+		}
+		ActivityCompat.requestPermissions(activity, textNeedRequestPermissions.split("\n"), requestCode);
+	}
+
 	// 判斷此Activity是否正在前端執行
-	@SuppressWarnings("deprecation")
+	/**@deprecated */
 	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
-		if(context.checkCallingPermission(android.Manifest.permission.GET_TASKS) == PackageManager.PERMISSION_DENIED){
+		//noinspection deprecation
+		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.GET_TASKS) == PackageManager.PERMISSION_DENIED){
 			return false;
 		}
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-		String runningClassName = activityManager.getRunningTasks(1).get(0).topActivity.getClassName();
+		//noinspection deprecation
+		List<ActivityManager.RunningTaskInfo> list = activityManager.getRunningTasks(1);
+		String runningClassName = list.get(0).topActivity.getClassName();
 		return context.getClass().getName().equals(runningClassName);
 	}
 	
@@ -2153,6 +2185,7 @@ public class Utils {
 	}
 	
 	// Click Home key or App switch key
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public static boolean isRunningAppOnKeep(Context context, String packageName){
 		return isRunningAppOnState(context, packageName, RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE);
 	}
@@ -2347,7 +2380,7 @@ public class Utils {
 		// <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
 		// 某些機種需要讀取權限
 		// <uses-permission android:name="android.permission.READ_CONTACTS"/>
-		if(context.checkCallingPermission(android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
 			return false;
 		}
 		try {
@@ -2429,7 +2462,7 @@ public class Utils {
 	// 取得手機資訊
 	public static List<Map<String, String>> getPhoneInfo(Context context){
 		// <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-		if(context.checkCallingPermission(android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
 			return null;
 		}
 
@@ -2739,7 +2772,6 @@ public class Utils {
 		clearViewGroup((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
 	}
 	
-	@SuppressWarnings("deprecation")
 	public static void clearViewInsideDrawable(View view, boolean foreground, boolean background, boolean isIndicatesGC){
 		/*
 		Known Direct Subclasses
@@ -2763,7 +2795,12 @@ public class Utils {
 		
 		if(background){
 			clearDrawable(view.getBackground());
-			view.setBackgroundDrawable(null);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				view.setBackground(null);
+			}else{
+				//noinspection deprecation
+				view.setBackgroundDrawable(null);
+			}
 		}
 		
 		if(isIndicatesGC){
