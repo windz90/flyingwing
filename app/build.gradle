@@ -11,12 +11,12 @@ android {
     }
     defaultConfig {
         applicationId "com.flyingwing"
+        manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/icon"]
         minSdkVersion 8
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
         multiDexEnabled true
-        manifestPlaceholders = [UMENG_CHANNEL_VALUE: "default_channel"]
     }
     buildTypes {
         debug {
