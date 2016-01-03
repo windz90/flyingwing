@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:id="@+id/layoutScrollFrameLay"
+	android:id="@+id/layout_scroll_frame_layout"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent">
 	<ScrollView
-		android:id="@+id/layoutScrollFrameScrollView"
+		android:id="@+id/layout_scroll_frame_scroll_view"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content">
 		<FrameLayout
-			android:id="@+id/layoutScrollFrameScrFrameLay"
+			android:id="@+id/layout_scroll_frame_scroll_frame_layout"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content">
 		</FrameLayout>
