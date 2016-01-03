@@ -25,26 +25,26 @@
 		<item name="toolbarNavigationButtonStyle">@style/ToolbarNavigationButtonStyleMaterial</item>
 		
 		<!-- Text colors -->
-		<item name="textColorPrimary">@color/primary_text_material_light</item>
-		<item name="textColorPrimaryInverse">@color/primary_text_material_dark</item>
-		<item name="textColorPrimaryActivated">@color/primary_text_inverse_when_activated_material</item>
-		<item name="textColorSecondary">@color/secondary_text_material_light</item>
-		<item name="textColorSecondaryInverse">@color/secondary_text_material_dark</item>
-		<item name="textColorSecondaryActivated">@color/secondary_text_inverse_when_activated_material</item>
-		<item name="textColorTertiary">@color/secondary_text_material_light</item>
-		<item name="textColorTertiaryInverse">@color/secondary_text_material_dark</item>
-		<item name="textColorPrimaryDisableOnly">@color/primary_text_disable_only_material_light</item>
-		<item name="textColorPrimaryInverseDisableOnly">@color/primary_text_disable_only_material_dark</item>
-		<item name="textColorHint">@color/hint_foreground_material_light</item>
-		<item name="textColorHintInverse">@color/hint_foreground_material_dark</item>
-		<item name="textColorHighlight">@color/highlighted_text_material</item>
-		<item name="textColorHighlightInverse">@color/highlighted_text_material</item>
-		<item name="textColorLink">?attr/colorAccent</item>
-		<item name="textColorLinkInverse">?attr/colorAccent</item>
+		<!--<item name="textColorPrimary">@color/primary_text_material_light</item>-->
+		<!--<item name="textColorPrimaryInverse">@color/primary_text_material_dark</item>-->
+		<!--<item name="textColorPrimaryActivated">@color/primary_text_inverse_when_activated_material</item>-->
+		<!--<item name="textColorSecondary">@color/secondary_text_material_light</item>-->
+		<!--<item name="textColorSecondaryInverse">@color/secondary_text_material_dark</item>-->
+		<!--<item name="textColorSecondaryActivated">@color/secondary_text_inverse_when_activated_material</item>-->
+		<!--<item name="textColorTertiary">@color/secondary_text_material_light</item>-->
+		<!--<item name="textColorTertiaryInverse">@color/secondary_text_material_dark</item>-->
+		<!--<item name="textColorPrimaryDisableOnly">@color/primary_text_disable_only_material_light</item>-->
+		<!--<item name="textColorPrimaryInverseDisableOnly">@color/primary_text_disable_only_material_dark</item>-->
+		<!--<item name="textColorHint">@color/hint_foreground_material_light</item>-->
+		<!--<item name="textColorHintInverse">@color/hint_foreground_material_dark</item>-->
+		<!--<item name="textColorHighlight">@color/highlighted_text_material</item>-->
+		<!--<item name="textColorHighlightInverse">@color/highlighted_text_material</item>-->
+		<!--<item name="textColorLink">?attr/colorAccent</item>-->
+		<!--<item name="textColorLinkInverse">?attr/colorAccent</item>-->
 		
 		<!-- Text styles -->
-		<item name="textAppearance">@style/TextAppearance.Material</item>
-		<item name="textAppearanceInverse">@style/TextAppearance.Material.Inverse</item>
+		<!--<item name="textAppearance">@style/TextAppearance.Material</item>-->
+		<!--<item name="textAppearanceInverse">@style/TextAppearance.Material.Inverse</item>-->
 		
 		<!-- Action Bar Styles -->
 		<item name="actionButtonStyle">@style/ActionButtonStyleMaterial</item>

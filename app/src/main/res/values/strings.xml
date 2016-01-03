@@ -2,38 +2,40 @@
 <resources>
 	<!-- 首頁 -->
 	<string name="app_name">FlyingWingLibrary</string>
-	
+
 	<!-- 公用提示 -->
-	<string name="confirm">是否執行？</string>
-	<string name="yes">是</string>
-	<string name="no">否</string>
-	<string name="on">開</string>
-	<string name="off">關</string>
-	<string name="ok">確定</string>
-	<string name="cancel">取消</string>
-	<string name="finish">完成</string>
-	<string name="back">返回</string>
-	<string name="submit">送出</string>
-	<string name="edit">編輯</string>
-	<string name="modify">修改</string>
-	<string name="delete">刪除</string>
-	<string name="exit">離開</string>
-	<string name="open">開啟</string>
-	<string name="close">關閉</string>
-	<string name="quit">結束本程式</string>
-	<string name="launching">啟動中</string>
-	<string name="initialize">初始化</string>
-	<string name="loading">載入中</string>
-	<string name="uploading">上傳中</string>
-	<string name="connecting">連線中</string>
-	<string name="need_wait">本次執行可能較為耗時，請耐心等候</string>
-	<string name="no_data">沒有資料</string>
-	<string name="no_search_results">沒有搜尋結果</string>
-	<string name="no_app_item">沒有可選程式</string>
-	<string name="out_of_memory_error">所需記憶體不足</string>
-	<string name="connection_fail">連線未成功</string>
-	<string name="no_network_connection">沒有網路連線</string>
-	<string name="other_error">未知的錯誤</string>
-	<string name="unknown_error">不明錯誤</string>
-	<string name="locate_fail">沒有緯經度資料，無法定位</string>
+	<string name="confirm">Are you sure?</string>
+	<string name="yes">Yes</string>
+	<string name="no">No</string>
+	<string name="on">On</string>
+	<string name="off">Off</string>
+	<string name="ok">OK</string>
+	<string name="cancel">Cancel</string>
+	<string name="finish">Complete</string>
+	<string name="back">Back</string>
+	<string name="submit">Submit</string>
+	<string name="edit">Edit</string>
+	<string name="modify">Modify</string>
+	<string name="delete">Delete</string>
+	<string name="exit">Quit</string>
+	<string name="open">Open</string>
+	<string name="close">Close</string>
+	<string name="quit">End program</string>
+	<string name="launching">Launching</string>
+	<string name="initialize">Initializing</string>
+	<string name="loading">Loading</string>
+	<string name="uploading">Uploading</string>
+	<string name="connecting">Connecting</string>
+	<string name="need_wait">Please wait for a while</string>
+	<string name="no_data">No data found</string>
+	<string name="no_search_results">No result</string>
+	<string name="no_app_item">No application</string>
+	<string name="permission_denied">Permission denied</string>
+	<string name="out_of_memory_error">Out of memory</string>
+	<string name="connection_fail">Connection failed</string>
+	<string name="no_network_connection">No network connection</string>
+	<string name="try_again">Please try again</string>
+	<string name="other_error">Other Error</string>
+	<string name="unknown_error">Unknown error</string>
+	<string name="locate_fail">No GPS coordinates. Can\'t locate your position.</string>
 </resources>
