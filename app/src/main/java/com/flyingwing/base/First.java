@@ -1,7 +1,6 @@
 package com.flyingwing.base;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
@@ -11,7 +10,8 @@ import android.view.Window;
 
 import com.flyingwing.BuildConfig;
 import com.flyingwing.R;
-import com.flyingwing.base.net.NetworkUtils;
+import com.flyingwing.base.graphics.ImageProcessor;
+import com.flyingwing.base.net.NetworkAccess;
 import com.flyingwing.base.util.DisplayUtils;
 import com.flyingwing.base.util.DisplayUtils.EventCallback;
 import com.flyingwing.base.util.Utils;
@@ -19,9 +19,6 @@ import com.flyingwing.base.view.Main;
 import com.flyingwing.base.widget.CustomProgressDialog;
 
 public class First extends Activity {
-
-	private boolean isLoaded;
-	private boolean isGetVisibleHe;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +40,10 @@ public class First extends Activity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.layout_relative);
 
+		NetworkAccess.setPrintConnectionUrl(BuildConfig.DEBUG_LOG);
+		NetworkAccess.setPrintConnectException(BuildConfig.DEBUG_LOG);
+		ImageProcessor.setPrintLoadStreamException(false);
+
 		DisplayUtils.measureVisibleHeightWaitOnDraw(this, new EventCallback() {
 
 			@Override
@@ -50,43 +51,11 @@ public class First extends Activity {
 				Utils.putSharedPreferences(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT
 						, DisplayUtils.getDisplayMetricsFromWindowManager(First.this).heightPixels - visibleHe, null);
 
-				isGetVisibleHe = true;
-				if (isLoaded) {
-					goHome();
-				}
+				next();
 			}
 		});
-
-		if(!NetworkUtils.isAvailable(this)){
-			isLoaded = true;
-			if(isGetVisibleHe){
-				goHome();
-			}
-			return;
-		}
 
 		CustomProgressDialog.getInstance(this);
-		CustomProgressDialog.getInstanceDialog().setOnCancelListener(new DialogInterface.OnCancelListener() {
-
-			@Override
-			public void onCancel(DialogInterface dialog) {
-				isLoaded = true;
-				if (isGetVisibleHe) {
-					goHome();
-				}
-			}
-		});
-
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				isLoaded = true;
-				if(isGetVisibleHe){
-					goHome();
-				}
-			}
-		}).start();
 	}
 
 	@Override
@@ -95,7 +64,7 @@ public class First extends Activity {
 		super.onDestroy();
 	}
 
-	private void goHome(){
+	private void next(){
 		CustomProgressDialog.dismissInstance();
 		Intent intent = new Intent(this, Main.class);
 		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
