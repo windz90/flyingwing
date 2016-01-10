@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -11,9 +11,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -34,18 +34,26 @@ public class SocketUDP {
 	private DatagramPacket mDatagramPacketReceive;
 	private DatagramPacket mDatagramPacketSend;
 	private ReadWriteLock mReadWriteLock;
-	private boolean mIsStopReceiver;
-	
+	private boolean mIsStopKeepReceiver;
+
+	/**
+	 * syncReceive() can call stopKeepReceiver() or close() stop receiver or close socket.<br/>
+	 * bundle include:<br/>
+	 * Serializable : InetAddress<br/>
+	 * Serializable : InetSocketAddress<br/>
+	 * int : port<br/>
+	 * byte[] : data
+	 */
 	public static abstract class SocketCallback {
 
 		private Handler handler;
 
-		protected void setAsyncCallback(int what, Bundle bundle){
+		protected void setCallbackForMainThread(int what, Bundle bundle){
 			if(handler == null){
 				handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 					@Override
 					public boolean handleMessage(Message msg) {
-						asyncCallback(msg);
+						receiveForMainThread(msg);
 						return false;
 					}
 				});
@@ -55,14 +63,24 @@ public class SocketUDP {
 			handler.sendMessage(message);
 		}
 
-		public abstract void syncEvent(Bundle bundle);
-		public abstract void asyncCallback(Message message);
+		public void syncReceive(Bundle bundle){}
+		public abstract void receiveForMainThread(Message message);
 	}
 
-	public SocketUDP(int portLocal){
+	public SocketUDP(boolean isReuseAddress, @IntRange(from = 0, to = 65535) int portLocal){
+		try {
+			mDatagramSocket = new DatagramSocket(null);
+			mDatagramSocket.setReuseAddress(isReuseAddress);
+			mDatagramSocket.bind(new InetSocketAddress(portLocal));
+			mReadWriteLock = new ReentrantReadWriteLock();
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public SocketUDP(@IntRange(from = 0, to = 65535) int portLocal){
 		try {
 			mDatagramSocket = new DatagramSocket(portLocal);
-			mDatagramSocket.setBroadcast(true);
 			mReadWriteLock = new ReentrantReadWriteLock();
 		} catch (SocketException e) {
 			e.printStackTrace();
@@ -86,9 +104,9 @@ public class SocketUDP {
 		return false;
 	}
 
-	public void setReuseAddress(boolean reuse){
+	public void setReuseAddress(boolean isReuse){
 		try {
-			mDatagramSocket.setReuseAddress(reuse);
+			mDatagramSocket.setReuseAddress(isReuse);
 		} catch (SocketException e) {
 			e.printStackTrace();
 		}
@@ -127,7 +145,7 @@ public class SocketUDP {
 		}
 	}
 
-	public void connect(@NonNull InetAddress inetAddress, int portRemote){
+	public void connect(@NonNull InetAddress inetAddress, @IntRange(from=0, to=65535) int portRemote){
 		try {
 			mDatagramSocket.connect(new InetSocketAddress(inetAddress, portRemote));
 		} catch (SocketException e) {
@@ -142,47 +160,90 @@ public class SocketUDP {
 	public boolean isConnected(){
 		return mDatagramSocket.isConnected();
 	}
+	
+	private void receiverPacketImpl(@NonNull Bundle bundle, @NonNull SocketCallback socketCallback, @NonNull String charsetName){
+		try {
+			mDatagramSocket.receive(mDatagramPacketReceive);
+
+			byte[] bytes = mDatagramPacketReceive.getData();
+			String data = new String(bytes == null ? new byte[0] : bytes, mDatagramPacketReceive.getOffset(), mDatagramPacketReceive.getLength(), charsetName);
+
+			bundle.remove("InetAddress");
+			bundle.remove("InetSocketAddress");
+			bundle.remove("port");
+			bundle.remove("data");
+
+			bundle.putSerializable("InetAddress", mDatagramPacketReceive.getAddress());
+			bundle.putSerializable("InetSocketAddress", mDatagramPacketReceive.getSocketAddress());
+			bundle.putInt("port", mDatagramPacketReceive.getPort());
+			bundle.putString("data", data);
+
+			socketCallback.syncReceive(bundle);
+			socketCallback.setCallbackForMainThread(STATE_RECEIVER_SUCCESS, bundle);
+		} catch (Exception e) {
+			e.printStackTrace();
+			socketCallback.setCallbackForMainThread(STATE_RECEIVER_FAIL, null);
+		}
+	}
 
 	/**
 	 * @param packetDataLength receiver packet max length.
-	 * @param socketCallback sync event can call stopReceiver() or close() stop receiver or close socket, bundle include:<br/>
-	 * Serializable : InetAddress,
-	 * Serializable : InetSocketAddress,
-	 * int : port,
-	 * byte[] : data
 	 */
-	public void receiverPacket(int packetDataLength, @NonNull final SocketCallback socketCallback){
+	public void receiverPacket(int packetDataLength, @NonNull final SocketCallback socketCallback, @NonNull final String charsetName){
+		// receiver one packet, DatagramPacket must re-new, avoid receiving old packet.
 		mDatagramPacketReceive = new DatagramPacket(new byte[packetDataLength], packetDataLength);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				Bundle bundle;
-				while (!mIsStopReceiver && !isClosed()) {
-					try {
-						mDatagramSocket.receive(mDatagramPacketReceive);
-
-						bundle = new Bundle();
-						bundle.putSerializable("InetAddress", mDatagramPacketReceive.getAddress());
-						bundle.putSerializable("InetSocketAddress", mDatagramPacketReceive.getSocketAddress());
-						bundle.putInt("port", mDatagramPacketReceive.getPort());
-						bundle.putByteArray("data", mDatagramPacketReceive.getData());
-
-						socketCallback.syncEvent(bundle);
-						socketCallback.setAsyncCallback(STATE_RECEIVER_SUCCESS, bundle);
-					} catch (IOException e) {
-						e.printStackTrace();
-						socketCallback.setAsyncCallback(STATE_RECEIVER_FAIL, null);
-					}
+				if (!isClosed()) {
+					bundle = new Bundle();
+					receiverPacketImpl(bundle, socketCallback, charsetName);
 				}
 			}
 		}).start();
 	}
-	
-	public void stopReceiver(){
-		mIsStopReceiver = true;
+
+	/**
+	 * @param packetDataLength receiver packet max length.
+	 */
+	public void receiverPacket(int packetDataLength, @NonNull final SocketCallback socketCallback) {
+		receiverPacket(packetDataLength, socketCallback, "ISO-8859-1");
 	}
 
-	public void sendPacket(String data, InetAddress inetAddress, int portRemote, final int sendCount, final SocketCallback socketCallback){
+	/**
+	 * @param packetDataLength receiver packet max length.
+	 */
+	public void receiverPacketKeep(int packetDataLength, @NonNull final SocketCallback socketCallback, @NonNull final String charsetName){
+		mDatagramPacketReceive = new DatagramPacket(new byte[packetDataLength], packetDataLength);
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				Bundle bundle;
+				while (!mIsStopKeepReceiver && !isClosed()) {
+					bundle = new Bundle();
+					receiverPacketImpl(bundle, socketCallback, charsetName);
+				}
+			}
+		}).start();
+	}
+
+	/**
+	 * @param packetDataLength receiver packet max length.
+	 */
+	public void receiverPacketKeep(int packetDataLength, @NonNull final SocketCallback socketCallback) {
+		receiverPacketKeep(packetDataLength, socketCallback, "ISO-8859-1");
+	}
+
+	public void stopKeepReceiver(boolean isStopReceiver){
+		mIsStopKeepReceiver = isStopReceiver;
+	}
+
+	public boolean isStopKeepReceiver(){
+		return mIsStopKeepReceiver;
+	}
+
+	public void sendPacket(String data, InetAddress inetAddress, @IntRange(from=0, to=65535) int portRemote, final int sendCount, final SocketCallback socketCallback){
 		byte[] bytes = data.getBytes();
 		mDatagramPacketSend = new DatagramPacket(bytes, bytes.length, inetAddress, portRemote);
 		new Thread(new Runnable() {
@@ -193,12 +254,12 @@ public class SocketUDP {
 					try {
 						mDatagramSocket.send(mDatagramPacketSend);
 						isSendSuccess = true;
-					} catch (IOException e) {
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}
 				if(socketCallback != null){
-					socketCallback.setAsyncCallback(isSendSuccess ? STATE_SEND_SUCCESS : STATE_SEND_FAIL, null);
+					socketCallback.setCallbackForMainThread(isSendSuccess ? STATE_SEND_SUCCESS : STATE_SEND_FAIL, null);
 				}
 			}
 		}).start();
