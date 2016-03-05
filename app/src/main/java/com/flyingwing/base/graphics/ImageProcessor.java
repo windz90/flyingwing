@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.3
+ * @version 3.5.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -48,6 +48,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.lang.ref.SoftReference;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -320,10 +321,9 @@ public class ImageProcessor {
 		// 取得app路徑/data/data/packageName
 		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
 		File file = new File(insidePath + path);
-		if(!file.exists()){
-			if(!file.mkdirs()){
-				System.out.println("directory already existed");
-			}
+		if(!file.exists() && !file.mkdirs()){
+			System.out.println("directory cannot create");
+			return;
 		}
 		file = new File(insidePath + path + imageName);
 		try {
@@ -448,75 +448,76 @@ public class ImageProcessor {
 	public static void writeSDCardImageFile(Bitmap bitmap, int quality, String directory, String imageName){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
-		if(sdCardExist){
-			// 取得sdCard路徑/mnt/sdcard
-			File file = Environment.getExternalStorageDirectory();
-			String sdCardPath = file.toString() + File.separator;
-			if(directory.indexOf(sdCardPath) == 0){
-				sdCardPath = "";
-			}
-			file = new File(sdCardPath + directory);
-			if(!file.exists()){
-				if(!file.mkdirs()){
-					System.out.println("directory already existed");
-				}
-			}
-			file = new File(sdCardPath + directory + imageName);
+		if(!sdCardExist){
+			return;
+		}
+		// 取得sdCard路徑/mnt/sdcard
+		File file = Environment.getExternalStorageDirectory();
+		String sdCardPath = file.toString() + File.separator;
+		if(directory.indexOf(sdCardPath) == 0){
+			sdCardPath = "";
+		}
+		file = new File(sdCardPath + directory);
+		if(!file.exists() && !file.mkdirs()){
+			System.out.println("directory cannot create");
+			return;
+		}
+		file = new File(sdCardPath + directory + imageName);
+		try {
+			FileOutputStream fileOutStream = new FileOutputStream(file, false);
 			try {
-				FileOutputStream fileOutStream = new FileOutputStream(file, false);
-				try {
-					bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
-					fileOutStream.flush();
-				} finally {
-					fileOutStream.close();
-					fileOutStream = null;
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
+				bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
+				fileOutStream.flush();
+			} finally {
+				fileOutStream.close();
+				fileOutStream = null;
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	
 	public static Bitmap readSDCardImageFile(String directory, String imageName, int inSampleSize, boolean isUseBuffer){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
-		if(sdCardExist){
-			// 取得sdCard路徑/mnt/sdcard
-			File file = Environment.getExternalStorageDirectory();
-			String sdCardPath = file.toString() + File.separator;
-			if(directory.indexOf(sdCardPath) == 0){
-				sdCardPath = "";
-			}
-			Bitmap bitmap;
-			if(isUseBuffer){
-				bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, inSampleSize);
-				if(bitmap != null){
-					return bitmap;
-				}
-			}
-			file = new File(sdCardPath + directory + imageName);
-			if(!file.isFile()){
-				return null;
-			}
-			try {
-				InputStream is = new FileInputStream(file);
-				try {
-					bitmap = getAgileBitmap(is, inSampleSize);
-				} finally {
-					is.close();
-					is = null;
-				}
-				if(isUseBuffer){
-					setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
-				}
+		if(!sdCardExist){
+			return null;
+		}
+		// 取得sdCard路徑/mnt/sdcard
+		File file = Environment.getExternalStorageDirectory();
+		String sdCardPath = file.toString() + File.separator;
+		if(directory.indexOf(sdCardPath) == 0){
+			sdCardPath = "";
+		}
+		Bitmap bitmap;
+		if(isUseBuffer){
+			bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, inSampleSize);
+			if(bitmap != null){
 				return bitmap;
-			} catch (Exception e) {
-				e.printStackTrace();
-			} catch (OutOfMemoryError e) {
-				file = null;
-				bitmap = null;
-				e.printStackTrace();
 			}
+		}
+		file = new File(sdCardPath + directory + imageName);
+		if(!file.isFile()){
+			return null;
+		}
+		try {
+			InputStream is = new FileInputStream(file);
+			try {
+				bitmap = getAgileBitmap(is, inSampleSize);
+			} finally {
+				is.close();
+				is = null;
+			}
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, inSampleSize);
+			}
+			return bitmap;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} catch (OutOfMemoryError e) {
+			file = null;
+			bitmap = null;
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -528,58 +529,59 @@ public class ImageProcessor {
 	public static Bitmap readSDCardImageFile(String directory, String imageName, float specifiedSize, boolean isUseBuffer){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
-		if(sdCardExist){
-			// 取得sdCard路徑/mnt/sdcard
-			File file = Environment.getExternalStorageDirectory();
-			String sdCardPath = file.toString() + File.separator;
-			if(directory.indexOf(sdCardPath) == 0){
-				sdCardPath = "";
-			}
-			file = new File(sdCardPath + directory + imageName);
-			if(!file.isFile()){
-				return null;
-			}
-			InputStream is;
-			int scale = 1;
+		if(!sdCardExist){
+			return null;
+		}
+		// 取得sdCard路徑/mnt/sdcard
+		File file = Environment.getExternalStorageDirectory();
+		String sdCardPath = file.toString() + File.separator;
+		if(directory.indexOf(sdCardPath) == 0){
+			sdCardPath = "";
+		}
+		file = new File(sdCardPath + directory + imageName);
+		if(!file.isFile()){
+			return null;
+		}
+		InputStream is;
+		int scale = 1;
+		try {
+			is = new FileInputStream(file);
 			try {
-				is = new FileInputStream(file);
-				try {
-					scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
-				} finally {
-					is.close();
-					is = null;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Bitmap bitmap;
-			try {
-				if(isUseBuffer){
-					bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, scale);
-					if(bitmap != null){
-						return bitmap;
-					}
-				}
-				
-				is = new FileInputStream(file);
-				try {
-					bitmap = getAgileBitmap(is, scale);
-				} finally {
-					is.close();
-					is = null;
-				}
-				if(isUseBuffer){
-					setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
-				}
-				return bitmap;
-			} catch (Exception e) {
-				e.printStackTrace();
-			} catch (OutOfMemoryError e) {
-				file = null;
+				scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
+			} finally {
+				is.close();
 				is = null;
-				bitmap = null;
-				e.printStackTrace();
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		Bitmap bitmap;
+		try {
+			if(isUseBuffer){
+				bitmap = getBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD, scale);
+				if(bitmap != null){
+					return bitmap;
+				}
+			}
+
+			is = new FileInputStream(file);
+			try {
+				bitmap = getAgileBitmap(is, scale);
+			} finally {
+				is.close();
+				is = null;
+			}
+			if(isUseBuffer){
+				setBufferBitmap(bitmap, file.toString(), SAMPLE_WORD, scale);
+			}
+			return bitmap;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} catch (OutOfMemoryError e) {
+			file = null;
+			is = null;
+			bitmap = null;
+			e.printStackTrace();
 		}
 		return null;
 	}
@@ -591,18 +593,18 @@ public class ImageProcessor {
 	public static boolean deleteSDCardImageFile(Context context, String directory, String imageName){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
-		if(sdCardExist){
-			// 取得sdCard路徑/mnt/sdcard
-			File file = Environment.getExternalStorageDirectory();
-			String sdCardPath = file.toString() + File.separator;
-			if(directory.indexOf(sdCardPath) == 0){
-				sdCardPath = "";
-			}
-			deleteBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD);
-			file = new File(sdCardPath + directory + imageName);
-			return file.delete();
+		if(!sdCardExist){
+			return false;
 		}
-		return false;
+		// 取得sdCard路徑/mnt/sdcard
+		File file = Environment.getExternalStorageDirectory();
+		String sdCardPath = file.toString() + File.separator;
+		if(directory.indexOf(sdCardPath) == 0){
+			sdCardPath = "";
+		}
+		deleteBufferBitmap(sdCardPath + directory + imageName, SAMPLE_WORD);
+		file = new File(sdCardPath + directory + imageName);
+		return file.delete();
 	}
 	
 	public static void writeImageFile(File file, Bitmap bitmap, int quality){
@@ -703,9 +705,13 @@ public class ImageProcessor {
 		streamURL = streamURL.replace("\\(", "%28");
 		streamURL = streamURL.replace("\\)", "%29");
 		URL url = new URL(streamURL);
-		InputStream inputStream = url.openStream();
-		byte[] bytes = inputStreamToByteArray(inputStream, IMAGESETTING.mBufferSize);
-		inputStream.close();
+		HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+		byte[] bytes;
+		try {
+			bytes = inputStreamToByteArray(httpURLConnection.getInputStream(), IMAGESETTING.mBufferSize);
+		} finally {
+			httpURLConnection.disconnect();
+		}
 		return bytes;
 	}
 	
