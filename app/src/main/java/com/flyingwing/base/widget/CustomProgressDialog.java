@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.5
+ * @version 2.3.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -10,126 +10,164 @@ package com.flyingwing.base.widget;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 @SuppressWarnings("unused")
 public class CustomProgressDialog {
-	
-	private static CustomProgressDialog sProgress;
-	
+
+	private static final CustomProgressDialog sProgress = new CustomProgressDialog();
+
 	private Context mContext;
 	private Dialog mDialog;
-	private LinearLayout mLinLay;
+	private RelativeLayout mRelativeLayout;
 	private TextView mTextView;
-	
-	public CustomProgressDialog(Context context, String message){
+
+	public void createDialog(Context context, String message){
 		mContext = context;
-		
-		int itemWi;
-		LayoutParams linLayPar;
-		
+
+		int itemWi, itemHe, space;
+		RelativeLayout.LayoutParams relativeLayoutParams;
+
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		
-		mLinLay = new LinearLayout(context);
-		mTextView = new TextView(context);
-		
+
 		itemWi = (int)(dm.widthPixels * 0.8f);
-		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
-		mLinLay.setLayoutParams(linLayPar);
-		mLinLay.setOrientation(LinearLayout.HORIZONTAL);
-		mLinLay.setBackgroundResource(android.R.color.white);
-		mLinLay.setGravity(Gravity.CENTER);
-		
-		ProgressBar loadingBar = new ProgressBar(context);
-		
-		linLayPar = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		mTextView.setLayoutParams(linLayPar);
-		mTextView.setTextColor(0xFFC0C0C0);
+		relativeLayoutParams = new RelativeLayout.LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
+		mRelativeLayout = new RelativeLayout(context);
+		mRelativeLayout.setBackgroundResource(android.R.color.white);
+		mRelativeLayout.setLayoutParams(relativeLayoutParams);
+		mRelativeLayout.setGravity(Gravity.CENTER);
+
+		relativeLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		relativeLayoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+		ProgressBar progressBar = new ProgressBar(context);
+		progressBar.setId(android.R.id.progress);
+		progressBar.setLayoutParams(relativeLayoutParams);
+		mRelativeLayout.addView(progressBar);
+
+		relativeLayoutParams = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		relativeLayoutParams.addRule(RelativeLayout.RIGHT_OF, progressBar.getId());
+		relativeLayoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+		mTextView = new TextView(context);
+		mTextView.setId(android.R.id.content);
+		mTextView.setLayoutParams(relativeLayoutParams);
+		mTextView.setGravity(Gravity.CENTER);
+		mTextView.setTextColor(ContextCompat.getColor(context, android.R.color.primary_text_light));
 		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-		
-		mLinLay.addView(loadingBar);
-		mLinLay.addView(mTextView);
-		
+		mRelativeLayout.addView(mTextView);
+
+		if(TextUtils.isEmpty(message)){
+			mTextView.setVisibility(View.GONE);
+		}
+
 		mTextView.setText(message);
-		
+
 		mDialog = new Dialog(context);
 		mDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		mDialog.setContentView(mLinLay);
+		mDialog.setContentView(mRelativeLayout);
 		mDialog.setCanceledOnTouchOutside(false);
-		
+
 		itemWi = (int)((dm.widthPixels / dm.heightPixels < 1 ? dm.widthPixels : dm.heightPixels) * 0.89f);
-		WindowManager.LayoutParams windowLayPar = mDialog.getWindow().getAttributes();
-		windowLayPar.x = 0;
-		windowLayPar.y = 0;
-		windowLayPar.width = itemWi;
+		WindowManager.LayoutParams windowManagerLayoutParams = mDialog.getWindow().getAttributes();
+		windowManagerLayoutParams.x = 0;
+		windowManagerLayoutParams.y = 0;
+		windowManagerLayoutParams.width = itemWi;
 //		dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-		mDialog.getWindow().setAttributes(windowLayPar);
+		mDialog.getWindow().setAttributes(windowManagerLayoutParams);
 	}
-	
-	public CustomProgressDialog(Context context){
-		this(context, null);
+
+	public void createDialog(Context context){
+		createDialog(context, null);
 	}
-	
+
+	public void setDialog(Dialog dialog){
+		mDialog = dialog;
+	}
+
 	public Dialog getDialog(){
 		return mDialog;
 	}
 	
+	public TextView getTextView(){
+		return mTextView;
+	}
+
 	public void setCancelable(boolean isCancel){
 		mDialog.setCancelable(isCancel);
 	}
-	
+
 	public void setMessage(final String message){
 		if(mTextView == null){
 			return;
 		}
-		if(mContext instanceof Activity){
-			((Activity)mContext).runOnUiThread(new Runnable() {
-				
-				@Override
-				public void run() {
-					mTextView.setText(message);
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				RelativeLayout.LayoutParams relativeLayoutParams = (RelativeLayout.LayoutParams) mRelativeLayout.findViewById(android.R.id.progress).getLayoutParams();
+				if(TextUtils.isEmpty(message)){
+					relativeLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+					mTextView.setVisibility(View.GONE);
+				}else{
+					relativeLayoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+					mTextView.setVisibility(View.VISIBLE);
 				}
-			});
+				mTextView.setText(message);
+			}
+		};
+		if(mContext instanceof Activity){
+			((Activity)mContext).runOnUiThread(runnable);
 		}else{
-			mTextView.setText(message);
+			runnable.run();
 		}
 	}
-	
+
 	public void appendMessage(final String message){
 		if(mTextView == null){
 			return;
 		}
-		if(mContext instanceof Activity){
-			((Activity)mContext).runOnUiThread(new Runnable() {
-				
-				@Override
-				public void run() {
-					mTextView.append(message);
+		Runnable runnable = new Runnable() {
+
+			@Override
+			public void run() {
+				RelativeLayout.LayoutParams relativeLayoutParams = (RelativeLayout.LayoutParams) mRelativeLayout.findViewById(android.R.id.progress).getLayoutParams();
+				if(mTextView.getText().length() == 0 && TextUtils.isEmpty(message)){
+					relativeLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+					mTextView.setVisibility(View.GONE);
+				}else{
+					relativeLayoutParams.addRule(RelativeLayout.CENTER_VERTICAL);
+					mTextView.setVisibility(View.VISIBLE);
 				}
-			});
+				mTextView.append(message);
+			}
+		};
+		if(mContext instanceof Activity){
+			((Activity)mContext).runOnUiThread(runnable);
 		}else{
-			mTextView.append(message);
+			runnable.run();
 		}
 	}
-	
+
 	public String getMessage(){
 		return mTextView == null ? null : mTextView.getText().toString();
 	}
-	
+
 	public boolean isShowing(){
 		return mDialog != null && mDialog.isShowing();
 	}
-	
+
 	public void show(){
 		if(mDialog == null || mDialog.isShowing()){
 			return;
@@ -148,113 +186,108 @@ public class CustomProgressDialog {
 			mDialog.show();
 		}
 	}
-	
+
 	public void show(String message){
 		setMessage(message);
 		show();
 	}
-	
+
 	public void hide(){
 		if(mDialog != null){
 			mDialog.hide();
 		}
 	}
-	
+
 	public void dismiss(){
 		if(mDialog != null){
 			mDialog.dismiss();
 		}
 	}
-	
+
 	public void clear(){
 		if(mDialog != null){
 			mDialog.dismiss();
 			mTextView = null;
-			mLinLay = null;
+			mRelativeLayout = null;
 			mDialog = null;
 			mContext = null;
 		}
 	}
-	
+
 	public static CustomProgressDialog getInstance(Context context, String message){
-		if(sProgress == null){
-			sProgress = new CustomProgressDialog(context, message);
+		if(sProgress.getDialog() == null){
+			sProgress.createDialog(context, message);
 		}else{
 			sProgress.setMessage(message);
 		}
 		return sProgress;
 	}
-	
+
 	public static CustomProgressDialog getInstance(Context context){
 		return getInstance(context, null);
 	}
-	
-	public static CustomProgressDialog getInstance(){
-		return sProgress;
+
+	public static boolean hasInstanceDialog(){
+		return sProgress.getDialog() != null;
 	}
-	
-	public static boolean hasInstance(){
-		return sProgress != null;
-	}
-	
+
 	public static Dialog getInstanceDialog(){
 		return sProgress == null ? null : sProgress.getDialog();
 	}
-	
+
+	public static TextView getInstanceTextView(){
+		return sProgress == null ? null : sProgress.getTextView();
+	}
+
 	public static void setInstanceCancelable(boolean isCancel){
 		if(sProgress != null){
 			sProgress.setCancelable(isCancel);
 		}
 	}
-	
+
 	public static void setInstanceMessage(String message){
 		if(sProgress != null){
 			sProgress.setMessage(message);
 		}
 	}
-	
+
 	public static void appendInstanceMessage(String message){
 		if(sProgress != null){
 			sProgress.appendMessage(message);
 		}
 	}
-	
+
 	public static String getInstanceMessage(){
 		return sProgress == null ? null : sProgress.getMessage();
 	}
-	
+
 	public static boolean isInstanceShowing(){
 		return sProgress != null && sProgress.isShowing();
 	}
-	
-	public static void showInstance(){
-		if(sProgress != null){
-			sProgress.show();
-		}
+
+	public static void showInstance(Context context, String message){
+		getInstance(context, message).show();
 	}
-	
-	public static void showInstance(String message){
-		if(sProgress != null){
-			sProgress.show(message);
-		}
+
+	public static void showInstance(Context context){
+		getInstance(context, null).show();
 	}
-	
+
 	public static void hideInstance(){
 		if(sProgress != null){
 			sProgress.hide();
 		}
 	}
-	
+
 	public static void dismissInstance(){
 		if(sProgress != null){
 			sProgress.dismiss();
 		}
 	}
-	
+
 	public static void clearInstance(){
 		if(sProgress != null){
 			sProgress.clear();
-			sProgress = null;
 		}
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.5
+ * @version 3.2.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -24,9 +24,9 @@ import java.util.concurrent.ExecutorService;
 @SuppressWarnings("unused")
 public abstract class ConnectManager {
 	
-	public static final int RUN_MODE_FOREGROUND_SINGLE_TAG = 0x0A1;
-	public static final int RUN_MODE_BACKGROUND_ALLOW = 0x0A2;
-	public static final int RUN_MODE_BACKGROUND = 0x0A3;
+	public static final int RUN_MODE_BACKGROUND = 0;
+	public static final int RUN_MODE_BACKGROUND_ALLOW = 1;
+	public static final int RUN_MODE_FOREGROUND_SINGLE_TAG = 2;
 	
 	public static abstract class ConnectAction {
 		
@@ -450,12 +450,12 @@ public abstract class ConnectManager {
 	private static Message runModeHandle(Message msg, int runMode, boolean isDismiss){
 		// RUN_FOREGROUND_SINGLE_TAG若顯式Tag被使用者取消，後續不進行任何處理
 		if(runMode == RUN_MODE_FOREGROUND_SINGLE_TAG && msg.what != 0 && 
-				(!CustomProgressDialog.hasInstance() || !CustomProgressDialog.isInstanceShowing())){
+				(!CustomProgressDialog.hasInstanceDialog() || !CustomProgressDialog.isInstanceShowing())){
 			msg.what = -1;
 			return msg;
 		}
 		if(runMode == RUN_MODE_FOREGROUND_SINGLE_TAG || runMode == RUN_MODE_BACKGROUND_ALLOW){
-			if(CustomProgressDialog.hasInstance() && CustomProgressDialog.isInstanceShowing()){
+			if(CustomProgressDialog.hasInstanceDialog() && CustomProgressDialog.isInstanceShowing()){
 				if(isDismiss || msg.what == 0 || msg.what == NetworkAccess.CONNECTION_LOAD_FAIL){
 					CustomProgressDialog.clearInstance();
 				}
