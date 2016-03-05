@@ -6,156 +6,228 @@
 	<color name="WhiteGray">@color/GrayC0</color>
 
 	<color name="Black">#FF000000</color>
+	<color name="Gray11">#FF111111</color>
 	<color name="Gray20">#FF202020</color>
+	<color name="Gray22">#FF222222</color>
 	<color name="Gray2B">#FF2B2B2B</color>
 	<color name="Gray33">#FF333333</color>
 	<color name="Gray40">#FF404040</color>
+	<color name="Gray44">#FF444444</color>
 	<color name="Gray55">#FF555555</color>
 	<color name="Gray60">#FF606060</color>
 	<color name="Gray66">#FF666666</color>
+	<color name="Gray77">#FF777777</color>
 	<color name="Gray80">#FF808080</color>
+	<color name="Gray88">#FF888888</color>
 	<color name="Gray99">#FF999999</color>
 	<color name="GrayA0">#FFA0A0A0</color>
 	<color name="GrayAA">#FFAAAAAA</color>
+	<color name="GrayBB">#FFBBBBBB</color>
 	<color name="GrayC0">#FFC0C0C0</color>
 	<color name="GrayCC">#FFCCCCCC</color>
 	<color name="GrayD5">#FFD5D5D5</color>
+	<color name="GrayDD">#FFDDDDDD</color>
 	<color name="GrayE0">#FFE0E0E0</color>
+	<color name="GrayEE">#FFEEEEEE</color>
 	<color name="White">#FFFFFFFF</color>
 
+	<color name="Red11">#FF110000</color>
 	<color name="Red20">#FF200000</color>
+	<color name="Red22">#FF220000</color>
 	<color name="Red2B">#FF2B0000</color>
 	<color name="Red33">#FF330000</color>
 	<color name="Red40">#FF400000</color>
+	<color name="Red44">#FF440000</color>
 	<color name="Red55">#FF550000</color>
 	<color name="Red60">#FF600000</color>
 	<color name="Red66">#FF660000</color>
+	<color name="Red77">#FF770000</color>
 	<color name="Red80">#FF800000</color>
+	<color name="Red88">#FF880000</color>
 	<color name="Red99">#FF990000</color>
 	<color name="RedA0">#FFA00000</color>
 	<color name="RedAA">#FFAA0000</color>
+	<color name="RedBB">#FFBB0000</color>
 	<color name="RedC0">#FFC00000</color>
 	<color name="RedCC">#FFCC0000</color>
 	<color name="RedD5">#FFD50000</color>
+	<color name="RedDD">#FFDD0000</color>
 	<color name="RedE0">#FFE00000</color>
+	<color name="RedEE">#FFEE0000</color>
 	<color name="Red">#FFFF0000</color>
 
+	<color name="Green11">#FF001100</color>
 	<color name="Green20">#FF002000</color>
+	<color name="Green22">#FF002200</color>
 	<color name="Green2B">#FF002B00</color>
 	<color name="Green33">#FF003300</color>
 	<color name="Green40">#FF004000</color>
+	<color name="Green44">#FF004400</color>
 	<color name="Green55">#FF005500</color>
 	<color name="Green60">#FF006000</color>
 	<color name="Green66">#FF006600</color>
+	<color name="Green77">#FF007700</color>
 	<color name="Green80">#FF008000</color>
+	<color name="Green88">#FF008800</color>
 	<color name="Green99">#FF009900</color>
 	<color name="GreenA0">#FF00A000</color>
 	<color name="GreenAA">#FF00AA00</color>
+	<color name="GreenBB">#FF00BB00</color>
 	<color name="GreenC0">#FF00C000</color>
 	<color name="GreenCC">#FF00CC00</color>
 	<color name="GreenD5">#FF00D500</color>
+	<color name="GreenDD">#FF00DD00</color>
 	<color name="GreenE0">#FF00E000</color>
+	<color name="GreenEE">#FF00EE00</color>
 	<color name="Green">#FF00FF00</color>
 
+	<color name="Blue11">#FF000011</color>
 	<color name="Blue20">#FF000020</color>
+	<color name="Blue22">#FF000022</color>
 	<color name="Blue2B">#FF00002B</color>
 	<color name="Blue33">#FF000033</color>
 	<color name="Blue40">#FF000040</color>
+	<color name="Blue44">#FF000044</color>
 	<color name="Blue55">#FF000055</color>
 	<color name="Blue60">#FF000060</color>
 	<color name="Blue66">#FF000066</color>
+	<color name="Blue77">#FF000077</color>
 	<color name="Blue80">#FF000080</color>
+	<color name="Blue88">#FF000088</color>
 	<color name="Blue99">#FF000099</color>
 	<color name="BlueA0">#FF0000A0</color>
 	<color name="BlueAA">#FF0000AA</color>
+	<color name="BlueBB">#FF0000BB</color>
 	<color name="BlueC0">#FF0000C0</color>
 	<color name="BlueCC">#FF0000CC</color>
 	<color name="BlueD5">#FF0000D5</color>
+	<color name="BlueDD">#FF0000DD</color>
 	<color name="BlueE0">#FF0000E0</color>
+	<color name="BlueEE">#FF0000EE</color>
 	<color name="Blue">#FF0000FF</color>
 
+	<color name="Yellow11">#FF111100</color>
 	<color name="Yellow20">#FF202000</color>
+	<color name="Yellow22">#FF222200</color>
 	<color name="Yellow2B">#FF2B2B00</color>
 	<color name="Yellow33">#FF333300</color>
 	<color name="Yellow40">#FF404000</color>
+	<color name="Yellow44">#FF444400</color>
 	<color name="Yellow55">#FF555500</color>
 	<color name="Yellow60">#FF606000</color>
 	<color name="Yellow66">#FF666600</color>
+	<color name="Yellow77">#FF777700</color>
 	<color name="Yellow80">#FF808000</color>
+	<color name="Yellow88">#FF888800</color>
 	<color name="Yellow99">#FF999900</color>
 	<color name="YellowA0">#FFA0A000</color>
 	<color name="YellowAA">#FFAAAA00</color>
+	<color name="YellowBB">#FFBBBB00</color>
 	<color name="YellowC0">#FFC0C000</color>
 	<color name="YellowCC">#FFCCCC00</color>
 	<color name="YellowD5">#FFD5D500</color>
+	<color name="YellowDD">#FFDDDD00</color>
 	<color name="YellowE0">#FFE0E000</color>
+	<color name="YellowEE">#FFEEEE00</color>
 	<color name="Yellow">#FFFFFF00</color>
 
+	<color name="Cyan11">#FF001111</color>
 	<color name="Cyan20">#FF002020</color>
+	<color name="Cyan22">#FF002222</color>
 	<color name="Cyan2B">#FF002B2B</color>
 	<color name="Cyan33">#FF003333</color>
 	<color name="Cyan40">#FF004040</color>
+	<color name="Cyan44">#FF004444</color>
 	<color name="Cyan55">#FF005555</color>
 	<color name="Cyan60">#FF006060</color>
 	<color name="Cyan66">#FF006666</color>
+	<color name="Cyan77">#FF007777</color>
 	<color name="Cyan80">#FF008080</color>
+	<color name="Cyan88">#FF008888</color>
 	<color name="Cyan99">#FF009999</color>
 	<color name="CyanA0">#FF00A0A0</color>
 	<color name="CyanAA">#FF00AAAA</color>
+	<color name="CyanBB">#FF00BBBB</color>
 	<color name="CyanC0">#FF00C0C0</color>
 	<color name="CyanCC">#FF00CCCC</color>
 	<color name="CyanD5">#FF00D5D5</color>
+	<color name="CyanDD">#FF00DDDD</color>
 	<color name="CyanE0">#FF00E0E0</color>
+	<color name="CyanEE">#FF00EEEE</color>
 	<color name="Cyan">#FF00FFFF</color>
 
+	<color name="Purple11">#FF110011</color>
 	<color name="Purple20">#FF200020</color>
+	<color name="Purple22">#FF220022</color>
 	<color name="Purple2B">#FF2B002B</color>
 	<color name="Purple33">#FF330033</color>
 	<color name="Purple40">#FF400040</color>
+	<color name="Purple44">#FF440044</color>
 	<color name="Purple55">#FF550055</color>
 	<color name="Purple60">#FF600060</color>
 	<color name="Purple66">#FF660066</color>
+	<color name="Purple77">#FF770077</color>
 	<color name="Purple80">#FF800080</color>
+	<color name="Purple88">#FF880088</color>
 	<color name="Purple99">#FF990099</color>
 	<color name="PurpleA0">#FFA000A0</color>
 	<color name="PurpleAA">#FFAA00AA</color>
+	<color name="PurpleBB">#FFBB00BB</color>
 	<color name="PurpleC0">#FFC000C0</color>
 	<color name="PurpleCC">#FFCC00CC</color>
 	<color name="PurpleD5">#FFD500D5</color>
+	<color name="PurpleDD">#FFDD00DD</color>
 	<color name="PurpleE0">#FFE000E0</color>
+	<color name="PurpleEE">#FFEE00EE</color>
 	<color name="Purple">#FFFF00FF</color>
 
+	<color name="BlackAlpha11">#11000000</color>
 	<color name="BlackAlpha20">#20000000</color>
+	<color name="BlackAlpha22">#22000000</color>
 	<color name="BlackAlpha2B">#2B000000</color>
 	<color name="BlackAlpha33">#33000000</color>
 	<color name="BlackAlpha40">#40000000</color>
+	<color name="BlackAlpha44">#44000000</color>
 	<color name="BlackAlpha55">#55000000</color>
 	<color name="BlackAlpha60">#60000000</color>
 	<color name="BlackAlpha66">#66000000</color>
+	<color name="BlackAlpha77">#77000000</color>
 	<color name="BlackAlpha80">#80000000</color>
+	<color name="BlackAlpha88">#88000000</color>
 	<color name="BlackAlpha99">#99000000</color>
 	<color name="BlackAlphaA0">#A0000000</color>
 	<color name="BlackAlphaAA">#AA000000</color>
+	<color name="BlackAlphaBB">#BB000000</color>
 	<color name="BlackAlphaC0">#C0000000</color>
 	<color name="BlackAlphaCC">#CC000000</color>
 	<color name="BlackAlphaD5">#D5000000</color>
+	<color name="BlackAlphaDD">#DD000000</color>
 	<color name="BlackAlphaE0">#E0000000</color>
+	<color name="BlackAlphaEE">#EE000000</color>
 
+	<color name="WhiteAlpha11">#11FFFFFF</color>
 	<color name="WhiteAlpha20">#20FFFFFF</color>
+	<color name="WhiteAlpha22">#22FFFFFF</color>
 	<color name="WhiteAlpha2B">#2BFFFFFF</color>
 	<color name="WhiteAlpha33">#33FFFFFF</color>
 	<color name="WhiteAlpha40">#40FFFFFF</color>
+	<color name="WhiteAlpha44">#44FFFFFF</color>
 	<color name="WhiteAlpha55">#55FFFFFF</color>
 	<color name="WhiteAlpha60">#60FFFFFF</color>
 	<color name="WhiteAlpha66">#66FFFFFF</color>
+	<color name="WhiteAlpha77">#77FFFFFF</color>
 	<color name="WhiteAlpha80">#80FFFFFF</color>
+	<color name="WhiteAlpha88">#88FFFFFF</color>
 	<color name="WhiteAlpha99">#99FFFFFF</color>
 	<color name="WhiteAlphaA0">#A0FFFFFF</color>
 	<color name="WhiteAlphaAA">#AAFFFFFF</color>
+	<color name="WhiteAlphaBB">#BBFFFFFF</color>
 	<color name="WhiteAlphaC0">#C0FFFFFF</color>
 	<color name="WhiteAlphaCC">#CCFFFFFF</color>
 	<color name="WhiteAlphaD5">#D5FFFFFF</color>
+	<color name="WhiteAlphaDD">#DDFFFFFF</color>
 	<color name="WhiteAlphaE0">#E0FFFFFF</color>
+	<color name="WhiteAlphaEE">#EEFFFFFF</color>
 	
 	<color name="Orange">#FFFF8000</color>
 	<color name="OrangeRed">#FFFF4000</color>
@@ -166,8 +238,8 @@
 	<color name="CyanC048A0E8">#C048A0E8</color>
 
 	<color name="BackgroundButtonNormalLight">@color/WhiteAlpha40</color>
-	<color name="BackgroundButtonNormalDark">@color/BlackAlpha33</color>
-	<color name="BackgroundButtonPressedLight">@color/BlackAlpha33</color>
+	<color name="BackgroundButtonNormalDark">@color/BlackAlpha11</color>
+	<color name="BackgroundButtonPressedLight">@color/BlackAlpha11</color>
 	<color name="BackgroundButtonPressedDark">@color/WhiteAlpha40</color>
 </resources>
 <!-- 
@@ -187,4 +259,28 @@
 3/8 0x60 96
 5/8 0xA0 160
 7/8 0xE0 224
+1/15 0x11 17
+2/15 0x22 34
+4/15 0x44 68
+7/15 0x77 119
+8/15 0x88 136
+11/15 0xBB 187
+13/15 0xDD 221
+14/15 0xEE 238
+1/17 0x0F 15
+2/17 0x1E 30
+3/17 0x2D 45
+4/17 0x3C 60
+5/17 0x4B 75
+6/17 0x5A 90
+7/17 0x69 105
+8/17 0x78 120
+9/17 0x87 135
+10/17 0x96 150
+11/17 0xA5 165
+12/17 0xB4 180
+13/17 0xC3 195
+14/17 0xD2 210
+15/17 0xE1 225
+16/17 0xF0 240
  -->
