@@ -4,10 +4,15 @@
     <item name="viewPager" type="id"/>
     <item name="swipeRefresh" type="id"/>
     <item name="cardView" type="id"/>
+    <item name="floatingActionButton" type="id"/>
     <item name="topLayout" type="id"/>
     <item name="topLeft" type="id"/>
     <item name="topCenter" type="id"/>
     <item name="topRight" type="id"/>
+    <item name="middleLayout" type="id"/>
+    <item name="middleLeft" type="id"/>
+    <item name="middleCenter" type="id"/>
+    <item name="middleRight" type="id"/>
     <item name="bottomLayout" type="id"/>
     <item name="bottomLeft" type="id"/>
     <item name="bottomCenter" type="id"/>
