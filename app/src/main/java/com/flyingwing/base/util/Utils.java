@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.4
+ * @version 3.4.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -424,52 +424,77 @@ public class Utils {
 		return ByteArrayWriteOutStream(byteArray, os, 1024 * 16);
 	}
 	
-	public static boolean writeSDCardFile(InputStream is, String directory, String fileName, int bufferSize){
-		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	/**
+	 * android.permission.WRITE_EXTERNAL_STORAGE
+	 */
+	public static boolean writeSDCardFile(Context context, InputStream is, String directory, String fileName, int bufferSize, Handler handlerNoPermissions){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
-		if(sdCardExist){
-			// 取得sdCard路徑
-			File file = Environment.getExternalStorageDirectory();
-			String sdCardPath = file.toString() + File.separator;
-			if(directory.indexOf(sdCardPath) == 0){
-				sdCardPath = "";
+		if(!sdCardExist){
+			return false;
+		}
+		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+			if(handlerNoPermissions != null){
+				Message message = handlerNoPermissions.obtainMessage();
+				message.obj = new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
+				handlerNoPermissions.sendMessage(message);
 			}
-			file = new File(sdCardPath + directory);
-			if(!file.exists()){
-				if(!file.mkdirs()){
-					System.out.println("directory already existed");
-				}
-			}
-			file = new File(sdCardPath + directory + fileName);
-			try {
-				return inputStreamWriteOutputStream(is, new FileOutputStream(file, false), bufferSize);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
+			return false;
+		}
+
+		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+		// 取得sdCard路徑
+		File file = Environment.getExternalStorageDirectory();
+		String sdCardPath = file.toString() + File.separator;
+		if(directory.indexOf(sdCardPath) == 0){
+			sdCardPath = "";
+		}
+		file = new File(sdCardPath + directory);
+		if(!file.exists() && !file.mkdirs()){
+			System.out.println("directory cannot create");
+			return false;
+		}
+		file = new File(sdCardPath + directory + fileName);
+		try {
+			return inputStreamWriteOutputStream(is, new FileOutputStream(file, false), bufferSize);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
 	
-	public static boolean writeSDCardFile(InputStream is, String directory, String fileName){
-		return writeSDCardFile(is, directory, fileName, 1024 * 16);
+	public static boolean writeSDCardFile(Context context, InputStream is, String directory, String fileName, Handler handlerNoPermissions){
+		return writeSDCardFile(context, is, directory, fileName, 1024 * 16, handlerNoPermissions);
 	}
 	
-	public static byte[] readSDCardFile(String directory, String fileName){
-		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+	/**
+	 * android.permission.READ_EXTERNAL_STORAGE
+	 */
+	public static byte[] readSDCardFile(Context context, String directory, String fileName, Handler handlerNoPermissions){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
-		if(sdCardExist){
-			// 取得sdCard路徑
-			File file = Environment.getExternalStorageDirectory();
-			String sdCardPath = file.toString() + File.separator;
-			if(directory.indexOf(sdCardPath) == 0){
-				sdCardPath = "";
-			}
-			file = new File(sdCardPath + directory + fileName);
-			return fileToByteArray(file);
+		if(!sdCardExist){
+			return null;
 		}
-		return null;
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && 
+				ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+			if(handlerNoPermissions != null){
+				Message message = handlerNoPermissions.obtainMessage();
+				message.obj = new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE};
+				handlerNoPermissions.sendMessage(message);
+			}
+			return null;
+		}
+
+		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+		// 取得sdCard路徑
+		File file = Environment.getExternalStorageDirectory();
+		String sdCardPath = file.toString() + File.separator;
+		if(directory.indexOf(sdCardPath) == 0){
+			sdCardPath = "";
+		}
+		file = new File(sdCardPath + directory + fileName);
+		return fileToByteArray(file);
 	}
 	
 	public static boolean copyUseFileChannel(String pathRead, String pathWrite, int bufferSize){
@@ -2103,36 +2128,39 @@ public class Utils {
 		return powerManager.isScreenOn();
 	}
 
-	public static String[] checkRequestPermissions(Context context, String[] permissions){
-		String textNeedRequestPermissions = "";
+	public static String[] checkNeedRequestPermissions(Context context, String...permissions){
+		StringBuilder stringBuilder = new StringBuilder();
 		for(int i=0; i<permissions.length; i++){
 			if(ContextCompat.checkSelfPermission(context, permissions[i]) == PackageManager.PERMISSION_DENIED){
-				textNeedRequestPermissions += i == 0 ? "" : "\n" + permissions[i];
+				if(stringBuilder.length() > 0){
+					stringBuilder.append("\n");
+				}
+				stringBuilder.append(permissions[i].trim());
 			}
 		}
-		return textNeedRequestPermissions.split("\n");
+		return stringBuilder.length() == 0 ? new String[0] : stringBuilder.toString().split("\n");
 	}
 
-	public static String[] checkNeedRationaleRequestPermissions(Activity activity, String[] permissions){
-		String textNeedRationalePermissions = "";
+	public static String[] checkNeedRationaleRequestPermissions(Activity activity, String...permissions){
+		StringBuilder stringBuilder = new StringBuilder();
 		for(int i=0; i<permissions.length; i++){
 			if(ContextCompat.checkSelfPermission(activity, permissions[i]) == PackageManager.PERMISSION_DENIED){
 				if(ActivityCompat.shouldShowRequestPermissionRationale(activity, permissions[i])){
-					textNeedRationalePermissions += i == 0 ? "" : "\n" + permissions[i];
+					if(stringBuilder.length() > 0){
+						stringBuilder.append("\n");
+					}
+					stringBuilder.append(permissions[i].trim());
 				}
 			}
 		}
-		return textNeedRationalePermissions.split("\n");
+		return stringBuilder.length() == 0 ? new String[0] : stringBuilder.toString().split("\n");
 	}
 
-	public static void requestPermissionsForResult(Activity activity, String[] permissions, int requestCode){
-		String textNeedRequestPermissions = "";
-		for(int i=0; i<permissions.length; i++){
-			if(ContextCompat.checkSelfPermission(activity, permissions[i]) == PackageManager.PERMISSION_DENIED){
-				textNeedRequestPermissions += i == 0 ? "" : "\n" + permissions[i];
-			}
+	public static void requestPermissionsForResult(Activity activity, int requestCode, String...permissions){
+		String[] needRequestPermissions = checkNeedRequestPermissions(activity, permissions);
+		if(needRequestPermissions.length > 0){
+			ActivityCompat.requestPermissions(activity, needRequestPermissions, requestCode);
 		}
-		ActivityCompat.requestPermissions(activity, textNeedRequestPermissions.split("\n"), requestCode);
 	}
 
 	// 判斷此Activity是否正在前端執行
@@ -2374,15 +2402,23 @@ public class Utils {
 		}
 		return packageInfoList;
 	}
-	
-	// 寫入聯絡人資訊
-	public static boolean saveContentProvider(Context context, String[] infoArray){
-		// <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
-		// 某些機種需要讀取權限
-		// <uses-permission android:name="android.permission.READ_CONTACTS"/>
+
+	/**
+	 * 寫入聯絡人資訊<br>
+	 * android.permission.WRITE_CONTACTS<br>
+	 * 某些機種需要讀取權限<br>
+	 * android.permission.READ_CONTACTS
+	 */
+	public static boolean saveContentProvider(Context context, String[] infoArray, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
+			if(handlerNoPermissions != null){
+				Message message = handlerNoPermissions.obtainMessage();
+				message.obj = new String[]{android.Manifest.permission.WRITE_CONTACTS};
+				handlerNoPermissions.sendMessage(message);
+			}
 			return false;
 		}
+
 		try {
 			String[] contentArray = new String[8];
 			for(int i=0; i<contentArray.length; i++){
@@ -2394,6 +2430,9 @@ public class Utils {
 			}
 			ArrayList<ContentProviderOperation> contentList = new ArrayList<ContentProviderOperation>();
 			int rawContactInsertIndex = contentList.size();
+			// <uses-permission android:name="android.permission.WRITE_CONTACTS"/>
+			// 某些機種需要讀取權限
+			// <uses-permission android:name="android.permission.READ_CONTACTS"/>
 			contentList.add(ContentProviderOperation.newInsert(RawContacts.CONTENT_URI)
 					.withValue(RawContacts.ACCOUNT_TYPE, null)
 					.withValue(RawContacts.ACCOUNT_NAME, null)
@@ -2458,19 +2497,27 @@ public class Utils {
 		}
 		return false;
 	}
-	
-	// 取得手機資訊
-	public static List<Map<String, String>> getPhoneInfo(Context context){
-		// <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+
+	/**
+	 * 取得手機資訊<br>
+	 * android.permission.READ_PHONE_STATE
+	 */
+	public static List<Map<String, String>> getPhoneInfo(Context context, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
+			if(handlerNoPermissions != null){
+				Message message = handlerNoPermissions.obtainMessage();
+				message.obj = new String[]{android.Manifest.permission.READ_PHONE_STATE};
+				handlerNoPermissions.sendMessage(message);
+			}
 			return null;
 		}
 
 		TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-		
+
 		List<Map<String, String>> infoList = new ArrayList<Map<String,String>>();
 		Map<String, String> hashMap = new HashMap<String, String>();
-		
+
+		// <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 		// MSISDN(Mobile Subscriber ISDN number) 手機號碼(行動設備PSTN/ISDN號碼)
 		// MSISDN for GSM
 		String MSISDN = telephonyManager.getLine1Number();
@@ -2688,23 +2735,41 @@ public class Utils {
 		return miles;
 	}
 	
-	public static float spacing(MotionEvent event) {
+	public static float getSpacing(MotionEvent event) {
 		float x = event.getX(0) - event.getX(1);
 		float y = event.getY(0) - event.getY(1);
 		return (float)Math.sqrt(x * x + y * y);
 	}
 	
-	public static float rotate(MotionEvent event){
+	public static float getRotate(MotionEvent event){
 		double x = event.getX(0) - event.getX(1);
 		double y = event.getY(0) - event.getY(1);
 		double radians = Math.atan2(y, x);
 		return (float)Math.toDegrees(radians);
 	}
 	
-	public static void midPoint(PointF point, MotionEvent event) {
+	public static void setMidPoint(PointF point, MotionEvent event) {
 		float x = event.getX(0) + event.getX(1);
 		float y = event.getY(0) + event.getY(1);
 		point.set(x / 2, y / 2);
+	}
+	
+	public static float getRoundAngle(float centerX, float centerY, float pointX, float pointY, float angleOffset) {
+		// half round 180 angle, left to positive, right to negative
+		float angle = (float) Math.toDegrees(Math.atan2(centerX - pointX, centerY - pointY));
+		// full round angle, left increment
+		if(angle < 0){
+			angle += 360;
+		}
+		// change round angle, right increment
+		angle = 360 - angle;
+
+		// offset angle
+		angle += 360 - angleOffset;
+		if(angle >= 360){
+			angle -= 360;
+		}
+		return angle;
 	}
 	
 	public static void getViewGroupAllView(View view, List<View> list){
