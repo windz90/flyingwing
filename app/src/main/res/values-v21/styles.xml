@@ -63,7 +63,7 @@
 		<item name="colorPrimaryDark">@color/primary_dark_material_light</item>
 		<!-- colorPrimary : default ActionBar(but not Toolbar) background -->
 		<item name="colorPrimary">@color/primary_material_light</item>
-		<!-- colorAccent : widgets checked tint -->
+		<!-- colorAccent : widgets checked tint, default via colorControlActivated -->
 		<item name="colorAccent">@color/accent_material_light</item>
 		
 		<item name="colorControlNormal">?android:attr/textColorSecondary</item>

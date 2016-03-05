@@ -5,7 +5,7 @@
 	<group
 		android:id="@+id/menuGroup">
 		<item
-			android:id="@+id/menu1"
+			android:id="@+id/menu_library"
 			android:orderInCategory="1"
 			app:showAsAction="never"
 			android:icon="@android:drawable/ic_menu_preferences"
