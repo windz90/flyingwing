@@ -3,7 +3,7 @@
 	<!-- 首頁 -->
 	<string name="app_name">FlyingWingLibrary</string>
 
-	<!-- 公用提示 -->
+	<!-- 公用詞彙 -->
 	<string name="confirm">Are you sure?</string>
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
@@ -11,12 +11,15 @@
 	<string name="off">Off</string>
 	<string name="ok">OK</string>
 	<string name="cancel">Cancel</string>
-	<string name="finish">Complete</string>
-	<string name="back">Back</string>
 	<string name="submit">Submit</string>
+	<string name="back">Back</string>
+	<string name="add">Add</string>
+	<string name="join">Join</string>
 	<string name="edit">Edit</string>
 	<string name="modify">Modify</string>
+	<string name="remove">Remove</string>
 	<string name="delete">Delete</string>
+	<string name="search">Search</string>
 	<string name="exit">Quit</string>
 	<string name="open">Open</string>
 	<string name="close">Close</string>
@@ -31,11 +34,9 @@
 	<string name="no_search_results">No result</string>
 	<string name="no_app_item">No application</string>
 	<string name="permission_denied">Permission denied</string>
-	<string name="out_of_memory_error">Out of memory</string>
-	<string name="connection_fail">Connection failed</string>
-	<string name="no_network_connection">No network connection</string>
 	<string name="try_again">Please try again</string>
-	<string name="other_error">Other Error</string>
+	<string name="connection_failed">Connection failed</string>
+	<string name="no_network_connection">No network connection</string>
+	<string name="out_of_memory_error">Out of memory</string>
 	<string name="unknown_error">Unknown error</string>
-	<string name="locate_fail">No GPS coordinates. Can\'t locate your position.</string>
 </resources>
