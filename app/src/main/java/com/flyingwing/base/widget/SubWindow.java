@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.12
+ * @version 2.3.14
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -47,6 +47,7 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.flyingwing.R;
+import com.flyingwing.base.util.DisplayUtils;
 import com.flyingwing.base.util.Utils;
 
 import java.util.ArrayList;
@@ -106,10 +107,10 @@ public class SubWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH);
 
 		int space;
-		LinearLayout.LayoutParams linLayPar;
+		LayoutParams linLayPar;
 
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -261,8 +262,8 @@ public class SubWindow {
 		}
 	}
 
-	public static void alertBuilderConfirm(final Context context, String title, final ClickAction clickAction){
-		alertBuilderConfirm(context, title, context.getString(R.string.confirm), clickAction);
+	public static void alertBuilderConfirm(final Context context, String message, final ClickAction clickAction){
+		alertBuilderConfirm(context, context.getString(R.string.confirm), message, clickAction);
 	}
 
 	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitCalss){
@@ -303,10 +304,10 @@ public class SubWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH);
 
 		int itemWi, itemHe, space;
-		LinearLayout.LayoutParams linLayPar;
+		LayoutParams linLayPar;
 
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -416,7 +417,7 @@ public class SubWindow {
 			, int btnWidth, int space){
 		Resources res = context.getResources();
 
-		boolean isBigScreen = Utils.isFillScreen(displayMetrics, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = DisplayUtils.isFillScreen(displayMetrics, DisplayUtils.LIMIT_DIP_WIDTH);
 
 		RelativeLayout.LayoutParams relLayPar;
 
@@ -425,7 +426,7 @@ public class SubWindow {
 
 		relLay = new RelativeLayout(context);
 		relLay.setId(R.id.topLayout);
-		relLay.setLayoutParams(new ViewGroup.LayoutParams(width, LayoutParams.WRAP_CONTENT));
+		relLay.setLayoutParams(new ViewGroup.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT));
 		relLay.setPadding(space, 0, space, 0);
 
 		for(int i=0; i<textViews.length; i++){
@@ -437,7 +438,7 @@ public class SubWindow {
 				relLayPar.setMargins(0, space, space, space);
 			}else if(i == 1){
 				textViews[i].setId(R.id.topCenter);
-				relLayPar = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
+				relLayPar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, height);
 				relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLeft);
 			}else{
 				textViews[i].setId(R.id.topRight);
@@ -470,7 +471,7 @@ public class SubWindow {
 			, int btnWidth, int space){
 		Resources res = context.getResources();
 
-		boolean isBigScreen = Utils.isFillScreen(displayMetrics, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = DisplayUtils.isFillScreen(displayMetrics, DisplayUtils.LIMIT_DIP_WIDTH);
 
 		RelativeLayout.LayoutParams relLayPar;
 
@@ -480,7 +481,7 @@ public class SubWindow {
 
 		relLay = new RelativeLayout(context);
 		relLay.setId(R.id.topLayout);
-		relLay.setLayoutParams(new ViewGroup.LayoutParams(width, LayoutParams.WRAP_CONTENT));
+		relLay.setLayoutParams(new ViewGroup.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT));
 		relLay.setPadding(space, 0, space, 0);
 
 		for(int i=0; i<imageViews.length; i++){
@@ -502,7 +503,7 @@ public class SubWindow {
 		}
 
 		for(int i=0; i<textViews.length; i++){
-			relLayPar = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, height);
+			relLayPar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, height);
 			relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLeft);
 			textViews[i] = new TextView(context);
 			textViews[i].setId(R.id.topCenter);
@@ -544,10 +545,10 @@ public class SubWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH);
 
 		int itemWi, itemHe, space;
-		LinearLayout.LayoutParams linLayPar;
+		LayoutParams linLayPar;
 
 		LinearLayout linLay;
 		ScrollView scrollView;
@@ -671,7 +672,7 @@ public class SubWindow {
 		Resources res = context.getResources();
 
 		int itemWi, itemHe, space;
-		LinearLayout.LayoutParams linLayPar;
+		LayoutParams linLayPar;
 
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
@@ -840,10 +841,10 @@ public class SubWindow {
 		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isBigScreen = Utils.isFillScreen(dm, Utils.LIMIT_DIP_WIDTH);
+		boolean isBigScreen = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH);
 
 		int itemWi;
-		LinearLayout.LayoutParams linLayPar;
+		LayoutParams linLayPar;
 
 		LinearLayout linLay;
 		ScrollView scrollView;

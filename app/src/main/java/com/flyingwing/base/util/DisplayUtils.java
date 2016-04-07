@@ -1,13 +1,13 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.6
+ * @version 3.3.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.base.util;
 
-import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
@@ -25,78 +25,105 @@ import android.view.WindowManager;
 
 @SuppressWarnings({"unused", "UnnecessaryLocalVariable"})
 public class DisplayUtils {
-	
+
+	public static final int LIMIT_DIP_WIDTH_320 = 320;
+	public static final int LIMIT_DIP_WIDTH_360 = 360;
+	public static final int LIMIT_DIP_WIDTH_480 = 480;
+	public static final int LIMIT_DIP_WIDTH_540 = 540;
+	public static final int LIMIT_DIP_WIDTH_600 = 600;
+	public static final int LIMIT_DIP_WIDTH_720 = 720;
+	public static final int LIMIT_DIP_WIDTH = LIMIT_DIP_WIDTH_600;
+
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;
 	public static final int DISPLAY = 2;
-	
+
 	public interface EventCallback {
 		void completed(int visibleHe);
 	}
-	
+
 	public static Display getDisplayFromActivity(Activity activity){
 		Display display = activity.getWindowManager().getDefaultDisplay();
 		return display;
 	}
-	
+
 	public static Display getDisplayFromContext(Context context){
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		Display display = windowManager.getDefaultDisplay();
 		return display;
 	}
-	
-	@SuppressLint("NewApi")
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
 	public static Point getDisplaySize(Display display){
-		// API 13
 		Point point = new Point();
-		if(Build.VERSION.SDK_INT >= 13){
-			display.getSize(point);
-		}
+		display.getSize(point);
 		return point;
 	}
-	
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static Point getRealDisplaySize(Display display){
+		Point point = new Point();
+		display.getRealSize(point);
+		return point;
+	}
+
 	public static DisplayMetrics getDisplayMetricsFromWindowManager(Context context){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return displayMetrics;
 	}
-	
+
 	public static DisplayMetrics getDisplayMetricsFromWindowManager(Activity activity){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		activity.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
 		return displayMetrics;
 	}
-	
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static DisplayMetrics getRealDisplayMetricsFromWindowManager(Context context){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
+		return displayMetrics;
+	}
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static DisplayMetrics getRealDisplayMetricsFromWindowManager(Activity activity){
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		activity.getWindowManager().getDefaultDisplay().getRealMetrics(displayMetrics);
+		return displayMetrics;
+	}
+
 	public static DisplayMetrics getDisplayMetricsFromResources(Context context){
 		return context.getResources().getDisplayMetrics();
 	}
-	
+
 	public static DisplayMetrics getDisplayMetrics(Context context, int flag){
 		if(flag == DISPLAY_METRICS_FROM_RESOURCES){
 			return getDisplayMetricsFromResources(context);
 		}
 		return getDisplayMetricsFromWindowManager(context);
 	}
-	
+
 	public static boolean equalsDisplayMetrics(DisplayMetrics dm1, DisplayMetrics dm2){
-		return dm1 != null 
-				&& dm2 != null 
-				&& dm1.widthPixels == dm2.widthPixels 
-				&& dm1.heightPixels == dm2.heightPixels 
-				&& dm1.density == dm2.density 
-				&& dm1.scaledDensity == dm2.scaledDensity 
-				&& dm1.densityDpi == dm2.densityDpi 
-				&& dm1.xdpi == dm2.xdpi 
+		return dm1 != null
+				&& dm2 != null
+				&& dm1.widthPixels == dm2.widthPixels
+				&& dm1.heightPixels == dm2.heightPixels
+				&& dm1.density == dm2.density
+				&& dm1.scaledDensity == dm2.scaledDensity
+				&& dm1.densityDpi == dm2.densityDpi
+				&& dm1.xdpi == dm2.xdpi
 				&& dm1.ydpi == dm2.ydpi;
 	}
-	
+
 	public static boolean equalsDisplayMetrics(Context context){
 		DisplayMetrics dm1 = getDisplayMetricsFromWindowManager(context);
 		DisplayMetrics dm2 = getDisplayMetricsFromResources(context);
 		return equalsDisplayMetrics(dm1, dm2);
 	}
-	
+
 	public static void printDisplayMetrics(DisplayMetrics displayMetrics){
 		System.out.println("widthPixels " + displayMetrics.widthPixels + "\n" +
 				"heightPixels " + displayMetrics.heightPixels + "\n" +
@@ -106,19 +133,19 @@ public class DisplayUtils {
 				"xdpi " + displayMetrics.xdpi + "\n" +
 				"ydpi " + displayMetrics.ydpi);
 	}
-	
+
 	public static void printDisplayMetrics(Context context, int flag){
 		printDisplayMetrics(getDisplayMetrics(context, flag));
 	}
-	
+
 	public static int getAbsWidth(int width, int height){
 		return width < height ? width : height;
 	}
-	
+
 	public static int getAbsHeight(int width, int height){
 		return width < height ? height : width;
 	}
-	
+
 	public static void measureVisibleHeightWaitOnDraw(final View view, final EventCallback eventCallback){
 		view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 			@Override
@@ -133,21 +160,21 @@ public class DisplayUtils {
 			}
 		});
 	}
-	
+
 	public static void measureVisibleHeightWaitOnDraw(Activity activity, EventCallback eventCallback){
 		measureVisibleHeightWaitOnDraw(activity.getWindow().getDecorView(), eventCallback);
 	}
-	
+
 	public static int measureVisibleWidthForOnDraw(View view){
 		Rect rect = new Rect();
 		view.getWindowVisibleDisplayFrame(rect);
 		return Math.abs(rect.left - rect.right);
 	}
-	
+
 	public static int measureVisibleWidthForOnDraw(Activity activity){
 		return measureVisibleWidthForOnDraw(activity.getWindow().getDecorView());
 	}
-	
+
 	/**
 	 * Not contain StatusBar
 	 */
@@ -156,11 +183,11 @@ public class DisplayUtils {
 		view.getWindowVisibleDisplayFrame(rect);
 		return Math.abs(rect.top - rect.bottom);
 	}
-	
+
 	public static int measureVisibleHeightForOnDraw(Activity activity){
 		return measureVisibleHeightForOnDraw(activity.getWindow().getDecorView());
 	}
-	
+
 	/**
 	 * Not contain StatusBar and TitleBar
 	 */
@@ -170,19 +197,19 @@ public class DisplayUtils {
 		rect.bottom = activity.getWindow().findViewById(Window.ID_ANDROID_CONTENT).getBottom();
 		return Math.abs(rect.top - rect.bottom);
 	}
-	
+
 	public static int measureStatusBarHeightForOnDraw(Activity activity){
 		return getHeightPixels(activity, false) - measureVisibleHeightForOnDraw(activity);
 	}
-	
+
 	public static int getVisibleHeight(Context context){
 		return getHeightPixels(context, false) - getStatusBarHeight(0);
 	}
-	
+
 	public static int getVisibleHeight(DisplayMetrics displayMetrics){
 		return getHeightPixels(displayMetrics, false) - getStatusBarHeight(0);
 	}
-	
+
 	public static int getStatusBarHeight(int defValue){
 		Resources res = Resources.getSystem();
 		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
@@ -192,7 +219,26 @@ public class DisplayUtils {
 		}
 		return defValue;
 	}
-	
+
+	public static int getNavigationBarHeight(int defValue){
+		Resources res = Resources.getSystem();
+		int resourceId = res.getIdentifier("navigation_bar_height", "dimen", "android");
+		if(resourceId > 0){
+			// displayMetricsFromResources
+			return res.getDimensionPixelSize(resourceId);
+		}
+		return defValue;
+	}
+
+	public static int getActionBarHeight(Context context, int defValue){
+		TypedValue typedValue = new TypedValue();
+		if(context.getTheme().resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
+			// displayMetricsFromResources
+			return context.getResources().getDimensionPixelSize(typedValue.resourceId);
+		}
+		return defValue;
+	}
+
 	// 比較動態測量與查詢ResourceID取得的高度資料，返回大於零且較小的值
 	public static int compareVisibleHeight(int visibleDisplayFrameHe, int displayHe, int statusBarHe){
 		if(statusBarHe == 0){
@@ -210,53 +256,44 @@ public class DisplayUtils {
 		}
 		return visibleDisplayFrameHe < displayHe - statusBarHe ? visibleDisplayFrameHe : displayHe - statusBarHe;
 	}
-	
+
 	public static int compareVisibleHeight(DisplayMetrics displayMetrics, View view){
 		int visibleDisplayFrameHe = measureVisibleHeightForOnDraw(view);
 		int displayHe = getHeightPixels(displayMetrics, false);
 		int statusBarHe = getStatusBarHeight(0);
 		return compareVisibleHeight(visibleDisplayFrameHe, displayHe, statusBarHe);
 	}
-	
+
 	public static int compareVisibleHeight(Activity activity, DisplayMetrics displayMetrics){
 		return compareVisibleHeight(displayMetrics, activity.getWindow().getDecorView());
 	}
-	
+
 	public static int compareVisibleHeight(Activity activity){
 		return compareVisibleHeight(getDisplayMetricsFromWindowManager(activity), activity.getWindow().getDecorView());
 	}
-	
+
 	public static int compareVisibleHeight(Context context, View view){
 		return compareVisibleHeight(getDisplayMetricsFromWindowManager(context), view);
 	}
-	
-	public static int getActionBarHeight(Context context, int defValue){
-		TypedValue typedValue = new TypedValue();
-		if(context.getTheme().resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
-			// displayMetricsFromResources
-			return context.getResources().getDimensionPixelSize(typedValue.resourceId);
-		}
-		return defValue;
-	}
-	
+
 	public static boolean isOrientationPortrait(Context context){
 		return context.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
 	}
-	
+
 	public static boolean isFillScreen(DisplayMetrics displayMetrics, int limitDipWidth){
 		int displayAbsWidth = getAbsWidth(displayMetrics.widthPixels, displayMetrics.heightPixels);
 		return displayAbsWidth / displayMetrics.density + 0.5f >= limitDipWidth;
 	}
-	
+
 	public static boolean isFillScreen(Context context, int flag, int limitDipWidth){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
 		return isFillScreen(displayMetrics, limitDipWidth);
 	}
-	
+
 	public static boolean isFillScreen(Context context, int limitDipWidth){
 		return isFillScreen(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, limitDipWidth);
 	}
-	
+
 	public static int getWidthPixels(DisplayMetrics displayMetrics, boolean isAbs){
 		if(isAbs){
 			return getAbsWidth(displayMetrics.widthPixels, displayMetrics.heightPixels);
@@ -264,7 +301,7 @@ public class DisplayUtils {
 			return displayMetrics.widthPixels;
 		}
 	}
-	
+
 	public static int getWidthPixels(Display display, boolean isAbs){
 		Point point = getDisplaySize(display);
 		if(isAbs){
@@ -273,7 +310,7 @@ public class DisplayUtils {
 			return point.x;
 		}
 	}
-	
+
 	public static int getWidthPixels(Context context, int flag, boolean isAbs){
 		if(flag == DISPLAY_METRICS_FROM_RESOURCES){
 			return getWidthPixels(getDisplayMetricsFromResources(context), isAbs);
@@ -283,11 +320,11 @@ public class DisplayUtils {
 		}
 		return getWidthPixels(getDisplayMetricsFromWindowManager(context), isAbs);
 	}
-	
+
 	public static int getWidthPixels(Context context, boolean isAbs){
 		return getWidthPixels(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
 	}
-	
+
 	public static int getHeightPixels(DisplayMetrics displayMetrics, boolean isAbs){
 		if(isAbs){
 			return getAbsHeight(displayMetrics.widthPixels, displayMetrics.heightPixels);
@@ -295,7 +332,7 @@ public class DisplayUtils {
 			return displayMetrics.heightPixels;
 		}
 	}
-	
+
 	public static int getHeightPixels(Display display, boolean isAbs){
 		Point point = getDisplaySize(display);
 		if(isAbs){
@@ -304,7 +341,7 @@ public class DisplayUtils {
 			return point.y;
 		}
 	}
-	
+
 	public static int getHeightPixels(Context context, int flag, boolean isAbs){
 		if(flag == DISPLAY_METRICS_FROM_RESOURCES){
 			return getHeightPixels(getDisplayMetricsFromResources(context), isAbs);
@@ -314,106 +351,172 @@ public class DisplayUtils {
 		}
 		return getHeightPixels(getDisplayMetricsFromWindowManager(context), isAbs);
 	}
-	
+
 	public static int getHeightPixels(Context context, boolean isAbs){
 		return getHeightPixels(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
 	}
-	
+
 	public static int getWidthDip(DisplayMetrics displayMetrics, boolean isAbs){
 		return (int)(getWidthPixels(displayMetrics, isAbs) / displayMetrics.density + 0.5f);
 	}
-	
+
 	public static int getWidthDip(Context context, int flag, boolean isAbs){
 		return getWidthDip(getDisplayMetrics(context, flag), isAbs);
 	}
-	
+
 	public static int getWidthDip(Context context, boolean isAbs){
 		return getWidthDip(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
 	}
-	
+
 	public static int getHeightDip(DisplayMetrics displayMetrics, boolean isAbs){
 		return (int)(getHeightPixels(displayMetrics, isAbs) / displayMetrics.density + 0.5f);
 	}
-	
+
 	public static int getHeightDip(Context context, int flag, boolean isAbs){
 		return getHeightDip(getDisplayMetrics(context, flag), isAbs);
 	}
-	
+
 	public static int getHeightDip(Context context, boolean isAbs){
 		return getHeightDip(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
 	}
-	
+
 	public static int getDip(Context context, int flag, float pixels){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
 		return (int)(pixels / displayMetrics.density + 0.5f);
 	}
-	
+
 	public static int getDip(Context context, float pixels){
 		return getDip(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, pixels);
 	}
-	
+
 	public static int getPixels(Context context, int flag, float dip){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
 		return (int)(dip * displayMetrics.density + 0.5f);
 	}
-	
+
 	public static int getPixels(Context context, float dip){
 		return getPixels(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, dip);
 	}
-	
-	public static double getScreenInch(DisplayMetrics displayMetrics){
-		float widthInch = displayMetrics.widthPixels / displayMetrics.xdpi;
-		float heightInch = displayMetrics.heightPixels / displayMetrics.ydpi;
-		return Math.sqrt(Math.pow((double)widthInch, 2) + Math.pow((double)heightInch, 2));
+
+	public static double getScreenInch(int realWidthPixels, int realHeightPixels, float xdpi, float ydpi){
+		float widthInch = realWidthPixels / xdpi;
+		float heightInch = realHeightPixels / ydpi;
+		return Math.sqrt(Math.pow((double) widthInch, 2) + Math.pow((double) heightInch, 2));
 	}
-	
-	public static double getScreenInch(Context context, int flag){
-		return getScreenInch(getDisplayMetrics(context, flag));
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static double getScreenInch(Context context){
+		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(context);
+		return getScreenInch(realDisplayMetrics.widthPixels, realDisplayMetrics.heightPixels, realDisplayMetrics.xdpi, realDisplayMetrics.ydpi);
 	}
-	
-	// dpi驗算證明
-	public double getScreenDpi(DisplayMetrics displayMetrics){
-		double diagonalPixels = Math.sqrt(Math.pow((double)displayMetrics.widthPixels, 2) + Math.pow((double)displayMetrics.heightPixels, 2));
-		return diagonalPixels / getScreenInch(displayMetrics);
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static double getScreenInch(Activity activity){
+		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(activity);
+		return getScreenInch(realDisplayMetrics.widthPixels, realDisplayMetrics.heightPixels, realDisplayMetrics.xdpi, realDisplayMetrics.ydpi);
 	}
-	
-	public double getScreenDpi(Context context, int flag){
-		return getScreenDpi(getDisplayMetrics(context, flag));
-	}
-	
+
 	/**
-	 * 取得XY平均真實螢幕密度
+	 * 取得螢幕每英吋點數(Pixels驗算DPI)
 	 */
-	public static float getRealXYDensity(DisplayMetrics displayMetrics){
+	public static double getScreenDPIFromPixels(int realWidthPixels, int realHeightPixels, float xdpi, float ydpi){
+		double diagonalPixels = Math.sqrt(Math.pow((double)realWidthPixels, 2) + Math.pow((double)realHeightPixels, 2));
+		return diagonalPixels / getScreenInch(realWidthPixels, realHeightPixels, xdpi, ydpi);
+	}
+
+	/**
+	 * 取得螢幕每英吋點數(Pixels驗算DPI)
+	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static double getScreenDPIFromPixels(Context context){
+		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(context);
+		return getScreenDPIFromPixels(realDisplayMetrics.widthPixels, realDisplayMetrics.heightPixels, realDisplayMetrics.xdpi, realDisplayMetrics.ydpi);
+	}
+
+	/**
+	 * 取得螢幕每英吋點數(Pixels驗算DPI)
+	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static double getScreenDPIFromPixels(Activity activity){
+		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(activity);
+		return getScreenDPIFromPixels(realDisplayMetrics.widthPixels, realDisplayMetrics.heightPixels, realDisplayMetrics.xdpi, realDisplayMetrics.ydpi);
+	}
+
+	/**
+	 * 取得螢幕每英吋點數(DPI)
+	 */
+	public static float getScreenDPI(DisplayMetrics displayMetrics){
+		return (displayMetrics.xdpi + displayMetrics.ydpi) / 2;
+	}
+
+	/**
+	 * 取得螢幕每英吋點數(DPI)
+	 */
+	public static float getScreenDPI(Context context, int flag){
+		return getScreenDPI(getDisplayMetrics(context, flag));
+	}
+
+	/**
+	 * 取得XY DPI計算的每英吋螢幕像素密度
+	 */
+	public static float getDensityFromXYDPI(DisplayMetrics displayMetrics){
 		return (displayMetrics.xdpi + displayMetrics.ydpi) / 2 / 160;
 	}
-	
+
 	/**
-	 * 取得XY平均真實螢幕密度
+	 * 取得XY DPI計算的每英吋螢幕像素密度
 	 */
-	public static float getRealXYDensity(Context context, int flag){
-		return getRealXYDensity(getDisplayMetrics(context, flag));
+	public static float getDensityFromXYDPI(Context context, int flag){
+		return getDensityFromXYDPI(getDisplayMetrics(context, flag));
 	}
-	
-	public static float getDipScaleX(DisplayMetrics displayMetrics){
+
+	/**
+	 * 取得X DPI計算的標準Dip縮放比例
+	 */
+	public static float getDipScaleRateFromXDPI(DisplayMetrics displayMetrics){
 		float realDensityX = displayMetrics.xdpi / 160;
 		float realDipX = getWidthPixels(displayMetrics, true) / realDensityX;
 		return getWidthDip(displayMetrics, true) / realDipX;
 	}
-	
-	public static float getDipScaleX(Context context, int flag){
+
+	/**
+	 * 取得X DPI計算的標準Dip縮放比例
+	 */
+	public static float getDipScaleRateFromXDPI(Context context, int flag){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		return getDipScaleX(displayMetrics);
+		return getDipScaleRateFromXDPI(displayMetrics);
 	}
-	
-	public static float getDipScaleY(DisplayMetrics displayMetrics){
+
+	/**
+	 * 取得Y DPI計算的標準Dip縮放比例
+	 */
+	public static float getDipScaleRateFromYDPI(DisplayMetrics displayMetrics){
 		float realDensityY = displayMetrics.ydpi / 160;
 		float realDipY = getHeightPixels(displayMetrics, true) / realDensityY;
 		return getHeightDip(displayMetrics, true) / realDipY;
 	}
-	
-	public static float getDipScaleY(Context context, int flag){
+
+	/**
+	 * 取得Y DPI計算的標準Dip縮放比例
+	 */
+	public static float getDipScaleRateFromYDPI(Context context, int flag){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		return getDipScaleY(displayMetrics);
+		return getDipScaleRateFromYDPI(displayMetrics);
+	}
+
+	/**
+	 * 取得XY DPI計算的平均標準Dip縮放比例
+	 */
+	public static float getDipScaleRateFromXYDPI(DisplayMetrics displayMetrics){
+		float realDensityX = getDipScaleRateFromXDPI(displayMetrics);
+		float realDensityY = getDipScaleRateFromYDPI(displayMetrics);
+		return (realDensityX + realDensityY) / 2;
+	}
+
+	/**
+	 * 取得XY DPI計算的平均標準Dip縮放比例
+	 */
+	public static float getDipScaleRateFromXYDPI(Context context, int flag){
+		return getDipScaleRateFromXYDPI(getDisplayMetrics(context, flag));
 	}
 }
