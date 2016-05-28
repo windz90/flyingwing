@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.0
+ * @version 3.3.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -32,7 +32,9 @@ public class DisplayUtils {
 	public static final int LIMIT_DIP_WIDTH_540 = 540;
 	public static final int LIMIT_DIP_WIDTH_600 = 600;
 	public static final int LIMIT_DIP_WIDTH_720 = 720;
-	public static final int LIMIT_DIP_WIDTH = LIMIT_DIP_WIDTH_600;
+	public static final int LIMIT_DIP_WIDTH_800 = 800;
+	public static final int LIMIT_DIP_WIDTH_960 = 960;
+	public static final int LIMIT_DIP_WIDTH = LIMIT_DIP_WIDTH_480;
 
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;
@@ -199,11 +201,11 @@ public class DisplayUtils {
 	}
 
 	public static int measureStatusBarHeightForOnDraw(Activity activity){
-		return getHeightPixels(activity, false) - measureVisibleHeightForOnDraw(activity);
+		return getHeightPixels(getDisplayMetricsFromWindowManager(activity), false) - measureVisibleHeightForOnDraw(activity);
 	}
 
 	public static int getVisibleHeight(Context context){
-		return getHeightPixels(context, false) - getStatusBarHeight(0);
+		return getHeightPixels(getDisplayMetricsFromWindowManager(context), false) - getStatusBarHeight(0);
 	}
 
 	public static int getVisibleHeight(DisplayMetrics displayMetrics){
@@ -286,12 +288,25 @@ public class DisplayUtils {
 	}
 
 	public static boolean isFillScreen(Context context, int flag, int limitDipWidth){
-		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		return isFillScreen(displayMetrics, limitDipWidth);
+		return isFillScreen(getDisplayMetrics(context, flag), limitDipWidth);
 	}
 
 	public static boolean isFillScreen(Context context, int limitDipWidth){
-		return isFillScreen(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, limitDipWidth);
+		return isFillScreen(getDisplayMetricsFromWindowManager(context), limitDipWidth);
+	}
+
+	public static int getPixels(DisplayMetrics displayMetrics, float dip){
+		return (int)(dip * displayMetrics.density + 0.5f);
+	}
+
+	public static int getPixels(Context context, int flag, float dip){
+		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
+		return getPixels(displayMetrics, dip);
+	}
+
+	public static int getPixels(Context context, float dip){
+		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
+		return getPixels(displayMetrics, dip);
 	}
 
 	public static int getWidthPixels(DisplayMetrics displayMetrics, boolean isAbs){
@@ -322,7 +337,7 @@ public class DisplayUtils {
 	}
 
 	public static int getWidthPixels(Context context, boolean isAbs){
-		return getWidthPixels(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
+		return getWidthPixels(getDisplayMetricsFromWindowManager(context), isAbs);
 	}
 
 	public static int getHeightPixels(DisplayMetrics displayMetrics, boolean isAbs){
@@ -353,49 +368,81 @@ public class DisplayUtils {
 	}
 
 	public static int getHeightPixels(Context context, boolean isAbs){
-		return getHeightPixels(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
+		return getHeightPixels(getDisplayMetricsFromWindowManager(context), isAbs);
 	}
 
-	public static int getWidthDip(DisplayMetrics displayMetrics, boolean isAbs){
-		return (int)(getWidthPixels(displayMetrics, isAbs) / displayMetrics.density + 0.5f);
-	}
-
-	public static int getWidthDip(Context context, int flag, boolean isAbs){
-		return getWidthDip(getDisplayMetrics(context, flag), isAbs);
-	}
-
-	public static int getWidthDip(Context context, boolean isAbs){
-		return getWidthDip(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
-	}
-
-	public static int getHeightDip(DisplayMetrics displayMetrics, boolean isAbs){
-		return (int)(getHeightPixels(displayMetrics, isAbs) / displayMetrics.density + 0.5f);
-	}
-
-	public static int getHeightDip(Context context, int flag, boolean isAbs){
-		return getHeightDip(getDisplayMetrics(context, flag), isAbs);
-	}
-
-	public static int getHeightDip(Context context, boolean isAbs){
-		return getHeightDip(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, isAbs);
+	public static int getDip(DisplayMetrics displayMetrics, float pixels){
+		return (int)(pixels / displayMetrics.density + 0.5f);
 	}
 
 	public static int getDip(Context context, int flag, float pixels){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		return (int)(pixels / displayMetrics.density + 0.5f);
+		return getDip(displayMetrics, pixels);
 	}
 
 	public static int getDip(Context context, float pixels){
-		return getDip(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, pixels);
+		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
+		return getDip(displayMetrics, pixels);
 	}
 
-	public static int getPixels(Context context, int flag, float dip){
+	public static int getWidthDip(DisplayMetrics displayMetrics, boolean isAbs){
+		return getDip(displayMetrics, getWidthPixels(displayMetrics, isAbs));
+	}
+
+	public static int getWidthDip(Context context, int flag, boolean isAbs){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		return (int)(dip * displayMetrics.density + 0.5f);
+		return getDip(displayMetrics, getWidthPixels(displayMetrics, isAbs));
 	}
 
-	public static int getPixels(Context context, float dip){
-		return getPixels(context, DISPLAY_METRICS_FROM_WINDOW_MANAGER, dip);
+	public static int getWidthDip(Context context, boolean isAbs){
+		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
+		return getDip(displayMetrics, getWidthPixels(displayMetrics, isAbs));
+	}
+
+	public static int getHeightDip(DisplayMetrics displayMetrics, boolean isAbs){
+		return getDip(displayMetrics, getHeightPixels(displayMetrics, isAbs));
+	}
+
+	public static int getHeightDip(Context context, int flag, boolean isAbs){
+		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
+		return getDip(displayMetrics, getHeightPixels(displayMetrics, isAbs));
+	}
+
+	public static int getHeightDip(Context context, boolean isAbs){
+		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
+		return getDip(displayMetrics, getHeightPixels(displayMetrics, isAbs));
+	}
+
+	public static float getMillimeter(float pixels, float dpi){
+		return pixels / (dpi * (1f / 25.4f));
+	}
+
+	public static float getWidthMillimeter(DisplayMetrics displayMetrics, boolean isAbs){
+		return getMillimeter(getWidthPixels(displayMetrics, isAbs), displayMetrics.xdpi);
+	}
+
+	public static float getWidthMillimeter(Context context, int flag, boolean isAbs){
+		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
+		return getMillimeter(getWidthPixels(displayMetrics, isAbs), displayMetrics.xdpi);
+	}
+
+	public static float getWidthMillimeter(Context context, boolean isAbs){
+		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
+		return getMillimeter(getWidthPixels(displayMetrics, isAbs), displayMetrics.xdpi);
+	}
+
+	public static float getHeightMillimeter(DisplayMetrics displayMetrics, boolean isAbs){
+		return getMillimeter(getHeightPixels(displayMetrics, isAbs), displayMetrics.ydpi);
+	}
+
+	public static float getHeightMillimeter(Context context, int flag, boolean isAbs){
+		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
+		return getMillimeter(getHeightPixels(displayMetrics, isAbs), displayMetrics.ydpi);
+	}
+
+	public static float getHeightMillimeter(Context context, boolean isAbs){
+		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
+		return getMillimeter(getHeightPixels(displayMetrics, isAbs), displayMetrics.ydpi);
 	}
 
 	public static double getScreenInch(int realWidthPixels, int realHeightPixels, float xdpi, float ydpi){
