@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.graphics;
+package com.flyingwing.graphics;
 
 import android.annotation.TargetApi;
 import android.content.Context;

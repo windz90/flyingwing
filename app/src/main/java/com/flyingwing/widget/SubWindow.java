@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.widget;
+package com.flyingwing.widget;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -47,8 +47,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.flyingwing.R;
-import com.flyingwing.base.util.DisplayUtils;
-import com.flyingwing.base.util.Utils;
+import com.flyingwing.util.DisplayUtils;
+import com.flyingwing.util.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -266,13 +266,13 @@ public class SubWindow {
 		alertBuilderConfirm(context, context.getString(R.string.confirm), message, clickAction);
 	}
 
-	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitCalss){
+	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitClass){
 		final DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				if(which == DialogInterface.BUTTON_POSITIVE){
-					Intent intent = new Intent(activity, quitCalss);
+					Intent intent = new Intent(activity, quitClass);
 					intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 					intent.putExtra("quit", true);
 					activity.startActivity(intent);

@@ -1,4 +1,4 @@
-package com.flyingwing.base.view;
+package com.flyingwing.view;
 
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;

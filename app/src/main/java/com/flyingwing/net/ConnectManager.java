@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.net;
+package com.flyingwing.net;
 
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,7 +16,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
-import com.flyingwing.base.widget.CustomProgressDialog;
+import com.flyingwing.widget.CustomProgressDialog;
 
 import java.net.HttpURLConnection;
 import java.util.concurrent.ExecutorService;

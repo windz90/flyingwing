@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.widget;
+package com.flyingwing.widget;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;

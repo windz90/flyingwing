@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.widget;
+package com.flyingwing.widget;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -19,7 +19,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 
-import com.flyingwing.base.util.Utils;
+import com.flyingwing.util.Utils;
 
 import org.json.JSONArray;
 

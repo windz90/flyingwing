@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 4.0
  */
 
-package com.flyingwing.base.widget;
+package com.flyingwing.widget;
 
 import java.util.Timer;
 import java.util.TimerTask;

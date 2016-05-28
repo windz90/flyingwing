@@ -5,7 +5,7 @@
  * @since JDK 1.5 and Android 2.2
  */
 
-package com.flyingwing.base.util;
+package com.flyingwing.util;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;

@@ -1,4 +1,4 @@
-package com.flyingwing.base;
+package com.flyingwing;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -13,8 +13,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.ViewGroup;
 
-import com.flyingwing.R;
-import com.flyingwing.base.view.Main;
+import com.flyingwing.view.Main;
 
 @SuppressWarnings("unused")
 public class Global extends MultiDexApplication {

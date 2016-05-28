@@ -1,4 +1,4 @@
-package com.flyingwing.base.view;
+package com.flyingwing.view;
 
 import android.app.Activity;
 import android.content.Intent;
