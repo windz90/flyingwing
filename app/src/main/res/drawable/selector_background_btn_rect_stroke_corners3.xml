@@ -1,0 +1,6 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:drawable="@drawable/shape_btn_rect_stroke_disabled_corners3"/>
+    <item android:state_enabled="true" android:state_pressed="true" android:drawable="@drawable/shape_btn_rect_stroke_pressed_corners3"/>
+	<item android:state_enabled="true" android:state_selected="true" android:drawable="@drawable/shape_btn_rect_stroke_pressed_corners3"/>
+	<item android:drawable="@drawable/shape_btn_rect_stroke_normal_corners3"/>
+</selector>
