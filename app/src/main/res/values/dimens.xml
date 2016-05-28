@@ -89,5 +89,20 @@
 	<dimen name="dip464">464dip</dimen>
 	<dimen name="dip472">472dip</dimen>
 	<dimen name="dip480">480dip</dimen>
+	<dimen name="dip488">488dip</dimen>
+	<dimen name="dip496">496dip</dimen>
+	<dimen name="dip504">504dip</dimen>
+	<dimen name="dip512">512dip</dimen>
+	<dimen name="dip520">520dip</dimen>
+	<dimen name="dip528">528dip</dimen>
+	<dimen name="dip536">536dip</dimen>
+	<dimen name="dip544">544dip</dimen>
+	<dimen name="dip552">552dip</dimen>
+	<dimen name="dip560">560dip</dimen>
+	<dimen name="dip568">568dip</dimen>
+	<dimen name="dip576">576dip</dimen>
+	<dimen name="dip584">584dip</dimen>
+	<dimen name="dip592">592dip</dimen>
+	<dimen name="dip600">600dip</dimen>
 	
 </resources>
