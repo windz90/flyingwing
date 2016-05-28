@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.0
+ * @version 3.5.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -62,6 +62,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
+import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -117,7 +118,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "Convert2Diamond", "TryFinallyCanBeTryWithResources"})
 public class Utils {
 
 	public static final int SIZE_TEXT_S = 0;
@@ -222,6 +223,7 @@ public class Utils {
 //			{"", "*/*"}
 //	};
 
+	@SuppressWarnings("UnusedAssignment")
 	public static String inputStreamToString(InputStream is, Charset charset, int bufferSize){
 		if(is == null){
 			return null;
@@ -236,10 +238,10 @@ public class Utils {
 		}
 		BufferedReader reader;
 		StringBuilder stringBuilder = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
-		String line;
 		try {
 			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
 			try {
+				String line;
 				while((line = reader.readLine()) != null){
 					stringBuilder.append(line).append("\n");
 				}
@@ -250,12 +252,11 @@ public class Utils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
-			is = null;
-			reader = null;
 			stringBuilder = null;
-			line = null;
-			stringBuilder = new StringBuilder();
+			reader = null;
+			is = null;
 			e.printStackTrace();
+			return "";
 		}
 		return stringBuilder.toString();
 	}
@@ -268,21 +269,21 @@ public class Utils {
 		return inputStreamToString(is, null, 1024 * 16);
 	}
 
+	@SuppressWarnings("UnusedAssignment")
 	public static byte[] inputStreamToByteArray(InputStream is, int bufferSize){
 		if(is == null){
 			return null;
 		}
 		byte[] byteArray = null;
-		int progress;
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}
-		byte[] buffer;
 		ByteArrayOutputStream baos;
 		try {
-			buffer = new byte[bufferSize];
 			baos = new ByteArrayOutputStream();
 			try {
+				int progress;
+				byte[] buffer = new byte[bufferSize];
 				while((progress = is.read(buffer)) != -1){
 					baos.write(buffer, 0, progress);
 				}
@@ -298,10 +299,9 @@ public class Utils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
-			is = null;
-			byteArray = null;
-			buffer = null;
 			baos = null;
+			byteArray = null;
+			is = null;
 			e.printStackTrace();
 		}
 		return byteArray;
@@ -311,36 +311,34 @@ public class Utils {
 		return inputStreamToByteArray(is, 1024 * 16);
 	}
 
+	@SuppressWarnings("UnusedAssignment")
 	public static OutputStream byteArrayToOutputStream(byte[] byteArray, OutputStream os, int bufferSize){
 		if(byteArray == null || os == null){
 			return null;
 		}
-		int progress;
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}
-		byte[] buffer;
 		InputStream is;
 		try {
-			buffer = new byte[bufferSize];
 			is = new ByteArrayInputStream(byteArray);
 			try {
+				int progress;
+				byte[] buffer = new byte[bufferSize];
 				while((progress = is.read(buffer)) != -1){
 					os.write(buffer, 0, progress);
 				}
 				os.flush();
 			} finally {
 				is.close();
-				is = null;
 			}
 			return os;
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
-			byteArray = null;
-			os = null;
-			buffer = null;
 			is = null;
+			os = null;
+			byteArray = null;
 			e.printStackTrace();
 		}
 		return os;
@@ -350,45 +348,47 @@ public class Utils {
 		return byteArrayToOutputStream(byteArray, os, 1024 * 16);
 	}
 
+	@SuppressWarnings("UnusedAssignment")
 	public static byte[] fileToByteArray(File file){
 		if(file == null){
 			return null;
 		}
 		byte[] byteArray = null;
+		InputStream is;
 		try {
-			InputStream is = new FileInputStream(file);
-			int progress = 0;
+			is = new FileInputStream(file);
 			byteArray = new byte[(int)file.length()];
 			try {
+				int progress = 0;
 				while(progress < byteArray.length){
 					progress = progress + is.read(byteArray, progress, byteArray.length - progress);
 				}
 			} finally {
 				is.close();
-				is = null;
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
-			file = null;
 			byteArray = null;
+			is = null;
+			file = null;
 			e.printStackTrace();
 		}
 		return byteArray;
 	}
 
+	@SuppressWarnings("UnusedAssignment")
 	public static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os, int bufferSize){
 		if(is == null || os == null){
 			return false;
 		}
-		int progress;
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}
-		byte[] buffer;
 		try {
-			buffer = new byte[bufferSize];
 			try {
+				int progress;
+				byte[] buffer = new byte[bufferSize];
 				while((progress = is.read(buffer)) != -1){
 					os.write(buffer, 0, progress);
 				}
@@ -401,9 +401,8 @@ public class Utils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
-			is = null;
 			os = null;
-			buffer = null;
+			is = null;
 			e.printStackTrace();
 		}
 		return false;
@@ -461,6 +460,7 @@ public class Utils {
 	/**
 	 * android.permission.WRITE_EXTERNAL_STORAGE
 	 */
+	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 	public static boolean writeSDCardFile(Context context, InputStream is, String directory, String fileName, int bufferSize, Handler handlerNoPermissions){
 		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		// 確認sdCard是否掛載
@@ -497,6 +497,10 @@ public class Utils {
 		return false;
 	}
 
+	/**
+	 * android.permission.WRITE_EXTERNAL_STORAGE
+	 */
+	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 	public static boolean writeSDCardFile(Context context, InputStream is, String directory, String fileName, Handler handlerNoPermissions){
 		return writeSDCardFile(context, is, directory, fileName, 1024 * 16, handlerNoPermissions);
 	}
@@ -520,8 +524,8 @@ public class Utils {
 			return null;
 		}
 
-		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 		// 取得sdCard路徑
+		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 		File file = Environment.getExternalStorageDirectory();
 		String sdCardPath = file.toString() + File.separator;
 		if(directory.indexOf(sdCardPath) == 0){
@@ -551,10 +555,10 @@ public class Utils {
 					byteBuffer.clear();
 				}
 			} finally {
-				fileChannelRead.close();
-				fileInputStream.close();
 				fileChannelWrite.close();
+				fileChannelRead.close();
 				fileOutputStream.close();
+				fileInputStream.close();
 			}
 
 			return file.isFile();
@@ -579,8 +583,8 @@ public class Utils {
 					randomAccessFileWrite.write(buffer);
 				}
 			} finally {
-				randomAccessFileRead.close();
 				randomAccessFileWrite.close();
+				randomAccessFileRead.close();
 			}
 			return file.isFile();
 		} catch (IOException | OutOfMemoryError e) {
@@ -598,12 +602,12 @@ public class Utils {
 			FileChannel fileChannelRead = fileInputStream.getChannel();
 			FileChannel fileChannelWrite = randomAccessFile.getChannel();
 
-			long progress = 0;
-			MappedByteBuffer mappedByteBufferRead, mappedByteBufferWrite;
 			if(bufferSize < 8192){
 				bufferSize = 8192;
 			}
 			try {
+				long progress = 0;
+				MappedByteBuffer mappedByteBufferRead, mappedByteBufferWrite;
 				while(progress < fileChannelRead.size()){
 					if(fileChannelRead.size() - progress < bufferSize){
 						bufferSize = fileChannelRead.size() - progress;
@@ -612,16 +616,14 @@ public class Utils {
 					mappedByteBufferWrite = fileChannelWrite.map(FileChannel.MapMode.READ_WRITE, progress, bufferSize);
 					mappedByteBufferWrite.put(mappedByteBufferRead);
 					progress = progress + bufferSize;
-					mappedByteBufferRead.clear();
 					mappedByteBufferWrite.clear();
+					mappedByteBufferRead.clear();
 				}
 			} finally {
-				mappedByteBufferRead = null;
-				mappedByteBufferWrite = null;
-				fileChannelRead.close();
-				fileInputStream.close();
 				fileChannelWrite.close();
+				fileChannelRead.close();
 				randomAccessFile.close();
+				fileInputStream.close();
 			}
 
 			return file.isFile();
@@ -1051,8 +1053,7 @@ public class Utils {
 				* Math.cos(Math.toRadians(theta));
 		dist = Math.acos(dist);
 		dist = Math.toDegrees(dist);
-		double miles = dist * 60 * 1.1515;
-		return miles;
+		return dist * 60 * 1.1515;
 	}
 
 	public static float getSpacing(MotionEvent event) {
@@ -1248,24 +1249,19 @@ public class Utils {
 
 	// 取得Android機器ID
 	public static String getAndroidID(Context context){
-		// Android API 2.2 當時的部份設備有bug，會產生相同的ANDROID_ID:9774d56d682e549c
-		String androidID = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-		// 硬體的唯一值 API 9
-		//		String buildSerial = android.os.Build.SERIAL;
-		// 製造商
-		//		String manufacturer = android.os.Build.MANUFACTURER;
-		// 機器名稱
-		//		String model = android.os.Build.MODEL;
-		// 機器型號
-		//		String device = android.os.Build.DEVICE;
+		// BuildSerial 硬體的唯一值 API 9
+//		String buildSerial = android.os.Build.SERIAL;
+
 		/*
 		 * UUID(Universally Unique Identifier)全局唯一識別字，是指在一台機器上生成的數字，它保證對在同一時空中的所有機器都是唯一的。
 		 * 按照開放軟體基金會(OSF)制定的標準計算，用到了乙太網卡位址、 納秒級時間、晶片ID碼和許多可能的數位。
 		 * 由以下幾部分的組合：當前日期和時間（UUID的第一個部分與時間有關，如果你在生成一個UUID之後，過幾秒又生成一個UUID，則第一個部分不同，其餘相同）
 		 * ，時鐘序列，全局唯一的IEEE機器識別號（如果有網卡，從網卡獲得，沒有網卡以其他方式獲得），UUID的唯一缺陷在於生成的結果字串會比較長。
 		 */
-		//		String uuid = UUID.randomUUID().toString();
-		return androidID;
+//		String uuid = UUID.randomUUID().toString();
+
+		// AndroidID Android API 2.2 當時的部份設備有bug，會產生相同的ANDROID_ID:9774d56d682e549c
+		return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 	}
 
 	public static String getAssetsPathForWebViewOnly(String filePath){
@@ -1310,8 +1306,7 @@ public class Utils {
 	}
 
 	public static int getVisibleHeightSP(Context context, DisplayMetrics displayMetrics, String spName){
-		int visibleHe = displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
-		return visibleHe;
+		return displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
 	}
 
 	public static int getVisibleHeightSP(Context context, String spName){
@@ -1350,9 +1345,8 @@ public class Utils {
 		rectScroll.right += xOffset;
 		rectScroll.top += yOffset;
 		rectScroll.bottom += yOffset;
-		boolean isViewVisible = rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() &&
+		return rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() &&
 				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight();
-		return isViewVisible;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -1427,7 +1421,7 @@ public class Utils {
 		setTextSizeMethod(context, textView, TypedValue.COMPLEX_UNIT_SP, size);
 	}
 
-	private static int getTextSize(int flag){
+	public static int getTextSize(int flag){
 		int textSize = 15;
 		switch (flag) {
 			case SIZE_SUBJECT_XL:textSize = 29;break;
@@ -1511,14 +1505,12 @@ public class Utils {
 
 	public static float getTextBaselineY(Paint paint, int canvasHeight){
 		FontMetrics fontMetrics = paint.getFontMetrics();
-		float baselineY = canvasHeight / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
-		return baselineY;
+		return canvasHeight / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
 	}
 
 	public static float getTextStaticLayoutVerticalCenterOffsetY(Paint paint){
 		FontMetrics fontMetrics = paint.getFontMetrics();
-		float offsetY = (fontMetrics.descent - fontMetrics.ascent) / 2 + fontMetrics.descent;
-		return offsetY;
+		return (fontMetrics.descent - fontMetrics.ascent) / 2 + fontMetrics.descent;
 	}
 
 	public static void setToast(Context context, CharSequence text, int gravity, int duration){
@@ -1742,8 +1734,7 @@ public class Utils {
 		}
 
 		String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
-		String spValue = sp.getString(spMapHeadKey + spKeyArray[location], null);
-		return spValue;
+		return sp.getString(spMapHeadKey + spKeyArray[location], null);
 	}
 
 	public static String getSharedPreferencesMapInItem(Context context, String spName, String mapSaveKey, String mapSaveItemKey){
@@ -1755,8 +1746,7 @@ public class Utils {
 			return null;
 		}
 
-		String spValue = sp.getString(spMapHeadKey + mapSaveItemKey, null);
-		return spValue;
+		return sp.getString(spMapHeadKey + mapSaveItemKey, null);
 	}
 
 	/**
@@ -1805,8 +1795,8 @@ public class Utils {
 			intent = new Intent(Intent.ACTION_SEND);
 			intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 			intent.setType(intentType);
-			//			intent.setClassName("com.facebook.katana", "com.facebook.katana.ShareLinkActivity");
-			//			intent.setClassName("com.twitter.android", "com.twitter.android.PostActivity");
+//			intent.setClassName("com.facebook.katana", "com.facebook.katana.ShareLinkActivity");
+//			intent.setClassName("com.twitter.android", "com.twitter.android.PostActivity");
 			intent.setClassName(packageName, className);
 			intent.putExtra(Intent.EXTRA_SUBJECT, subject);
 			intent.putExtra(Intent.EXTRA_TEXT, text);
@@ -1936,11 +1926,11 @@ public class Utils {
 
 	public static void finishAPP(Activity activity){
 		// Force kill process
-		//		android.os.Process.killProcess(android.os.Process.myPid());
+//		android.os.Process.killProcess(android.os.Process.myPid());
 		// Finish current task
-		//		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-		//			activity.finishAffinity();
-		//		}
+//		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+//			activity.finishAffinity();
+//		}
 		Intent intent = new Intent(Intent.ACTION_MAIN);
 		intent.addCategory(Intent.CATEGORY_HOME);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -1951,7 +1941,7 @@ public class Utils {
 			, final String title, String failInfo){
 		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
 		PackageManager packageManager = activity.getPackageManager();
-		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.GET_ACTIVITIES);
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo != null && listResolveInfo.size() > 0){
 			new Thread(new Runnable() {
 
@@ -2010,7 +2000,7 @@ public class Utils {
 		intent.putExtra("return-data", returnData);
 
 		PackageManager packageManager = activity.getPackageManager();
-		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.GET_ACTIVITIES);
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo != null && listResolveInfo.size() > 0){
 			new Thread(new Runnable() {
 
@@ -2188,8 +2178,7 @@ public class Utils {
 
 	// 取得系統亮度
 	public static int getScreenBrightnessForSystem(Context context){
-		int screenBrightness = Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
-		return screenBrightness;
+		return Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
 	}
 
 	// 取得目前亮度
@@ -2342,23 +2331,45 @@ public class Utils {
 		return stringBuilder.length() == 0 ? new String[0] : stringBuilder.toString().split("\n");
 	}
 
-	public static void requestPermissionsForResult(Activity activity, int requestCode, String...permissions){
-		String[] needRequestPermissions = checkNeedRequestPermissions(activity, permissions);
-		if(needRequestPermissions.length > 0){
-			ActivityCompat.requestPermissions(activity, needRequestPermissions, requestCode);
+	/**
+	 * reported to {@link ActivityCompat.OnRequestPermissionsResultCallback#onRequestPermissionsResult(int, String[], int[])}
+	 */
+	public static void requestPermissionsForResult(Activity activity, int requestCode, boolean isCheckRequest, String...permissions){
+		if(isCheckRequest){
+			String[] needRequestPermissions = checkNeedRequestPermissions(activity, permissions);
+			if(needRequestPermissions.length > 0){
+				ActivityCompat.requestPermissions(activity, needRequestPermissions, requestCode);
+			}
+			return;
 		}
+		ActivityCompat.requestPermissions(activity, permissions, requestCode);
 	}
 
-	public static boolean isScreenOn(Context context, boolean isCheckInteractive){
+	public static boolean isScreenOn(Context context, boolean isCheckDisplayState, boolean isCheckInteractive, boolean isMustDisplayStateOn){
 		PowerManager powerManager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH){
-			if(isCheckInteractive){
+			if(!isCheckDisplayState && isCheckInteractive){
 				return powerManager.isInteractive();
 			}
 			DisplayManager displayManager = (DisplayManager)context.getSystemService(Context.DISPLAY_SERVICE);
 			for(Display display : displayManager.getDisplays()){
-				if(display.getState() != Display.STATE_OFF){
-					return true;
+				if(display.getDisplayId() == Display.INVALID_DISPLAY){
+					continue;
+				}
+				if(isMustDisplayStateOn){
+					if(isCheckDisplayState && !isCheckInteractive && display.getState() == Display.STATE_ON){
+						return true;
+					}
+					if(isCheckDisplayState && isCheckInteractive && display.getState() == Display.STATE_ON && powerManager.isInteractive()){
+						return true;
+					}
+				}else{
+					if(isCheckDisplayState && !isCheckInteractive && display.getState() != Display.STATE_OFF){
+						return true;
+					}
+					if(isCheckDisplayState && isCheckInteractive && display.getState() != Display.STATE_OFF && powerManager.isInteractive()){
+						return true;
+					}
 				}
 			}
 			return false;
@@ -2367,16 +2378,20 @@ public class Utils {
 		return powerManager.isScreenOn();
 	}
 
+	public static boolean isScreenOn(Context context, boolean isMustDisplayStateOn){
+		return isScreenOn(context, true, true, isMustDisplayStateOn);
+	}
+
 	// 判斷此Activity是否正在前端執行
 	/**@deprecated */
+	@SuppressWarnings("deprecation")
+	@RequiresPermission(android.Manifest.permission.GET_TASKS)
 	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
-		//noinspection deprecation
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.GET_TASKS) == PackageManager.PERMISSION_DENIED){
 			return false;
 		}
 		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-		//noinspection deprecation
 		List<ActivityManager.RunningTaskInfo> list = activityManager.getRunningTasks(1);
 		String runningClassName = list.get(0).topActivity.getClassName();
 		return context.getClass().getName().equals(runningClassName);
@@ -2551,8 +2566,7 @@ public class Utils {
 	// 取得軟體資訊
 	public static PackageInfo getPackageInfo(Context context, String packageName, int flags){
 		try {
-			PackageInfo packageInfo = context.getPackageManager().getPackageInfo(packageName, flags);
-			return packageInfo;
+			return context.getPackageManager().getPackageInfo(packageName, flags);
 		} catch (NameNotFoundException ignored) {}
 		return null;
 	}
@@ -2659,6 +2673,7 @@ public class Utils {
 	 * 某些機種需要讀取權限<br>
 	 * android.permission.READ_CONTACTS
 	 */
+	@RequiresPermission(android.Manifest.permission.WRITE_CONTACTS)
 	public static boolean saveContentProvider(Context context, String[] infoArray, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
@@ -2752,6 +2767,7 @@ public class Utils {
 	 * 取得手機資訊<br>
 	 * android.permission.READ_PHONE_STATE
 	 */
+	@RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
 	public static List<Map<String, String>> getPhoneInfo(Context context, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
