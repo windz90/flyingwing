@@ -1,0 +1,11 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+	<item android:id="@+id/item1">
+		<!-- android:innerRadiusRatio default 9 -->
+		<shape
+			android:shape="ring"
+			android:innerRadiusRatio="2.3"
+			android:thickness="3dip">
+			<solid android:color="@color/BlackAlpha33"/>
+		</shape>
+	</item>
+</layer-list>
