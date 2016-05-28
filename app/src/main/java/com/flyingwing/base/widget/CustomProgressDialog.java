@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.6
+ * @version 2.3.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -26,7 +26,9 @@ import android.widget.TextView;
 @SuppressWarnings("unused")
 public class CustomProgressDialog {
 
-	private static final CustomProgressDialog sProgress = new CustomProgressDialog();
+	private static final class StaticNestedClass {
+		private static final CustomProgressDialog INSTANCE = new CustomProgressDialog();
+	}
 
 	private Context mContext;
 	private Dialog mDialog;
@@ -215,12 +217,12 @@ public class CustomProgressDialog {
 	}
 
 	public static CustomProgressDialog getInstance(Context context, String message){
-		if(sProgress.getDialog() == null){
-			sProgress.createDialog(context, message);
+		if(StaticNestedClass.INSTANCE.getDialog() == null){
+			StaticNestedClass.INSTANCE.createDialog(context, message);
 		}else{
-			sProgress.setMessage(message);
+			StaticNestedClass.INSTANCE.setMessage(message);
 		}
-		return sProgress;
+		return StaticNestedClass.INSTANCE;
 	}
 
 	public static CustomProgressDialog getInstance(Context context){
@@ -228,41 +230,35 @@ public class CustomProgressDialog {
 	}
 
 	public static boolean hasInstanceDialog(){
-		return sProgress.getDialog() != null;
+		return StaticNestedClass.INSTANCE.getDialog() != null;
 	}
 
 	public static Dialog getInstanceDialog(){
-		return sProgress == null ? null : sProgress.getDialog();
+		return StaticNestedClass.INSTANCE.getDialog();
 	}
 
 	public static TextView getInstanceTextView(){
-		return sProgress == null ? null : sProgress.getTextView();
+		return StaticNestedClass.INSTANCE.getTextView();
 	}
 
 	public static void setInstanceCancelable(boolean isCancel){
-		if(sProgress != null){
-			sProgress.setCancelable(isCancel);
-		}
+		StaticNestedClass.INSTANCE.setCancelable(isCancel);
 	}
 
 	public static void setInstanceMessage(String message){
-		if(sProgress != null){
-			sProgress.setMessage(message);
-		}
+		StaticNestedClass.INSTANCE.setMessage(message);
 	}
 
 	public static void appendInstanceMessage(String message){
-		if(sProgress != null){
-			sProgress.appendMessage(message);
-		}
+		StaticNestedClass.INSTANCE.appendMessage(message);
 	}
 
 	public static String getInstanceMessage(){
-		return sProgress == null ? null : sProgress.getMessage();
+		return StaticNestedClass.INSTANCE.getMessage();
 	}
 
 	public static boolean isInstanceShowing(){
-		return sProgress != null && sProgress.isShowing();
+		return StaticNestedClass.INSTANCE.isShowing();
 	}
 
 	public static void showInstance(Context context, String message){
@@ -274,20 +270,14 @@ public class CustomProgressDialog {
 	}
 
 	public static void hideInstance(){
-		if(sProgress != null){
-			sProgress.hide();
-		}
+		StaticNestedClass.INSTANCE.hide();
 	}
 
 	public static void dismissInstance(){
-		if(sProgress != null){
-			sProgress.dismiss();
-		}
+		StaticNestedClass.INSTANCE.dismiss();
 	}
 
 	public static void clearInstance(){
-		if(sProgress != null){
-			sProgress.clear();
-		}
+		StaticNestedClass.INSTANCE.clear();
 	}
 }
