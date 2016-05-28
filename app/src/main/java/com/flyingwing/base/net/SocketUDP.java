@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.2
+ * @version 1.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -29,9 +29,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class SocketUDP {
 
 	public static final int STATE_RECEIVE_SUCCESS = 100;
-	public static final int STATE_RECEIVE_FAIL = 101;
+	public static final int STATE_RECEIVE_FAILED = 101;
 	public static final int STATE_SEND_SUCCESS = 200;
-	public static final int STATE_SEND_FAIL = 201;
+	public static final int STATE_SEND_FAILED = 201;
 
 	private DatagramSocket mDatagramSocket;
 	private DatagramPacket mDatagramPacketReceive;
@@ -53,15 +53,15 @@ public class SocketUDP {
 
 		private Handler handler;
 
-		protected void setCallbackForMainThread(final int what, Bundle bundle){
+		protected void callbackForMainThread(final int what, Bundle bundle){
 			if(handler == null){
 				handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 					@Override
 					public boolean handleMessage(Message msg) {
-						if(what == STATE_RECEIVE_SUCCESS || what == STATE_RECEIVE_FAIL){
+						if(what == STATE_RECEIVE_SUCCESS || what == STATE_RECEIVE_FAILED){
 							receiveForMainThread(msg);
 						}else{
-							sendCallbackForMainThread();
+							sendCallbackForMainThread(what);
 						}
 						return false;
 					}
@@ -72,10 +72,10 @@ public class SocketUDP {
 			handler.sendMessage(message);
 		}
 
-		public void receiveSync(Bundle bundle){}
+		public void receiveSync(int flag, Bundle bundle){}
 		public void receiveForMainThread(Message message){}
-		public void sendCallbackSync(){}
-		public void sendCallbackForMainThread(){}
+		public void sendCallbackSync(int flag){}
+		public void sendCallbackForMainThread(int flag){}
 	}
 
 	public SocketUDP(boolean isReuseAddress, @IntRange(from = 0, to = 65535) int portLocal){
@@ -288,12 +288,13 @@ public class SocketUDP {
 			bundle.putInt("port", mDatagramPacketReceive.getPort());
 			bundle.putByteArray("data", bytesCopy);
 
-			socketCallback.receiveSync(bundle);
-			socketCallback.setCallbackForMainThread(STATE_RECEIVE_SUCCESS, bundle);
+			socketCallback.receiveSync(STATE_RECEIVE_SUCCESS, bundle);
+			socketCallback.callbackForMainThread(STATE_RECEIVE_SUCCESS, bundle);
 		} catch (Exception e) {
 			bundle.clear();
 			bundle.putSerializable("Exception", null);
-			socketCallback.setCallbackForMainThread(STATE_RECEIVE_FAIL, bundle);
+			socketCallback.receiveSync(STATE_RECEIVE_FAILED, bundle);
+			socketCallback.callbackForMainThread(STATE_RECEIVE_FAILED, bundle);
 		}
 	}
 
@@ -355,8 +356,8 @@ public class SocketUDP {
 					}
 				}
 				if(socketCallback != null){
-					socketCallback.sendCallbackSync();
-					socketCallback.setCallbackForMainThread(isSendSuccess ? STATE_SEND_SUCCESS : STATE_SEND_FAIL, null);
+					socketCallback.sendCallbackSync(isSendSuccess ? STATE_SEND_SUCCESS : STATE_SEND_FAILED);
+					socketCallback.callbackForMainThread(isSendSuccess ? STATE_SEND_SUCCESS : STATE_SEND_FAILED, null);
 				}
 			}
 		}).start();
