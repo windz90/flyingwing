@@ -1,5 +1,0 @@
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:state_enabled="true" android:state_pressed="true" android:drawable="@color/Cyan8000AAE8"/>
-	<!-- code:ListView.setSelector xml:android:listSelector 無狀態觸發已選取狀態，僅限當頁有效 -->
-	<item android:drawable="@color/CyanC048A0E8"/>
-</selector>
