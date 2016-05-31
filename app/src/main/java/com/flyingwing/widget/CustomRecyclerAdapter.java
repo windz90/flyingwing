@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.9
+ * @version 1.0.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -29,7 +29,7 @@ import java.util.Map;
 
 @SuppressWarnings({"unused", "Convert2Diamond"})
 public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-	
+
 	protected OnItemClickListener mOnItemClickListener;
 	protected OnItemLongClickListener mOnItemLongClickListener;
 	protected Handler mHandler;
@@ -39,7 +39,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	protected JSONArray mJsonArray;
 	protected int mSelectorBgRes;
 	protected int mItemWidth, mItemHeight;
-	
+
 	private long timeClick;
 
 	public interface OnItemClickListener {
@@ -49,14 +49,14 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	public interface OnItemLongClickListener {
 		void onItemLongClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, String clickDescription, int position);
 	}
-	
+
 	public static abstract class OnItemTouchListener implements RecyclerView.OnItemTouchListener {
-		
+
 		GestureDetector mGestureDetector;
-		
+
 		public abstract void onItemClick(RecyclerView recyclerView, View itemView, String clickDescription, int position);
 		public void onItemLongClick(RecyclerView recyclerView, View itemView, String clickDescription, int position){}
-		
+
 		public OnItemTouchListener(Context context, final RecyclerView recyclerView){
 			mGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener(){
 
@@ -74,7 +74,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 				}
 			});
 		}
-		
+
 		@Override
 		public boolean onInterceptTouchEvent(RecyclerView recyclerView, MotionEvent e) {
 			if(mGestureDetector != null){
@@ -90,7 +90,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		@Override
 		public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
 	}
-	
+
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public CustomRecyclerAdapter(Context context){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
@@ -99,11 +99,11 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 			mSelectorBgRes = android.R.color.white;
 		}
 	}
-	
+
 	public void set2DArray(String[][] array){
 		m2DArray = array;
 	}
-	
+
 	public String[][] get2DArray(){
 		return m2DArray;
 	}
@@ -143,7 +143,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	public void addItemIn2DArray(String[] stringItem, int index){
 		addRangeItemIn2DArray(new String[][]{stringItem}, index);
 	}
-	
+
 	public void updateRangeItemForm2DArray(String[][] stringArray, int positionStart){
 		if(m2DArray != null && m2DArray.length >= positionStart + stringArray.length){
 			System.arraycopy(stringArray, 0, m2DArray, positionStart, stringArray.length);
@@ -181,7 +181,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	public void setComplexList(List<Map<String, ? super Object>> list){
 		mComplexList = list;
 	}
-	
+
 	public List<Map<String, ? super Object>> getComplexList(){
 		return mComplexList;
 	}
@@ -321,11 +321,11 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	public void setJSONArray(JSONArray jsonArray){
 		mJsonArray = jsonArray;
 	}
-	
+
 	public JSONArray getJSONArray(){
 		return mJsonArray;
 	}
-	
+
 	public void addRangeItemInJSONArray(JSONArray jsonArray, int positionStart){
 		if(mJsonArray == null){
 			if(positionStart != 0){
@@ -334,14 +334,21 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 			mJsonArray = new JSONArray();
 		}
 		if(mJsonArray.length() >= positionStart){
-			int length = jsonArray.length();
-			for(int i=0; i<length; i++){
-				try {
-					mJsonArray.put(positionStart + i, jsonArray.opt(i));
-				} catch (Exception ignored) {}
+			List<Object> list;
+			int lengthBody = mJsonArray.length();
+			int lengthSub = jsonArray.length();
+			for(int i=0; i<lengthSub; i++){
+				if(lengthBody > positionStart + i){
+					list = Utils.reflectionJSONArrayToList(mJsonArray);
+					if(list != null){
+						list.add(positionStart + i, jsonArray.opt(i));
+					}
+				}else{
+					mJsonArray.put(jsonArray.opt(i));
+				}
 			}
-			notifyItemRangeInserted(positionStart, length);
-			notifyItemRangeChanged(positionStart, length);
+			notifyItemRangeInserted(positionStart, lengthSub);
+			notifyItemRangeChanged(positionStart, lengthSub);
 		}
 	}
 
@@ -353,9 +360,14 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 			mJsonArray = new JSONArray();
 		}
 		if(mJsonArray.length() >= index){
-			try {
-				mJsonArray.put(index, object);
-			} catch (Exception ignored) {}
+			if(mJsonArray.length() > index){
+				List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
+				if(list != null){
+					list.add(index, object);
+				}
+			}else{
+				mJsonArray.put(object);
+			}
 			notifyItemRangeInserted(index, 1);
 			notifyItemRangeChanged(index, 1);
 		}
@@ -409,27 +421,27 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	public void removeItemFromJSONArray(int index){
 		removeRangeItemFromJSONArray(index, 1);
 	}
-	
+
 	public void setItemWidth(int itemWidth){
 		mItemWidth = itemWidth;
 	}
-	
+
 	public int getItemWidth(){
 		return mItemWidth;
 	}
-	
+
 	public void setItemHeight(int itemHeight){
 		mItemHeight = itemHeight;
 	}
-	
+
 	public int getItemHeight(){
 		return mItemHeight;
 	}
-	
+
 	public void setOnItemClickListener(OnItemClickListener onItemClickListener){
 		mOnItemClickListener = onItemClickListener;
 	}
-	
+
 	public void setOnItemLongClickListener(OnItemLongClickListener onItemLongClickListener){
 		mOnItemLongClickListener = onItemLongClickListener;
 	}
@@ -441,23 +453,23 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	public Handler getHandler(){
 		return mHandler;
 	}
-	
+
 	@Override
 	public abstract int getItemCount();
-	
+
 	@Override
 	public abstract ViewHolder onCreateViewHolder(ViewGroup parent, int viewType);
-	
+
 	@Override
 	public abstract void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position);
-	
+
 	public class ViewHolder extends RecyclerView.ViewHolder {
-		
+
 		public ViewHolder(View itemView) {
 			super(itemView);
 			if(mOnItemClickListener != null){
 				itemView.setOnClickListener(new OnClickListener() {
-					
+
 					@Override
 					public void onClick(View v) {
 						// 提升對Android 4.0的相容性，避免RecyclerView.ViewHolder的itemView.OnClick重複執行
@@ -470,7 +482,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 			}
 			if(mOnItemLongClickListener != null){
 				itemView.setOnLongClickListener(new OnLongClickListener() {
-					
+
 					@Override
 					public boolean onLongClick(View v) {
 						mOnItemLongClickListener.onItemLongClick(CustomRecyclerAdapter.this, ViewHolder.this, "itemView", getAdapterPosition());
