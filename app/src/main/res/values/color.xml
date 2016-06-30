@@ -205,6 +205,30 @@
 	<color name="BlackAlphaE0">#E0000000</color>
 	<color name="BlackAlphaEE">#EE000000</color>
 
+	<color name="GrayAlpha11">#11808080</color>
+	<color name="GrayAlpha20">#20808080</color>
+	<color name="GrayAlpha22">#22808080</color>
+	<color name="GrayAlpha2B">#2B808080</color>
+	<color name="GrayAlpha33">#33808080</color>
+	<color name="GrayAlpha40">#40808080</color>
+	<color name="GrayAlpha44">#44808080</color>
+	<color name="GrayAlpha55">#55808080</color>
+	<color name="GrayAlpha60">#60808080</color>
+	<color name="GrayAlpha66">#66808080</color>
+	<color name="GrayAlpha77">#77808080</color>
+	<color name="GrayAlpha80">#80808080</color>
+	<color name="GrayAlpha88">#88808080</color>
+	<color name="GrayAlpha99">#99808080</color>
+	<color name="GrayAlphaA0">#A0808080</color>
+	<color name="GrayAlphaAA">#AA808080</color>
+	<color name="GrayAlphaBB">#BB808080</color>
+	<color name="GrayAlphaC0">#C0808080</color>
+	<color name="GrayAlphaCC">#CC808080</color>
+	<color name="GrayAlphaD5">#D5808080</color>
+	<color name="GrayAlphaDD">#DD808080</color>
+	<color name="GrayAlphaE0">#E0808080</color>
+	<color name="GrayAlphaEE">#EE808080</color>
+
 	<color name="WhiteAlpha11">#11FFFFFF</color>
 	<color name="WhiteAlpha20">#20FFFFFF</color>
 	<color name="WhiteAlpha22">#22FFFFFF</color>
@@ -228,10 +252,10 @@
 	<color name="WhiteAlphaDD">#DDFFFFFF</color>
 	<color name="WhiteAlphaE0">#E0FFFFFF</color>
 	<color name="WhiteAlphaEE">#EEFFFFFF</color>
-	
+
 	<color name="Orange">#FFFF8000</color>
 	<color name="OrangeRed">#FFFF4000</color>
-	
+
 	<!-- 仿Android淺青藍色 -->
 	<color name="Cyan8000AAE8">#8000AAE8</color>
 	<!-- 仿Android青藍色 -->
