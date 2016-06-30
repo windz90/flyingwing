@@ -168,7 +168,7 @@
 		<item name="android:backgroundSplit">@color/Blue99</item>
 		<item name="android:divider">?android:attr/dividerVertical</item>
 		<item name="android:displayOptions">useLogo|showHome|showTitle|showCustom</item>
-		<item name="android:icon">@drawable/ic_launcher</item>
+		<item name="android:icon">@mipmap/ic_launcher</item>
 		<item name="android:titleTextStyle">@style/ActionBarTitleTextAppearance</item>
 		<item name="android:subtitleTextStyle">?android:style/TextAppearance.Holo.Widget.ActionBar.Subtitle</item>
 		<item name="android:progressBarStyle">?android:style/Widget.Holo.Light.ProgressBar.Horizontal</item>
