@@ -1,8 +1,8 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:state_enabled="true" android:state_pressed="true" android:drawable="@color/CyanC048A0E8"/>
+	<item android:state_enabled="true" android:state_pressed="true" android:drawable="@color/BackgroundPressedLight"/>
 	<!-- adapter view set background state_activated狀態觸發已選取狀態 -->
-	<item android:state_enabled="true" android:state_activated="true" android:drawable="@color/Cyan8000AAE8"/>
-	<item android:state_enabled="true" android:state_selected="true" android:drawable="@color/CyanC048A0E8"/>
-	<item android:state_enabled="true" android:state_checked="true" android:drawable="@color/CyanC048A0E8"/>
+	<item android:state_enabled="true" android:state_activated="true" android:drawable="@color/BackgroundActivatedLight"/>
+	<item android:state_enabled="true" android:state_selected="true" android:drawable="@color/BackgroundActivatedLight"/>
+	<item android:state_enabled="true" android:state_checked="true" android:drawable="@color/BackgroundActivatedLight"/>
 	<item android:drawable="@color/Transparent"/>
 </selector>

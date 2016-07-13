@@ -1,7 +1,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:state_enabled="true" android:state_pressed="true" android:drawable="@color/CyanC048A0E8"/>
+	<item android:state_enabled="true" android:state_pressed="true" android:drawable="@color/BackgroundPressedLight"/>
 	<!-- code:ListView.setSelector xml:android:listSelector 無狀態觸發已選取狀態，僅限當頁有效 -->
-	<item android:state_enabled="true" android:state_selected="true" android:drawable="@color/CyanC048A0E8"/>
-	<item android:state_enabled="true" android:state_checked="true" android:drawable="@color/CyanC048A0E8"/>
+	<item android:state_enabled="true" android:state_selected="true" android:drawable="@color/BackgroundActivatedLight"/>
+	<item android:state_enabled="true" android:state_checked="true" android:drawable="@color/BackgroundActivatedLight"/>
 	<item android:drawable="@color/Transparent"/>
 </selector>

@@ -4,6 +4,6 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:scrollbarTrackVertical="@null"
-	android:scrollbarThumbVertical="@color/BackgroundButtonPressedLight"
+	android:scrollbarThumbVertical="@color/BackgroundPressedLight"
 	android:scrollbars="horizontal">
 </android.support.v7.widget.RecyclerView>

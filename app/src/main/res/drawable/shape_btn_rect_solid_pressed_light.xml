@@ -1,7 +1,7 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:id="@+id/item1">
 		<shape android:shape="rectangle">
-			<solid android:color="@color/BackgroundButtonPressedLight"/>
+			<solid android:color="@color/BackgroundPressedLight"/>
 			<corners android:radius="0dip"/>
 		</shape>
 	</item>

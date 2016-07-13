@@ -256,15 +256,12 @@
 	<color name="Orange">#FFFF8000</color>
 	<color name="OrangeRed">#FFFF4000</color>
 
-	<!-- 仿Android淺青藍色 -->
-	<color name="Cyan8000AAE8">#8000AAE8</color>
-	<!-- 仿Android青藍色 -->
-	<color name="CyanC048A0E8">#C048A0E8</color>
-
-	<color name="BackgroundButtonNormalLight">@color/WhiteAlpha40</color>
-	<color name="BackgroundButtonNormalDark">@color/BlackAlpha11</color>
-	<color name="BackgroundButtonPressedLight">@color/BlackAlpha11</color>
-	<color name="BackgroundButtonPressedDark">@color/WhiteAlpha40</color>
+	<color name="BackgroundNormalLight">@color/WhiteAlpha40</color>
+	<color name="BackgroundNormalDark">@color/BlackAlpha22</color>
+	<color name="BackgroundPressedLight">@color/BlackAlpha22</color>
+	<color name="BackgroundPressedDark">@color/WhiteAlpha40</color>
+	<color name="BackgroundActivatedLight">@color/BlackAlpha11</color>
+	<color name="BackgroundActivatedDark">@color/WhiteAlpha33</color>
 </resources>
 <!-- 
 16進制各均分值
