@@ -10,7 +10,7 @@ android {
         }
     }
     defaultConfig {
-//        applicationId "com.flyingwing"
+//        applicationId "com.flyingwing.android"
         manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/icon"]
         minSdkVersion 8
         targetSdkVersion 24
