@@ -18,7 +18,7 @@ import com.flyingwing.android.view.Main;
 @SuppressWarnings("unused")
 public class Global extends MultiDexApplication {
 
-	static final String SP_NAME = "FlyingWingLibrary";
+	public static final String SP_NAME = "FlyingWing";
 
 	@SuppressLint("PrivateResource")
 	public static Toolbar getToolbar(Context context, Drawable backgroundDrawable){

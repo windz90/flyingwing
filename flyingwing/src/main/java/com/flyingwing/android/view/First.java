@@ -1,4 +1,4 @@
-package com.flyingwing.android;
+package com.flyingwing.android.view;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -8,12 +8,14 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.Window;
 
+import com.flyingwing.android.BuildConfig;
+import com.flyingwing.android.Global;
+import com.flyingwing.android.R;
 import com.flyingwing.android.graphics.ImageProcessor;
 import com.flyingwing.android.net.NetworkAccess;
 import com.flyingwing.android.util.DisplayUtils;
 import com.flyingwing.android.util.DisplayUtils.EventCallback;
 import com.flyingwing.android.util.Utils;
-import com.flyingwing.android.view.Main;
 import com.flyingwing.android.widget.CustomProgressDialog;
 
 public class First extends Activity {
