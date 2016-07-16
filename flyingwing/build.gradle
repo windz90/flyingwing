@@ -37,15 +37,15 @@ android {
 		}
 	}
 
-	lintOptions {
-		abortOnError false
-		checkReleaseBuilds false
-	}
-
-	dexOptions {
-		preDexLibraries false
-		javaMaxHeapSize "2g"
-	}
+//	lintOptions {
+//		abortOnError false
+//		checkReleaseBuilds false
+//	}
+//
+//	dexOptions {
+//		preDexLibraries false
+//		javaMaxHeapSize "2g"
+//	}
 }
 
 dependencies {
