@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.1
+ * @version 3.5.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -702,9 +702,9 @@ public class Utils {
 		return file.delete();
 	}
 
-	public static String neatString(String string){
+	public static String trimAndMergeLines(String string){
 		if(string != null){
-			string = string.replace("\r\n", "").replace("\n", "").trim();
+			string = string.replace("\r\n", "").replace("\n", "").replace("\r", "").trim();
 		}
 		return string;
 	}
@@ -1015,7 +1015,7 @@ public class Utils {
 	public static Map<String, String> getJSONObjectToMap(JSONObject jsonObject){
 		String key;
 		JSONArray jsonArrayKey = jsonObject.names();
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new HashMap<String, String>(jsonArrayKey.length());
 		for(int i=0; i<jsonArrayKey.length(); i++){
 			key = jsonArrayKey.optString(i);
 			map.put(key, jsonObject.optString(key));
@@ -1707,13 +1707,13 @@ public class Utils {
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
-		Map<String, String> map = new HashMap<String, String>();
 		if(TextUtils.isEmpty(spKey)){
-			return map;
+			return new HashMap<String, String>();
 		}
 
 		String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
 		String spValue;
+		Map<String, String> map = new HashMap<String, String>(spKeyArray.length);
 		for(int i=0; i<spKeyArray.length; i++){
 			if(!sp.contains(spMapHeadKey + spKeyArray[i])){
 				continue;
@@ -1791,22 +1791,21 @@ public class Utils {
 		PackageManager packageManager = context.getPackageManager();
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		if(listResolveInfo != null && listResolveInfo.size() > 0){
-			intent = new Intent(Intent.ACTION_SEND);
-			intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-			intent.setType(intentType);
-//			intent.setClassName("com.facebook.katana", "com.facebook.katana.ShareLinkActivity");
-//			intent.setClassName("com.twitter.android", "com.twitter.android.PostActivity");
-			intent.setClassName(packageName, className);
-			intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-			intent.putExtra(Intent.EXTRA_TEXT, text);
-			intent.putExtra(Intent.EXTRA_STREAM, streamUri);
-		}else{
+		if(listResolveInfo == null || listResolveInfo.size() == 0){
 			setToast(context, packageName + " Not installed");
-			Uri uriMarket = Uri.parse("market://details?id=" + packageName);
-			intent = new Intent(Intent.ACTION_VIEW, uriMarket);
-			intent.setFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+			Uri uri = Uri.parse("market://details?id=" + packageName);
+			intent = new Intent(Intent.ACTION_VIEW, uri);
+			return intent;
 		}
+		intent = new Intent(Intent.ACTION_SEND);
+		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		intent.setType(intentType);
+		// intent.setClassName("com.facebook.katana", "com.facebook.katana.ShareLinkActivity");
+		// intent.setClassName("com.twitter.android", "com.twitter.android.PostActivity");
+		intent.setClassName(packageName, className);
+		intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+		intent.putExtra(Intent.EXTRA_TEXT, text);
+		intent.putExtra(Intent.EXTRA_STREAM, streamUri);
 		return intent;
 	}
 
@@ -1937,30 +1936,58 @@ public class Utils {
 		activity.startActivity(intent);
 	}
 
+	public static int intentMatchAppCount(Context context, Intent intent){
+		PackageManager packageManager = context.getPackageManager();
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+		return listResolveInfo == null ? 0 : listResolveInfo.size();
+	}
+
+	public static void callMatchApp(Context context, Intent intent, String failInfo){
+		PackageManager packageManager = context.getPackageManager();
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+		if(listResolveInfo == null || listResolveInfo.size() == 0){
+			setToast(context, failInfo);
+			return;
+		}
+		context.startActivity(intent);
+	}
+
 	public static void callContentSelection(final Activity activity, String intentType, boolean allowMultiple, final int requestCode
 			, final String title, String failInfo){
 		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
 		PackageManager packageManager = activity.getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		if(listResolveInfo != null && listResolveInfo.size() > 0){
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					if(title == null){
-						activity.startActivityForResult(intent, requestCode);
-					}else{
-						activity.startActivityForResult(Intent.createChooser(intent, title), requestCode);
-					}
-				}
-			}).start();
-		}else{
+		if(listResolveInfo == null || listResolveInfo.size() == 0){
 			setToast(activity, failInfo);
+			return;
 		}
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				if(title == null){
+					activity.startActivityForResult(intent, requestCode);
+				}else{
+					activity.startActivityForResult(Intent.createChooser(intent, title), requestCode);
+				}
+			}
+		}).start();
 	}
 
 	public static void callContentSelection(Activity activity, String intentType, boolean allowMultiple, int requestCode){
 		callContentSelection(activity, intentType, allowMultiple, requestCode, null, "No application");
+	}
+
+	public static void callAppStore(Context context, String packageName, String failInfo){
+		Uri uri = Uri.parse("market://details?id=" + packageName);
+		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+		PackageManager packageManager = context.getPackageManager();
+		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+		if(listResolveInfo == null || listResolveInfo.size() == 0){
+			setToast(context, failInfo);
+			return;
+		}
+		context.startActivity(intent);
 	}
 
 	public static void callImageCrop(final Activity activity, Uri uriSrc, Uri uriDst, int aspectX, int aspectY, int outputX, int outputY
@@ -2001,17 +2028,17 @@ public class Utils {
 
 		PackageManager packageManager = activity.getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		if(listResolveInfo != null && listResolveInfo.size() > 0){
-			new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					activity.startActivityForResult(intent, requestCode);
-				}
-			}).start();
-		}else{
+		if(listResolveInfo == null || listResolveInfo.size() == 0){
 			setToast(activity, failInfo);
+			return;
 		}
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				activity.startActivityForResult(intent, requestCode);
+			}
+		}).start();
 	}
 
 	public static void callImageCrop(Activity activity, Uri uriSrc, Uri uriDst, int aspectX, int aspectY, int outputX, int outputY
@@ -2768,7 +2795,7 @@ public class Utils {
 	 * android.permission.READ_PHONE_STATE
 	 */
 	@RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
-	public static List<Map<String, String>> getPhoneInfo(Context context, Handler handlerNoPermissions){
+	public static Map<String, String> getPhoneInfo(Context context, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
@@ -2780,7 +2807,6 @@ public class Utils {
 
 		TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
 
-		List<Map<String, String>> infoList = new ArrayList<Map<String,String>>();
 		Map<String, String> hashMap = new HashMap<String, String>();
 
 		// <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
@@ -2788,65 +2814,53 @@ public class Utils {
 		// MSISDN for GSM
 		String MSISDN = telephonyManager.getLine1Number();
 		hashMap.put("MSISDN", MSISDN);
-		infoList.add(hashMap);
 
 		// IMEI(International Mobile Equipment Identity number) or MEID or ESN 手機序號(國際移動設備辨識碼)
 		// IMEI for GSM, MEID or ESN for CDMA
 		String IMEI = telephonyManager.getDeviceId();
 		hashMap.put("IMEI", IMEI);
-		infoList.add(hashMap);
 
 		// IMSI(International Mobile Subscriber Identity) SIM卡號碼(國際行動用戶辨識碼)
 		// IMSI for GSM
 		String IMSI = telephonyManager.getSubscriberId();
 		hashMap.put("IMSI", IMSI);
-		infoList.add(hashMap);
 
 		// ICCID(Integrate Circuit Card Identity) SIM卡序號(積體電路卡辨識碼)
 		String ICCID = telephonyManager.getSimSerialNumber();
 		hashMap.put("ICCID", ICCID);
-		infoList.add(hashMap);
 
 		// 手機漫遊狀態
 		String roamingStatus = telephonyManager.isNetworkRoaming() ? "漫遊中" : "非漫遊";
 		hashMap.put("roamingStatus", roamingStatus);
-		infoList.add(hashMap);
 
 		// 電信網路國別
 		String networkCountry = telephonyManager.getNetworkCountryIso();
 		hashMap.put("networkCountryISO", networkCountry);
-		infoList.add(hashMap);
 
 		// 電信公司代號
 		String networkOperator = telephonyManager.getNetworkOperator();
 		hashMap.put("networkOperator", networkOperator);
-		infoList.add(hashMap);
 
 		// 電信公司名稱
 		String networkOperatorName = telephonyManager.getNetworkOperatorName();
 		hashMap.put("networkOperatorName", networkOperatorName);
-		infoList.add(hashMap);
 
 		// SIM卡狀態資訊
 		int simState = telephonyManager.getSimState();
 		hashMap.put("simState", "" + simState);
-		infoList.add(hashMap);
 
 		if(simState == TelephonyManager.SIM_STATE_READY){
 			// SIM卡國別
 			String simCountry = telephonyManager.getSimCountryIso();
 			hashMap.put("simCountryISO", simCountry);
-			infoList.add(hashMap);
 
 			// SIM卡供應商代號
 			String simOperator = telephonyManager.getSimOperator();
 			hashMap.put("simOperator", simOperator);
-			infoList.add(hashMap);
 
 			// SIM卡供應商名稱
 			String simOperatorName = telephonyManager.getSimOperatorName();
 			hashMap.put("simOperatorName", simOperatorName);
-			infoList.add(hashMap);
 		}
 
 		// 行動網路類型
@@ -2857,7 +2871,6 @@ public class Utils {
 			String networkTypeName = (String)method.invoke(telephonyManager, telephonyManager.getNetworkType());
 			method.setAccessible(false);
 			hashMap.put("networkTypeName", networkTypeName);
-			infoList.add(hashMap);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -2866,9 +2879,8 @@ public class Utils {
 		String[] phoneTypeArray = {"NONE", "GSM", "CDMA", "SIP"};
 		String phoneType = phoneTypeArray[telephonyManager.getPhoneType()];
 		hashMap.put("phoneType", phoneType);
-		infoList.add(hashMap);
 
-		return infoList;
+		return hashMap;
 	}
 
 	public static void getViewGroupAllView(View view, List<View> list){
@@ -2878,10 +2890,9 @@ public class Utils {
 			View viewChild;
 			for(int i=0; i<viewGroup.getChildCount(); i++){
 				viewChild = viewGroup.getChildAt(i);
+				list.add(viewChild);
 				if(viewChild instanceof ViewGroup){
 					getViewGroupAllView(viewChild, list);
-				}else{
-					list.add(viewChild);
 				}
 			}
 		}
@@ -2914,12 +2925,12 @@ public class Utils {
 		return findViewByClass(view, targetClass, false);
 	}
 
-	public static void clearViewGroup(ViewGroup viewGroup, boolean isIndicatesGC){
+	public static void clearViewGroupInsideDrawable(ViewGroup viewGroup, boolean isIndicatesGC){
 		List<View> list = new ArrayList<View>();
 		getViewGroupAllView(viewGroup, list);
 		View view;
 		int size = list.size();
-		for(int i=0; i<size; i++){
+		for(int i=size - 1; i>=0; i--){
 			view = list.get(i);
 			if(view != null){
 				clearViewInsideDrawable(view, true, true, false);
@@ -2932,8 +2943,8 @@ public class Utils {
 		}
 	}
 
-	public static void activityFinishClear(Activity activity, boolean isIndicatesGC){
-		clearViewGroup((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
+	public static void activityFinishClearDrawable(Activity activity, boolean isIndicatesGC){
+		clearViewGroupInsideDrawable((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
 	}
 
 	public static void clearViewInsideDrawable(View view, boolean foreground, boolean background, boolean isIndicatesGC){
