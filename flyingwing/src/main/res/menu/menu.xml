@@ -9,6 +9,6 @@
 			android:orderInCategory="1"
 			app:showAsAction="never"
 			android:icon="@android:drawable/ic_menu_preferences"
-			android:title="@string/app_name"/>
+			android:title=""/>
 	</group>
 </menu>
