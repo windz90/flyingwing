@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.4
+ * @version 3.5.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -706,13 +706,19 @@ public class ImageProcessor {
 		streamURL = streamURL.replace("\\)", "%29");
 		URL url = new URL(streamURL);
 		HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-		byte[] bytes;
+		InputStream inputStreamError = httpURLConnection.getErrorStream();
+		if(inputStreamError != null){
+			inputStreamError.close();
+			return null;
+		}
+		if(httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK){
+			return null;
+		}
 		try {
-			bytes = inputStreamToByteArray(httpURLConnection.getInputStream(), IMAGESETTING.mBufferSize);
+			return inputStreamToByteArray(httpURLConnection.getInputStream(), IMAGESETTING.mBufferSize);
 		} finally {
 			httpURLConnection.disconnect();
 		}
-		return bytes;
 	}
 	
 	public static boolean isAvailable(Context context) {
@@ -1574,18 +1580,18 @@ public class ImageProcessor {
 		return bitmap;
 	}
 
-	public static Drawable getStateListDrawable(int[][] ints, Drawable[] drawable){
+	public static Drawable getStateListDrawable(int[][] ints, Drawable[] drawables){
 		StateListDrawable stateListDrawable = new StateListDrawable();
 		for(int i=0; i<ints.length; i++){
-			stateListDrawable.addState(ints[i], drawable[i]);
+			stateListDrawable.addState(ints[i], drawables[i]);
 		}
 		return stateListDrawable;
 	}
 
-	public static Drawable getStateListDrawable(Context context, int[][] ints, int[] resourceId){
+	public static Drawable getStateListDrawable(Context context, int[][] ints, int[] resourceIds){
 		StateListDrawable stateListDrawable = new StateListDrawable();
 		for(int i=0; i<ints.length; i++){
-			stateListDrawable.addState(ints[i], ContextCompat.getDrawable(context, resourceId[i]));
+			stateListDrawable.addState(ints[i], ContextCompat.getDrawable(context, resourceIds[i]));
 		}
 		return stateListDrawable;
 	}
