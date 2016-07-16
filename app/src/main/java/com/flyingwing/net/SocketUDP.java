@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.3
+ * @version 1.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -39,10 +39,10 @@ public class SocketUDP {
 	private ReadWriteLock mReadWriteLock;
 	private InetAddress mInetAddressPacketRemote;
 	private int mPortPacketRemote;
-	private boolean mIsStopKeepReceive;
+	private boolean mIsKeepReceive;
 
 	/**
-	 * if running {@link #receivePacketKeep}, {@link #receiveSync} can call {@link #stopKeepReceive} stop receive loop, or call {@link #close} close socket.<br/>
+	 * if running {@link #receivePacketKeep(int, SocketCallback)}, {@link #receiveSync(int, Bundle)} can call {@link #keepReceive(boolean)} stop receive loop, or call {@link #close()} close socket.<br/>
 	 * bundle include:<br/>
 	 * Serializable : InetAddress<br/>
 	 * Serializable : InetSocketAddress<br/>
@@ -320,12 +320,14 @@ public class SocketUDP {
 	 * @param packetDataLength receive packet max length.
 	 */
 	public void receivePacketKeep(int packetDataLength, @NonNull final SocketCallback socketCallback){
+		mIsKeepReceive = true;
 		mDatagramPacketReceive = new DatagramPacket(new byte[packetDataLength], packetDataLength);
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
+				DatagramPacket datagramPacket = mDatagramPacketReceive;
 				Bundle bundle;
-				while (!mIsStopKeepReceive && !isClosed()) {
+				while (mIsKeepReceive && datagramPacket == mDatagramPacketReceive && !isClosed()) {
 					bundle = new Bundle();
 					receivePacketImpl(bundle, socketCallback);
 				}
@@ -333,12 +335,12 @@ public class SocketUDP {
 		}).start();
 	}
 
-	public void stopKeepReceive(boolean isStopReceive){
-		mIsStopKeepReceive = isStopReceive;
+	public void keepReceive(boolean keepReceive){
+		mIsKeepReceive = keepReceive;
 	}
 
-	public boolean isStopKeepReceive(){
-		return mIsStopKeepReceive;
+	public boolean isKeepReceive(){
+		return mIsKeepReceive;
 	}
 
 	public void sendPacket(byte[] bytes, InetAddress inetAddress, @IntRange(from = 0, to = 65535) int portRemote, final int sendCount, final SocketCallback socketCallback){
