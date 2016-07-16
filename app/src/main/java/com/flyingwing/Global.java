@@ -33,7 +33,7 @@ public class Global extends MultiDexApplication {
 		}
 		toolbar.setLayoutParams(viewGroupMarginLayPar);
 		toolbar.setContentInsetsRelative(0, 0);
-		toolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_mtrl_am_alpha);
+		toolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
 //		toolbar.setTitleTextColor(Color.BLACK);
 		return toolbar;
 	}
