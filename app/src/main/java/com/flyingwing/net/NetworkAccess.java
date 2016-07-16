@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.8
+ * @version 3.4.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -33,16 +33,18 @@ import java.util.Map;
 @SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
 public class NetworkAccess {
 	
+	public static final int CONNECTION_CONNECT_FAIL = 100;
+	public static final int CONNECTION_CONNECTED = 101;
+	public static final int CONNECTION_LOAD_FAIL = 102;
+	public static final int CONNECTION_LOADED = 103;
 	public static final int SPLIT_AUTO_MAX_QUANTITY = 0;
 	public static final int SPLIT_BY_QUANTITY = 1;
 	public static final int SPLIT_BY_LENGTH = 2;
-	public static final int CONNECTION_CONNECT_FAIL = 0x101;
-	public static final int CONNECTION_CONNECTED = 0x102;
-	public static final int CONNECTION_LOAD_FAIL = 0x103;
-	public static final int CONNECTION_LOADED = 0x104;
 	private static final String ONLY_READ_HEADER = "header";
 	private static final String REQUEST_GET = "GET";
+	private static final String REQUEST_PUT = "PUT";
 	private static final String REQUEST_POST = "POST";
+	private static final String REQUEST_DELETE = "DELETE";
 	private static final NetworkSetting NETWORKSETTING = new NetworkSetting();
 	
 	public static class NetworkSetting {
@@ -182,15 +184,27 @@ public class NetworkAccess {
 	private static HttpURLConnection connectUseHttpURLConnection(Context context, String httpUrl, Object[][] objectArray
 			, String requestRangeIndex, boolean isSkipDataRead, ConnectionResult connectionResult, Handler handler){
 		HttpURLConnection httpURLConnection = connectUseHttpURLConnectionImplementRequest(httpUrl, objectArray, requestRangeIndex);
-		
 		if(httpURLConnection == null || connectionResult == null){
 			if(connectionResult != null){
 				connectionResult.setStatusMessage("Connecting, Connect Fail Exception");
 			}
 			return httpURLConnection;
 		}
+		
 		connectionResult.setConnectUrl(httpURLConnection.getURL().getPath());
 		connectionResult.setRequestType(httpURLConnection.getRequestMethod());
+		InputStream inputStreamError = httpURLConnection.getErrorStream();
+		if(inputStreamError != null){
+			connectionResult.setStatusMessage(inputStreamToString(inputStreamError, null, NETWORKSETTING.mBufferSize));
+			
+			if(handler != null){
+				Message msg = new Message();
+				msg.what = CONNECTION_CONNECT_FAIL;
+				msg.obj = connectionResult;
+				handler.sendMessage(msg);
+			}
+			return httpURLConnection;
+		}
 		try {
 			connectionResult.setResponseCode(httpURLConnection.getResponseCode());
 			connectionResult.setResponseMessage(httpURLConnection.getResponseMessage());
