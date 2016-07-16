@@ -30,6 +30,7 @@
 	<string name="uploading">Uploading</string>
 	<string name="connecting">Connecting</string>
 	<string name="need_wait">Please wait for a while</string>
+	<string name="char_length_hint">Length limit %1$s&#8211;%2$s characters</string>
 	<string name="no_data">No data found</string>
 	<string name="no_search_results">No result</string>
 	<string name="no_app_item">No application</string>

@@ -27,6 +27,7 @@
 	<string name="uploading">上傳中</string>
 	<string name="connecting">連線中</string>
 	<string name="need_wait">本次執行可能較為耗時，請耐心等候</string>
+	<string name="char_length_hint">長度限制在%1$s&#8211;%2$s個字</string>
 	<string name="no_data">沒有資料</string>
 	<string name="no_search_results">沒有搜尋結果</string>
 	<string name="no_app_item">沒有可選程式</string>
