@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!-- 首頁 -->
-	<string name="app_name">FlyingWingLibrary</string>
+	<string name="app_name">FlyingWing</string>
 
 	<!-- 公用詞彙 -->
 	<string name="confirm">Are you sure?</string>
