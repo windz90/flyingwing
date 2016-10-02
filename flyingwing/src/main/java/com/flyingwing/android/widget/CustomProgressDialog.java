@@ -7,6 +7,7 @@
 
 package com.flyingwing.android.widget;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
@@ -23,10 +24,11 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class CustomProgressDialog {
 
 	private static final class StaticNestedClass {
+		@SuppressLint("StaticFieldLeak")
 		private static final CustomProgressDialog INSTANCE = new CustomProgressDialog();
 	}
 

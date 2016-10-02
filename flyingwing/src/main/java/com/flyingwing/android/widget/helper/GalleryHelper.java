@@ -18,7 +18,7 @@ import android.view.View;
  * 5. Can visible multiple items. (List characteristic)
  * PS : Gallery total width must be divisible, avoid firstVisibleItemPosition or lastVisibleItemPosition calculated incorrectly.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class GalleryHelper {
 
 	public static int getItemMoveToCenterPositionOffset(int position, int firstVisibleItemPosition, int lastVisibleItemPosition){

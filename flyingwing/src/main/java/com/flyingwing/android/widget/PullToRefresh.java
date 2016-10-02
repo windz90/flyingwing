@@ -7,16 +7,14 @@
 
 package com.flyingwing.android.widget;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.content.Context;
 import android.graphics.PorterDuff;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -25,9 +23,9 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.HeaderViewListAdapter;
@@ -39,7 +37,10 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-@SuppressLint("NewApi")
+import java.util.Timer;
+import java.util.TimerTask;
+
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class PullToRefresh {
 	
 	public static int NONE = -1;
@@ -89,6 +90,7 @@ public class PullToRefresh {
 		 * 更新完畢，停止下拉更新各標示<br>
 		 * OnRefreshListener建構子需傳入C_pullToRefresh實例
 		 */
+		@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 		public void done(){
 			if(pullToRefresh != null){
 				pullToRefresh.done();
@@ -126,6 +128,7 @@ public class PullToRefresh {
 		this(context, progressViewBackgroundColor, progressBarDrawableColor, null, android.R.attr.progressBarStyleHorizontal);
 	}
 	
+	@RequiresApi(api = Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public PullToRefresh(Context context){
 		this(context, android.R.color.holo_blue_light, -1, null, android.R.attr.progressBarStyleHorizontal);
 	}
@@ -272,6 +275,7 @@ public class PullToRefresh {
 		return defValue;
 	}
 	
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public void attach(int progressWidth, final int progressViewHeight, final int progressBarHeight){
 		if(mProgressFlag == NONE){
 			setProgressUsePullView();
@@ -451,10 +455,11 @@ public class PullToRefresh {
 				if(progress >= mProgressWidth / 3){
 					progress = progress + (progress - mProgressWidth / 3) * 2;
 				}
+				int height;
 				if(progress < mProgressWidth){
 					if(mActionBar != null && (mProgressFlag == PROGRESS_USE_ACTIONBAR || mActionBarRefreshInfoView != null)){
 						if(mActionBarRefreshInfoView != null){
-							int height = actionBarHe - (mProgressFlag == PROGRESS_USE_ACTIONBAR ? progressViewHeight : 0);
+							height = actionBarHe - (mProgressFlag == PROGRESS_USE_ACTIONBAR ? progressViewHeight : 0);
 							mActionBarRefreshInfoView.getLayoutParams().height = height;
 						}
 						mActionBar.setDisplayShowCustomEnabled(true);
@@ -468,7 +473,7 @@ public class PullToRefresh {
 					mProgressView.setVisibility(View.GONE);
 					
 					if(mActionBar != null && mActionBarRefreshInfoView != null){
-						int height = actionBarHe - (mProgressFlag == PROGRESS_USE_ACTIONBAR ? progressBarHeight : 0);
+						height = actionBarHe - (mProgressFlag == PROGRESS_USE_ACTIONBAR ? progressBarHeight : 0);
 						mActionBarRefreshInfoView.getLayoutParams().height = height;
 						if(mActionBarRefreshInfoView instanceof TextView){
 							((TextView)mActionBarRefreshInfoView).setText(mRefreshText);
@@ -516,11 +521,13 @@ public class PullToRefresh {
 		}else if(mPullFlag == PULL_USE_SCROLLVIEW){}
 	}
 	
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public void attach(int progressWidth){
 		int itemHe = (int)(5 * mDisplayMetrics.density);
 		attach(progressWidth, itemHe, itemHe * 2);
 	}
 	
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public void attach(){
 		int itemHe = (int)(5 * mDisplayMetrics.density);
 		attach(mProgressWidth, itemHe, itemHe * 2);
@@ -529,6 +536,7 @@ public class PullToRefresh {
 	/**
 	 * 更新完畢，停止下拉更新各標示
 	 */
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public void done(){
 		if(mProgressBar != null){
 			mProgressBar.post(new Runnable() {
@@ -546,6 +554,7 @@ public class PullToRefresh {
 		}
 	}
 	
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public void detach(){
 		if(mListView != null){
 			mListView.removeHeaderView(mProgressLayout);
@@ -600,6 +609,7 @@ public class PullToRefresh {
 		mRefreshText = null;
 	}
 	
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public void cancel(){
 		detach();
 		if(mContext != null){

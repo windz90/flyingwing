@@ -17,6 +17,7 @@ import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -292,7 +293,12 @@ public class WindowService extends Service {
 			@Override
 			public void onDismiss() {
 				layoutStatusListener.onDismiss();
-				contentView.getViewTreeObserver().removeGlobalOnLayoutListener(onGlobalLayoutListener);
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+					contentView.getViewTreeObserver().removeOnGlobalLayoutListener(onGlobalLayoutListener);
+				}else{
+					//noinspection deprecation
+					contentView.getViewTreeObserver().removeGlobalOnLayoutListener(onGlobalLayoutListener);
+				}
 				mRelLayMask.setVisibility(View.INVISIBLE);
 
 				unregisterReceiver(receiver);

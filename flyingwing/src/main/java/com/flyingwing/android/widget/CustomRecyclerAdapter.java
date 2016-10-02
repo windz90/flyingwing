@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings({"unused", "Convert2Diamond"})
+@SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond"})
 public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 	protected OnItemClickListener mOnItemClickListener;

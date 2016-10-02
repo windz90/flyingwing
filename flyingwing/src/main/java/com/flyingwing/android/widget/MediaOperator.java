@@ -24,7 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
-@SuppressWarnings({"unused", "deprecation"})
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class MediaOperator {
 	
 	private Context mContext;
@@ -269,7 +269,12 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mPauseButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+			}else{
+				//noinspection deprecation
+				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -293,7 +298,12 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mFfwdButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+			}else{
+				//noinspection deprecation
+				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -317,7 +327,12 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mRewButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+			}else{
+				//noinspection deprecation
+				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -341,7 +356,12 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mNextButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+			}else{
+				//noinspection deprecation
+				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -365,7 +385,12 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mPrevButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+			}else{
+				//noinspection deprecation
+				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();

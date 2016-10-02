@@ -23,7 +23,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "WeakerAccess"})
 public class DisplayUtils {
 
 	public static final int LIMIT_DIP_WIDTH_320 = 320;

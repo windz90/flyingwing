@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  * Comparator是在集合外定義Comparator接口實現的排序<br>
  * Comparable是在集合內部實作Comparable接口實現的排序<br><br>
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class CustomComparator implements Comparator<Map<String, String>>{
 	
 	public static final int STYLE_STRING = 1;

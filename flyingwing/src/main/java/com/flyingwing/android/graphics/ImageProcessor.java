@@ -58,7 +58,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "UnusedAssignment", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock"})
 public class ImageProcessor {
 
 	public static final int LOAD_RESULT_FAIL = -1;
@@ -1112,7 +1112,6 @@ public class ImageProcessor {
 		return getImageAsyncRemoteOnly(context, streamURL, specifiedSize, null, onLoadImageListener);
 	}
 	
-	@SuppressWarnings("deprecation")
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public static Bitmap getAgileBitmap(InputStream is, int inSampleSize){
 		// 圖片設定
@@ -1135,7 +1134,9 @@ public class ImageProcessor {
 		}
 		// 設定是否系統記憶體不足時先行回收部分的記憶體，但回收動作仍會佔用JVM的記憶體
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP){
+			//noinspection deprecation
 			options.inPurgeable = true;
+			//noinspection deprecation
 			options.inInputShareable = true;
 		}
 		Bitmap bitmap = null;
@@ -1567,7 +1568,7 @@ public class ImageProcessor {
 			}else{
 				config = Bitmap.Config.ARGB_8888;
 			}
-		}else if(drawable.getOpacity() == -1){
+		}else if(drawable.getOpacity() == PixelFormat.OPAQUE){
 			config = Bitmap.Config.RGB_565;
 		}else{
 			config = Bitmap.Config.ARGB_8888;

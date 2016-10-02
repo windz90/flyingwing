@@ -15,6 +15,7 @@ import android.view.View;
 import java.util.List;
 
 // rewrite from FloatingActionButton.Behavior
+@SuppressWarnings("unused")
 public class DefaultBehavior<V extends View> extends CoordinatorLayout.Behavior<V> {
 
 	private float mViewTranslationY;

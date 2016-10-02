@@ -118,7 +118,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "Convert2Diamond", "TryFinallyCanBeTryWithResources"})
+@SuppressWarnings({"unused", "WeakerAccess", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock"})
 public class Utils {
 
 	public static final int SIZE_TEXT_S = 0;
@@ -1349,7 +1349,6 @@ public class Utils {
 				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight();
 	}
 
-	@SuppressWarnings("deprecation")
 	public static void clearWebViewCookie(Context context){
 		CookieManager cookieManager;
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
@@ -1357,10 +1356,14 @@ public class Utils {
 			cookieManager.removeAllCookies(null);
 			cookieManager.flush();
 		}else{
+			//noinspection deprecation
 			CookieSyncManager cookieSyncManager = CookieSyncManager.createInstance(context);
+			//noinspection deprecation
 			cookieSyncManager.startSync();
 			cookieManager = CookieManager.getInstance();
+			//noinspection deprecation
 			cookieManager.removeAllCookie();
+			//noinspection deprecation
 			cookieSyncManager.stopSync();
 		}
 	}

@@ -10,6 +10,7 @@ package com.flyingwing.android.widget;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.PagerAdapter;
@@ -224,9 +225,13 @@ public class CustomTabView extends LinearLayout {
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void setTabBarBackground(Drawable drawable){
-		mRelLay.setBackgroundDrawable(drawable);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+			mRelLay.setBackground(drawable);
+		}else{
+			//noinspection deprecation
+			mRelLay.setBackgroundDrawable(drawable);
+		}
 	}
 	
 	public void setTabBarLayoutParams(LayoutParams linLayPar){
@@ -237,9 +242,13 @@ public class CustomTabView extends LinearLayout {
 		return mRelLay.getLayoutParams();
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void setHeadGroupBackground(Drawable drawable){
-		mRadioGroup.setBackgroundDrawable(drawable);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+			mRadioGroup.setBackground(drawable);
+		}else{
+			//noinspection deprecation
+			mRadioGroup.setBackgroundDrawable(drawable);
+		}
 	}
 	
 	public void setHeadGroupLayoutParams(LayoutParams linLayPar){
@@ -256,16 +265,19 @@ public class CustomTabView extends LinearLayout {
 		mMiddleDrawable = middleDrawable;
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void setHeadButtonBackground(int leftId, int rightId, int middleId){
 		mLeftDrawable = ContextCompat.getDrawable(getContext(), leftId);
 		mRightDrawable = ContextCompat.getDrawable(getContext(), rightId);
 		mMiddleDrawable = ContextCompat.getDrawable(getContext(), middleId);
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void setContentGroupBackground(Drawable drawable){
-		mViewPager.setBackgroundDrawable(drawable);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+			mViewPager.setBackground(drawable);
+		}else{
+			//noinspection deprecation
+			mViewPager.setBackgroundDrawable(drawable);
+		}
 	}
 	
 	public void setContentGroupLayoutParams(LayoutParams linLayPar){
@@ -294,7 +306,6 @@ public class CustomTabView extends LinearLayout {
 		return mIsDynamicControl;
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void addTab(CompoundButton headButton, View contentView, int location){
 		headButton.setId(R.id.dismissButton + 1 + mList.size());
 		
@@ -307,15 +318,35 @@ public class CustomTabView extends LinearLayout {
 			for(int i=0; i<size; i++){
 				view = mList.get(i)[0];
 				if(i == 0){
-					view.setBackgroundDrawable(mLeftDrawable);
+					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+						view.setBackground(mLeftDrawable);
+					}else{
+						//noinspection deprecation
+						view.setBackgroundDrawable(mLeftDrawable);
+					}
 				}else if(i == size-1){
-					view.setBackgroundDrawable(mRightDrawable);
+					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+						view.setBackground(mRightDrawable);
+					}else{
+						//noinspection deprecation
+						view.setBackgroundDrawable(mRightDrawable);
+					}
 				}else{
-					view.setBackgroundDrawable(mMiddleDrawable);
+					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+						view.setBackground(mMiddleDrawable);
+					}else{
+						//noinspection deprecation
+						view.setBackgroundDrawable(mMiddleDrawable);
+					}
 				}
 			}
 		}else if(size == 1){
-			mList.get(0)[0].setBackgroundDrawable(mMiddleDrawable);
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				mList.get(0)[0].setBackground(mMiddleDrawable);
+			}else{
+				//noinspection deprecation
+				mList.get(0)[0].setBackgroundDrawable(mMiddleDrawable);
+			}
 		}
 		mRadioGroup.addView(headButton, location);
 		
@@ -361,7 +392,6 @@ public class CustomTabView extends LinearLayout {
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void removeTab(int location){
 		if(getCurrentItem() == location){
 			setCurrentItem(location--);
@@ -380,11 +410,26 @@ public class CustomTabView extends LinearLayout {
 		for(int i=0; i<size; i++){
 			view = mList.get(i)[0];
 			if(i == 0){
-				view.setBackgroundDrawable(mLeftDrawable);
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+					view.setBackground(mLeftDrawable);
+				}else{
+					//noinspection deprecation
+					view.setBackgroundDrawable(mLeftDrawable);
+				}
 			}else if(i == size-1){
-				view.setBackgroundDrawable(mRightDrawable);
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+					view.setBackground(mRightDrawable);
+				}else{
+					//noinspection deprecation
+					view.setBackgroundDrawable(mRightDrawable);
+				}
 			}else{
-				view.setBackgroundDrawable(mMiddleDrawable);
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+					view.setBackground(mMiddleDrawable);
+				}else{
+					//noinspection deprecation
+					view.setBackgroundDrawable(mMiddleDrawable);
+				}
 			}
 		}
 	}

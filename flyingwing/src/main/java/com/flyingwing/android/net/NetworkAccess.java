@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "UnusedAssignment"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "UnusedAssignment", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock"})
 public class NetworkAccess {
 	
 	public static final int CONNECTION_CONNECT_FAIL = 100;

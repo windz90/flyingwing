@@ -25,7 +25,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class SocketUDP {
 
 	public static final int STATE_RECEIVE_SUCCESS = 100;

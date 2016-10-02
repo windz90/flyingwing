@@ -7,7 +7,6 @@
 
 package com.flyingwing.android.graphics;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -15,6 +14,7 @@ import android.graphics.Camera;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -29,16 +29,17 @@ import android.widget.ImageView;
 import java.util.Timer;
 import java.util.TimerTask;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ImageMatrix {
 	
 	public interface ClickAction{
-		public void distClick(int position);
+		void distClick(int position);
 	}
 	
 	public interface TouchAction{
-		public void onTouch(MotionEvent event);
-		public void onMove(float moveX, float moveY);
-		public void onZoom(MotionEvent event, float zoomScale);
+		void onTouch(MotionEvent event);
+		void onMove(float moveX, float moveY);
+		void onZoom(MotionEvent event, float zoomScale);
 	}
 	
 	public static class moveZoom{
@@ -225,7 +226,6 @@ public class ImageMatrix {
 		}
 	}
 	
-	@TargetApi(16)
 	public static class animation {
 		
 		private static boolean enabled = true;
@@ -279,8 +279,12 @@ public class ImageMatrix {
 						((ImageButton)view).setImageBitmap(tmpBitmap);
 					}else{
 						BitmapDrawable bd = new BitmapDrawable(res, tmpBitmap);
-//						view.setBackgroundDrawable(bd);
-						view.setBackground(bd);
+						if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+							view.setBackground(bd);
+						}else{
+							//noinspection deprecation
+							view.setBackgroundDrawable(bd);
+						}
 					}
 				}
 			};

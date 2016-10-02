@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "Convert2Diamond"})
+@SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond"})
 public class NetworkUtils {
 
 	public static boolean isAvailable(@NonNull Context context){
@@ -692,7 +692,6 @@ public class NetworkUtils {
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * BluetoothAdapter.stopLeScan(leScanCallback);
 	 */
-	@SuppressWarnings("deprecation")
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static boolean bluetoothLeScan(@NonNull Context context, boolean isStartScan, BluetoothAdapter.LeScanCallback leScanCallback, Handler handlerNoPermissions){
@@ -725,7 +724,9 @@ public class NetworkUtils {
 		// <uses-permission android:name="android.permission.BLUETOOTH"/>
 		if(bluetoothAdapter != null && bluetoothAdapter.isEnabled()){
 			// <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+			//noinspection deprecation
 			bluetoothAdapter.stopLeScan(leScanCallback);
+			//noinspection deprecation
 			return !isStartScan || bluetoothAdapter.startLeScan(leScanCallback);
 		}
 		return false;

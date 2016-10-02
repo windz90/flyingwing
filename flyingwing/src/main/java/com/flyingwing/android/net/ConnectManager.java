@@ -21,7 +21,7 @@ import com.flyingwing.android.widget.CustomProgressDialog;
 import java.net.HttpURLConnection;
 import java.util.concurrent.ExecutorService;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public abstract class ConnectManager {
 	
 	public static final int RUN_MODE_BACKGROUND = 0;
