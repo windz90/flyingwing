@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.7
+ * @version 2.3.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -83,13 +83,16 @@ public class CustomProgressDialog {
 		mDialog.setContentView(mRelativeLayout);
 		mDialog.setCanceledOnTouchOutside(false);
 
-		itemWi = (int)((dm.widthPixels / dm.heightPixels < 1 ? dm.widthPixels : dm.heightPixels) * 0.89f);
-		WindowManager.LayoutParams windowManagerLayoutParams = mDialog.getWindow().getAttributes();
-		windowManagerLayoutParams.x = 0;
-		windowManagerLayoutParams.y = 0;
-		windowManagerLayoutParams.width = itemWi;
-//		dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-		mDialog.getWindow().setAttributes(windowManagerLayoutParams);
+		Window window = mDialog.getWindow();
+		if(window != null){
+			itemWi = (int)((dm.widthPixels / dm.heightPixels < 1 ? dm.widthPixels : dm.heightPixels) * 0.89f);
+			WindowManager.LayoutParams windowManagerLayoutParams = window.getAttributes();
+			windowManagerLayoutParams.x = 0;
+			windowManagerLayoutParams.y = 0;
+			windowManagerLayoutParams.width = itemWi;
+//			window.setBackgroundDrawableResource(android.R.color.transparent);
+			window.setAttributes(windowManagerLayoutParams);
+		}
 	}
 
 	public void createDialog(Context context){

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.1
+ * @version 3.3.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -35,6 +35,11 @@ public class DisplayUtils {
 	public static final int LIMIT_DIP_WIDTH_800 = 800;
 	public static final int LIMIT_DIP_WIDTH_960 = 960;
 	public static final int LIMIT_DIP_WIDTH = LIMIT_DIP_WIDTH_480;
+
+	public static final float RATIO_GOLDEN = 1.618f;
+	public static final float RATIO_PLATINUM = 1.732f;
+	public static final float RATIO_SILVER = 2.414f;
+	public static final float RATIO_BRONZE = 3.303f;
 
 	public static final int DISPLAY_METRICS_FROM_WINDOW_MANAGER = 0;
 	public static final int DISPLAY_METRICS_FROM_RESOURCES = 1;

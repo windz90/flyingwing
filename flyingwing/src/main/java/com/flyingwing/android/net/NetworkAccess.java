@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.9
+ * @version 3.4.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -319,9 +319,11 @@ public class NetworkAccess {
 	
 	private static HttpURLConnection useHttpURLConnectionPost(URL httpUrl, Object[][] objectArray, String requestRangeIndex){
 		String hyphens = "--";
-		String boundary = "*****abcde*****";
+		String boundary = "#!#!#!BOUNDARY!#!#!#";
 		String breakLine = "\r\n";
 		try {
+			// System.setProperty() for APP
+			System.setProperty("http.keepAlive", "true");
 			HttpURLConnection httpURLConnection = (HttpURLConnection)httpUrl.openConnection();
 			httpURLConnection.setRequestMethod(REQUEST_POST);
 			httpURLConnection.setDoInput(true);
@@ -330,6 +332,11 @@ public class NetworkAccess {
 			httpURLConnection.setConnectTimeout(NETWORKSETTING.mConnectTimeout);
 			httpURLConnection.setReadTimeout(NETWORKSETTING.mReadTimeout);
 			httpURLConnection.setChunkedStreamingMode(NETWORKSETTING.mBufferSize);
+			/*
+			 * HTTP/1.0 預設不保持連線，Header add Connection: Keep-Alive field 表示保持連線
+			 * HTTP/1.1 預設保持連線，Header add Connection: Close field 表示不保持連線
+			 */
+			// HttpURLConnection.setRequestProperty() only for URLConnection
 			httpURLConnection.setRequestProperty("Connection", "Keep-Alive");
 			httpURLConnection.setRequestProperty("Charset", "UTF-8");
 			httpURLConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);

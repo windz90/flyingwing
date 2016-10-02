@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.0
+ * @version 2.4.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -23,7 +23,6 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import java.util.Timer;
@@ -37,14 +36,12 @@ public class ImageMatrix {
 	}
 	
 	public interface TouchAction{
-		void onTouch(MotionEvent event);
+		void onTouch(View view, MotionEvent event);
 		void onMove(float moveX, float moveY);
 		void onZoom(MotionEvent event, float zoomScale);
 	}
 	
 	public static class moveZoom{
-		
-		private static ImageView imageView;
 		
 		private static boolean isFollowJump;
 		private static float defaultScale;
@@ -55,8 +52,7 @@ public class ImageMatrix {
 		private static ClickAction clickAction;
 		private static TouchAction touchAction;
 		
-		public static void setImage(final ImageView imageView, float defaultWidth){
-			moveZoom.imageView = imageView;
+		public static void attach(final ImageView imageView, float defaultWidth){
 			// 設定圖片適合寬高
 			matrix = new Matrix();
 			// 計算最佳比例
@@ -82,7 +78,7 @@ public class ImageMatrix {
 				@Override
 				public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
 						float distanceY) {
-					move(-distanceX, -distanceY);
+					move(imageView, -distanceX, -distanceY);
 					return false;
 				}
 				
@@ -101,16 +97,15 @@ public class ImageMatrix {
 					return false;
 				}
 			};
-			
 			final GestureDetector gestureDetector = new GestureDetector(imageView.getContext(), gestureListener);
 			
-			imageView.setOnTouchListener(new OnTouchListener() {
-				
+			OnTouchListener onTouchListener = new OnTouchListener() {
+
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
 					int eventAction = event.getAction() & MotionEvent.ACTION_MASK;
 					if(touchAction != null){
-						touchAction.onTouch(event);
+						touchAction.onTouch(v, event);
 					}
 					// 雙座標讀取定位不確定時僅更新前移動座標而不進行移動
 					if(eventAction == MotionEvent.ACTION_POINTER_DOWN || eventAction == MotionEvent.ACTION_POINTER_UP){
@@ -128,12 +123,17 @@ public class ImageMatrix {
 							touchSpacing[0] = spacing(event);
 						}
 						if(eventAction == MotionEvent.ACTION_MOVE){
-							zoom(event);
+							zoom(imageView, event);
 						}
 					}
 					return true;
 				}
-			});
+			};
+			imageView.setOnTouchListener(onTouchListener);
+		}
+		
+		public static void detach(ImageView imageView){
+			imageView.setOnTouchListener(null);
 		}
 		
 		public static void setImageLocation(float[][] rangeXY, ClickAction click){
@@ -182,7 +182,7 @@ public class ImageMatrix {
 			}
 		}
 		
-		private static void move(float moveX, float moveY){
+		private static void move(ImageView imageView, float moveX, float moveY){
 			if(!isFollowJump){
 				// 繪製圖形平移
 				matrix.postTranslate(moveX, moveY);
@@ -195,7 +195,7 @@ public class ImageMatrix {
 			}
 		}
 		
-		private static void zoom(MotionEvent event){
+		private static void zoom(ImageView imageView, MotionEvent event){
 			// 計算移動後兩點距離
 			touchSpacing[1] = spacing(event);
 			// 計算當次縮放比例
@@ -242,13 +242,12 @@ public class ImageMatrix {
 			
 			final Resources res = context.getResources();
 			final Timer timer = new Timer();
-			final Handler handler = new Handler(){
-				
+			final Handler handler = new Handler(new Handler.Callback() {
+
 				float angle;
-				
+
 				@Override
-				public void handleMessage(Message msg) {
-					super.handleMessage(msg);
+				public boolean handleMessage(Message msg) {
 					angle = angle + ((Bundle)msg.obj).getFloat("eachAngle");
 					if(angle >= 360.0f || angle <= -360.0f){
 						angle = 0f;
@@ -267,16 +266,14 @@ public class ImageMatrix {
 					}
 					camera.getMatrix(matrix);
 					camera.restore();
-					
+
 					matrix.preTranslate(-bitmap.getWidth() / 2, -bitmap.getHeight() / 2);
 					matrix.postTranslate(bitmap.getWidth() / 2, bitmap.getHeight() / 2);
 					Bitmap tmpBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 					matrix.reset();
-					
+
 					if(view instanceof ImageView){
 						((ImageView)view).setImageBitmap(tmpBitmap);
-					}else if(view instanceof ImageButton){
-						((ImageButton)view).setImageBitmap(tmpBitmap);
 					}else{
 						BitmapDrawable bd = new BitmapDrawable(res, tmpBitmap);
 						if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
@@ -286,8 +283,9 @@ public class ImageMatrix {
 							view.setBackgroundDrawable(bd);
 						}
 					}
+					return false;
 				}
-			};
+			});
 			
 			TimerTask task = new TimerTask() {
 				

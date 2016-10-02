@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.0
+ * @version 2.4.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -82,13 +82,10 @@ public class SubWindow {
 				}
 			}
 		});
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				alertDialogBuilder.show();
-			}
-		}else{
-			alertDialogBuilder.show();
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
 		}
+		alertDialogBuilder.show();
 	}
 
 	public static void alertBuilderMessage(Context context, String message, DialogInterface.OnClickListener click) {
@@ -167,19 +164,6 @@ public class SubWindow {
 		popupWindow.setFocusable(true);
 		popupWindow.setOutsideTouchable(true);
 		popupWindow.setContentView(linLay);
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				if(isSetLocation){
-					popupWindow.showAtLocation(anchorView, gravity, x, y);
-				}else{
-					popupWindow.showAsDropDown(anchorView);
-				}
-			}
-		}else if(isSetLocation){
-			popupWindow.showAtLocation(anchorView, gravity, x, y);
-		}else{
-			popupWindow.showAsDropDown(anchorView);
-		}
 
 		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
 
@@ -190,6 +174,15 @@ public class SubWindow {
 				}
 			}
 		});
+
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
+		}
+		if(isSetLocation){
+			popupWindow.showAtLocation(anchorView, gravity, x, y);
+		}else{
+			popupWindow.showAsDropDown(anchorView);
+		}
 	}
 
 	public static void popupMessage(Context context, final View anchorView, boolean isSetLocation, int gravity, int x, int y, int width, int height
@@ -299,13 +292,10 @@ public class SubWindow {
 				click.onClick(dialog, DialogInterface.BUTTON_NEGATIVE);
 			}
 		});
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				alertDialogBuilder.show();
-			}
-		}else{
-			alertDialogBuilder.show();
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
 		}
+		alertDialogBuilder.show();
 	}
 
 	public static void alertBuilderConfirm(final Context context, String message, final ClickAction clickAction){
@@ -390,7 +380,7 @@ public class SubWindow {
 				}
 				String inputName = editText.getText().toString().trim();
 				if(inputName.length() < min || (inputName.length() > max && max > 0)){
-					Utils.setToast(context, res.getString(R.string.char_length_hint, min, max));
+					Utils.setToast(context, res.getString(R.string.char_length_hint, "" + min, "" + max));
 					return;
 				}
 				Bundle bundle = new Bundle();
@@ -446,17 +436,13 @@ public class SubWindow {
 			}
 		});
 
-		WindowManager.LayoutParams windowManagerLayoutParams = alertDialog.getWindow().getAttributes();
-		windowManagerLayoutParams.x = 0;
-		windowManagerLayoutParams.y = 0;
-		windowManagerLayoutParams.width = itemWi;
-		alertDialog.getWindow().setAttributes(windowManagerLayoutParams);
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				alertDialog.show();
-			}
-		}else{
-			alertDialog.show();
+		Window window = alertDialog.getWindow();
+		if(window != null){
+			WindowManager.LayoutParams windowManagerLayoutParams = window.getAttributes();
+			windowManagerLayoutParams.x = 0;
+			windowManagerLayoutParams.y = 0;
+			windowManagerLayoutParams.width = itemWi;
+			window.setAttributes(windowManagerLayoutParams);
 		}
 
 		alertDialog.setOnDismissListener(new OnDismissListener() {
@@ -479,6 +465,11 @@ public class SubWindow {
 				return false;
 			}
 		});
+
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
+		}
+		alertDialog.show();
 	}
 
 	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, String inputContentKey
@@ -549,19 +540,15 @@ public class SubWindow {
 		alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, context.getString(R.string.cancel), onClick);
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
 
-		WindowManager.LayoutParams windowLayPar = alertDialog.getWindow().getAttributes();
-		windowLayPar.x = 0;
-		windowLayPar.y = 0;
-		windowLayPar.width = width;
-		windowLayPar.height = height;
-		alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-		alertDialog.getWindow().setAttributes(windowLayPar);
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				alertDialog.show();
-			}
-		}else{
-			alertDialog.show();
+		Window window = alertDialog.getWindow();
+		if(window != null){
+			WindowManager.LayoutParams windowLayPar = window.getAttributes();
+			windowLayPar.x = 0;
+			windowLayPar.y = 0;
+			windowLayPar.width = width;
+			windowLayPar.height = height;
+			window.setBackgroundDrawableResource(android.R.color.transparent);
+			window.setAttributes(windowLayPar);
 		}
 
 		alertDialog.setOnDismissListener(new OnDismissListener() {
@@ -590,6 +577,11 @@ public class SubWindow {
 				}
 			});
 		}
+
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
+		}
+		alertDialog.show();
 	}
 
 	public static void alertMenuUseButton(Context context, DisplayMetrics displayMetrics, String title, TextViewAttribute[] textViewAttributes
@@ -835,19 +827,15 @@ public class SubWindow {
 		dialog.setContentView(linLay);
 		dialog.setCanceledOnTouchOutside(isOutsideCancel);
 
-		WindowManager.LayoutParams windowLayPar = dialog.getWindow().getAttributes();
-		windowLayPar.x = 0;
-		windowLayPar.y = 0;
-		windowLayPar.width = width;
-		windowLayPar.height = height;
-		dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-		dialog.getWindow().setAttributes(windowLayPar);
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				dialog.show();
-			}
-		}else{
-			dialog.show();
+		Window window = dialog.getWindow();
+		if(window != null){
+			WindowManager.LayoutParams windowLayPar = window.getAttributes();
+			windowLayPar.x = 0;
+			windowLayPar.y = 0;
+			windowLayPar.width = width;
+			windowLayPar.height = height;
+			window.setBackgroundDrawableResource(android.R.color.transparent);
+			window.setAttributes(windowLayPar);
 		}
 
 		dialog.setOnDismissListener(new OnDismissListener() {
@@ -876,6 +864,11 @@ public class SubWindow {
 				}
 			});
 		}
+
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
+		}
+		dialog.show();
 	}
 
 	public static void dialogMenuUseButton(Context context, DisplayMetrics displayMetrics, TextViewAttribute[] textViewAttributes, String title
@@ -1007,19 +1000,15 @@ public class SubWindow {
 		dialog.setContentView(linLay);
 		dialog.setCanceledOnTouchOutside(isOutsideCancel);
 
-		WindowManager.LayoutParams windowLayPar = dialog.getWindow().getAttributes();
-		windowLayPar.x = 0;
-		windowLayPar.y = 0;
-		windowLayPar.width = width;
-		windowLayPar.height = height;
-		dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-		dialog.getWindow().setAttributes(windowLayPar);
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				dialog.show();
-			}
-		}else{
-			dialog.show();
+		Window window = dialog.getWindow();
+		if(window != null){
+			WindowManager.LayoutParams windowLayPar = window.getAttributes();
+			windowLayPar.x = 0;
+			windowLayPar.y = 0;
+			windowLayPar.width = width;
+			windowLayPar.height = height;
+			window.setBackgroundDrawableResource(android.R.color.transparent);
+			window.setAttributes(windowLayPar);
 		}
 
 		dialog.setOnDismissListener(new OnDismissListener() {
@@ -1058,6 +1047,11 @@ public class SubWindow {
 				}
 			}
 		});
+
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
+		}
+		dialog.show();
 	}
 
 	public static void dialogMenuUseListView(Context context, DisplayMetrics displayMetrics, View topBar, int width, int height, String title, String[] strArray
@@ -1187,13 +1181,6 @@ public class SubWindow {
 		popupWindow.setOutsideTouchable(true);
 		popupWindow.setBackgroundDrawable(new ColorDrawable(0x00000000));
 		popupWindow.setContentView(linLay);
-		if(context instanceof Activity){
-			if(!((Activity)context).isFinishing()){
-				popupWindow.showAsDropDown(view);
-			}
-		}else{
-			popupWindow.showAsDropDown(view);
-		}
 
 		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
 
@@ -1221,6 +1208,11 @@ public class SubWindow {
 				}
 			});
 		}
+
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
+		}
+		popupWindow.showAsDropDown(view);
 	}
 
 	public static void popupMenuUseButton(Context context, DisplayMetrics displayMetrics, View view, TextViewAttribute[] textViewAttributes, String title
