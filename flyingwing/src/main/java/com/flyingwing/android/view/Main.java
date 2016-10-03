@@ -23,7 +23,7 @@ public class Main extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.menu, menu);
+		inflater.inflate(R.menu.menu_flyingwing, menu);
 		return super.onCreateOptionsMenu(menu);
 	}
 
