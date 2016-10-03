@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.2
+ * @version 3.3.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -28,6 +28,7 @@ public class DisplayUtils {
 
 	public static final int LIMIT_DIP_WIDTH_320 = 320;
 	public static final int LIMIT_DIP_WIDTH_360 = 360;
+	public static final int LIMIT_DIP_WIDTH_411 = 411;
 	public static final int LIMIT_DIP_WIDTH_480 = 480;
 	public static final int LIMIT_DIP_WIDTH_540 = 540;
 	public static final int LIMIT_DIP_WIDTH_600 = 600;
@@ -207,6 +208,10 @@ public class DisplayUtils {
 
 	public static int measureStatusBarHeightForOnDraw(Activity activity){
 		return getHeightPixels(getDisplayMetricsFromWindowManager(activity), false) - measureVisibleHeightForOnDraw(activity);
+	}
+
+	public static int measureStatusBarHeightForOnDraw(Activity activity, DisplayMetrics displayMetrics){
+		return getHeightPixels(displayMetrics, false) - measureVisibleHeightForOnDraw(activity);
 	}
 
 	public static int getVisibleHeight(Context context){

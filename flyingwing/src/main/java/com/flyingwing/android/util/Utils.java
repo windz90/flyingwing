@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.2
+ * @version 3.5.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -704,7 +704,7 @@ public class Utils {
 
 	public static String trimAndMergeLines(String string){
 		if(string != null){
-			string = string.replace("\r\n", "").replace("\n", "").replace("\r", "").trim();
+			string = string.replace("\n", "").replace("\r", "").trim();
 		}
 		return string;
 	}
@@ -1462,17 +1462,6 @@ public class Utils {
 
 	public static int getTextSize(int flag, boolean isBigScreen){
 		return getTextSize(flag, isBigScreen, 3);
-	}
-
-	public static ColorStateList getColorStateList(Context context, int colorResource, int defaultColor){
-		ColorStateList colorStateList;
-		try {
-			colorStateList = ContextCompat.getColorStateList(context, colorResource);
-		} catch (Exception e) {
-			colorStateList = ColorStateList.valueOf(defaultColor);
-			e.printStackTrace();
-		}
-		return colorStateList;
 	}
 
 	public static float getTextWidths(Paint paint, String text){
