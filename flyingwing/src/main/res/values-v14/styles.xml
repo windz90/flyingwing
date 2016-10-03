@@ -1,41 +1,37 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="PrivateResource">
 
 	<!--
 		Base application theme for API 14+. This theme completely replaces
 		AppBaseTheme from BOTH res/values/styles.xml and
 		res/values-v11/styles.xml on API 14+ devices.
 	-->
-	
-	<style name="AppBaseTheme" parent="android:Theme.Holo.Light.DarkActionBar">
-		<!-- API 14 theme customizations can go here. -->
-	</style>
-	
-	<style name="CustomTheme" parent="CustomAppCompatBase"/>
-	
-	<!-- CustomAppCompatBase -->
-	
+
+	<style name="FlyingWingTheme" parent="FlyingWingBaseCustomAppCompat"/>
+
+	<!-- CustomAppCompat -->
+
 	<!-- Theme.AppCompat -->
 	<!-- Theme.AppCompat.Light -->
 	<!-- Theme.AppCompat.Light.DarkActionBar -->
-	<style name="CustomAppCompatBase" parent="Theme.AppCompat.Light">
+	<style name="FlyingWingBaseCustomAppCompat" parent="Theme.AppCompat.Light">
 		<!-- No ActionBar -->
 		<item name="windowActionBar">false</item>
 		<item name="windowNoTitle">true</item>
-		
-		<!-- android:fitsSystemWindows : StatusBar and NavigationBar is hold space, But material style dialog text padding not work -->
+
+		<!-- android:fitsSystemWindows : StatusBar and NavigationBar is hold space, But material style dialog text padding not work. -->
 		<!-- <item name="android:fitsSystemWindows">true</item> -->
 
 		<!-- android:windowTranslucentStatus : StatusBar is translucent for API >= 19 -->
 		<!-- <item name="android:windowTranslucentStatus">true</item> -->
 		<!-- android:windowTranslucentNavigation : NavigationBar is translucent for >= API 19 -->
 		<!-- <item name="android:windowTranslucentNavigation">true</item> -->
-		
+
 		<item name="android:textAllCaps">false</item>
-		
+
 		<!-- Toolbar styles -->
 		<item name="toolbarStyle">@style/ToolbarStyleAppCompat</item>
 		<item name="toolbarNavigationButtonStyle">@style/ToolbarNavigationButtonStyleAppCompat</item>
-		
+
 		<!-- Text colors -->
 		<item name="android:textColorPrimary">@color/abc_primary_text_material_light</item>
 		<item name="android:textColorPrimaryInverse">@color/abc_primary_text_material_dark</item>
@@ -53,11 +49,11 @@
 		<item name="android:textColorLink">?attr/colorAccent</item>
 		<item name="android:textColorLinkInverse">?attr/colorAccent</item>
 		<item name="android:textColorAlertDialogListItem">@color/abc_primary_text_material_light</item>
-		
+
 		<!-- Text styles -->
 		<item name="android:textAppearance">@style/TextAppearance.AppCompat</item>
 		<item name="android:textAppearanceInverse">@style/TextAppearance.AppCompat.Inverse</item>
-		
+
 		<!-- Action Bar styles -->
 		<item name="actionButtonStyle">@style/ActionButtonStyleAppCompat</item>
 		<item name="actionOverflowButtonStyle">@style/ActionOverflowButtonStyleAppCompat</item>
@@ -65,16 +61,16 @@
 		<!-- android:actionMenuTextColor : Menu textColor for API < 21 -->
 		<item name="actionMenuTextColor">@color/abc_primary_text_material_light</item>
 		<item name="actionMenuTextAppearance">@style/ActionMenuTextAppearanceAppCompat</item>
-		
+
 		<!-- Color palette -->
 		<!-- Base.V7.Theme.AppCompat.Light setting -->
 		<!-- colorPrimaryDark : StatusBar background(getWindow().setStatusBarColor()) -->
 		<item name="colorPrimaryDark">@color/primary_dark_material_light</item>
 		<!-- colorPrimary : default ActionBar(but not Toolbar) background -->
 		<item name="colorPrimary">@color/primary_material_light</item>
-		<!-- colorAccent : widgets checked tint, default via colorControlActivated -->
+		<!-- colorAccent : widgets checked tint, default via colorControlActivated. -->
 		<item name="colorAccent">@color/accent_material_light</item>
-		
+
 		<!-- navigation icon and overflow menu icon color -->
 		<item name="colorControlNormal">?android:attr/textColorSecondary</item>
 		<item name="colorControlActivated">?attr/colorAccent</item>
@@ -82,7 +78,7 @@
 		<item name="colorButtonNormal">@color/button_material_light</item>
 		<item name="colorSwitchThumbNormal">@color/switch_thumb_material_light</item>
 	</style>
-	
+
 	<style name="ToolbarStyleAppCompat" parent="@style/Widget.AppCompat.Toolbar">
 		<item name="android:minHeight">@dimen/toolbarHeight</item>
 		<item name="android:paddingLeft">0dip</item>
@@ -91,16 +87,16 @@
 		<item name="contentInsetEnd">0dip</item>
 		<item name="titleMarginStart">0dip</item>
 		<item name="titleMarginEnd">0dip</item>
-		<!-- popupTheme : menu popup theme -->
+		<!-- popupTheme : menu popup theme, contain menu item text color and text size. -->
 		<item name="popupTheme">@style/ThemeOverlay.AppCompat.Light</item>
 	</style>
-	
+
 	<style name="ToolbarNavigationButtonStyleAppCompat" parent="@style/Widget.AppCompat.Toolbar.Button.Navigation">
 		<item name="android:minWidth">0dip</item>
 		<item name="android:padding">12dip</item>
 		<item name="android:scaleType">center</item>
 	</style>
-	
+
 	<style name="ActionButtonStyleAppCompat" parent="@style/Widget.AppCompat.Light.ActionButton">
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
 		<item name="android:minWidth">@dimen/abc_action_button_min_width_material</item>
@@ -112,28 +108,29 @@
 		<item name="android:maxLines">2</item>
 		<item name="textAllCaps">false</item>
 	</style>
-	
+
 	<style name="ActionOverflowButtonStyleAppCompat" parent="@style/Widget.AppCompat.Light.ActionButton.Overflow">
 		<!-- <item name="android:src"></item> -->
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
 		<item name="android:paddingLeft">12dip</item>
 		<item name="android:paddingRight">12dip</item>
 	</style>
-	
+
 	<style name="ActionMenuTextAppearanceAppCompat" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Menu">
 		<item name="android:textSize">16sp</item>
 		<item name="android:textStyle">normal</item>
 	</style>
-	
-	<!-- CustomHoloBase -->
-	
+
+	<!-- CustomHolo -->
+
 	<!-- android:Theme -->
 	<!-- android:Theme.Light -->
 	<!-- android:Theme.Holo -->
 	<!-- android:Theme.Holo.Light.DarkActionBar -->
 	<!-- android:Theme.DeviceDefault -->
 	<!-- android:Theme.DeviceDefault.Light.DarkActionBar -->
-	<style name="CustomHoloBase" parent="android:Theme.Holo.Light.DarkActionBar">
+	<style name="FlyingWingBaseCustomHolo" parent="android:Theme.Holo.Light.DarkActionBar">
+		<!-- API 14 theme customizations can go here. -->
 		<item name="android:windowActionBar">true</item>
 		<item name="android:windowActionBarOverlay">false</item>
 		<item name="android:actionBarStyle">@style/ActionBarStyle</item>
@@ -145,19 +142,19 @@
 		<item name="android:actionOverflowButtonStyle">@style/ActionOverflowButtonStyle</item>
 		<item name="android:actionMenuTextColor">?android:attr/textColorPrimaryInverse</item>
 		<item name="android:actionMenuTextAppearance">@style/ActionMenuTextAppearance</item>
-		
+
 		<item name="android:actionBarWidgetTheme">@style/ActionBarWidgetTheme</item>
-		
+
 		<item name="android:itemBackground">@color/Transparent</item>
 		<item name="android:itemTextAppearance">@style/PopupMenuTextAppearance</item>
-		
+
 		<item name="android:actionBarTabBarStyle">@style/ActionBarTabBarStyle</item>
 		<item name="android:actionBarTabStyle">@style/ActionBarTabViewStyle</item>
 		<item name="android:actionBarTabTextStyle">@style/ActionBarTabTextStyle</item>
-		
+
 		<item name="android:actionDropDownStyle">@style/ActionDropDownStyle</item>
 	</style>
-	
+
 	<!-- android:Widget.ActionBar -->
 	<!-- android:Widget.Holo.ActionBar -->
 	<!-- android:Widget.Holo.Light.ActionBar -->
@@ -171,20 +168,20 @@
 		<item name="android:displayOptions">useLogo|showHome|showTitle|showCustom</item>
 		<item name="android:icon">@mipmap/ic_launcher</item>
 		<item name="android:titleTextStyle">@style/ActionBarTitleTextAppearance</item>
-		<item name="android:subtitleTextStyle">?android:style/TextAppearance.Holo.Widget.ActionBar.Subtitle</item>
-		<item name="android:progressBarStyle">?android:style/Widget.Holo.Light.ProgressBar.Horizontal</item>
-		<item name="android:indeterminateProgressStyle">?android:style/Widget.Holo.Light.ProgressBar</item>
+		<item name="android:subtitleTextStyle">@android:style/TextAppearance.Holo.Widget.ActionBar.Subtitle</item>
+		<item name="android:progressBarStyle">@android:style/Widget.Holo.Light.ProgressBar.Horizontal</item>
+		<item name="android:indeterminateProgressStyle">@android:style/Widget.Holo.Light.ProgressBar</item>
 		<item name="android:progressBarPadding">32dip</item>
 		<item name="android:itemPadding">8dip</item>
 		<!-- <item name="android:homeLayout"></item> -->
 	</style>
-	
+
 	<style name="ActionBarTitleTextAppearance" parent="android:TextAppearance.Holo.Widget.ActionBar.Title">
 		<item name="android:textColor">@color/White</item>
 		<item name="android:textSize">20sp</item>
 		<item name="android:textStyle">normal</item>
 	</style>
-	
+
 	<style name="ActionButtonStyle" parent="android:Widget.Holo.Light.ActionButton">
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
 		<item name="android:minWidth">?android:attr/actionBarSize</item>
@@ -195,26 +192,26 @@
 		<item name="android:scaleType">center</item>
 		<item name="android:maxLines">2</item>
 	</style>
-	
+
 	<style name="ActionOverflowButtonStyle" parent="android:Widget.Holo.ActionButton.Overflow">
 		<!-- <item name="android:src"></item> -->
 		<item name="android:background">?android:attr/actionBarItemBackground</item>
 	</style>
-	
+
 	<style name="ActionMenuTextAppearance" parent="android:TextAppearance.Holo.Widget.ActionBar.Menu">
 		<item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
 		<item name="android:textSize">16sp</item>
 		<item name="android:textStyle">normal</item>
 		<item name="android:textAllCaps">false</item>
 	</style>
-	
+
 	<style name="ActionBarWidgetTheme" parent="android:Theme.Holo">
 		<item name="android:popupMenuStyle">@style/PopupMenuStyle</item>
 		<item name="android:dropDownListViewStyle">@style/DropDownListViewStyle</item>
-		
+
 		<item name="android:spinnerDropDownItemStyle">@style/SpinnerDropDownItemStyle</item>
 	</style>
-	
+
 	<style name="PopupMenuStyle" parent="android:Widget.Holo.ListPopupWindow">
 		<!-- <item name="android:dropDownSelector"></item> -->
 		<!-- <item name="android:popupBackground"></item> -->
@@ -222,31 +219,31 @@
 		<item name="android:dropDownHorizontalOffset">0dip</item>
 		<item name="android:dropDownWidth">wrap_content</item>
 	</style>
-	
+
 	<style name="DropDownListViewStyle" parent="android:Widget.Holo.Light.ListView.DropDown">
 		<!-- <item name="android:listSelector"></item> -->
 		<!-- <item name="android:divider"></item> -->
 	</style>
-	
+
 	<style name="PopupMenuTextAppearance" parent="android:TextAppearance">
 		<item name="android:textColor">?android:attr/textColorPrimary</item>
 		<item name="android:textSize">16sp</item>
 		<item name="android:textStyle">normal</item>
 		<item name="android:textAllCaps">false</item>
 	</style>
-	
+
 	<style name="ActionBarTabBarStyle" parent="android:Widget.Holo.Light.ActionBar.TabBar">
 		<item name="android:divider">?android:attr/dividerVertical</item>
 		<item name="android:showDividers">middle</item>
 		<item name="android:dividerPadding">12dip</item>
 	</style>
-	
+
 	<style name="ActionBarTabViewStyle" parent="android:Widget.Holo.Light.ActionBar.TabView">
 		<item name="android:gravity">center_horizontal</item>
 		<item name="android:paddingLeft">16dip</item>
 		<item name="android:paddingRight">16dip</item>
 	</style>
-	
+
 	<style name="ActionBarTabTextStyle" parent="android:Widget.Holo.Light.ActionBar.TabText">
 		<item name="android:textColor">?android:attr/textColorPrimaryInverse</item>
 		<item name="android:textSize">16sp</item>
@@ -255,18 +252,18 @@
 		<item name="android:maxLines">2</item>
 		<item name="android:textAllCaps">false</item>
 	</style>
-	
+
 	<style name="ActionDropDownStyle" parent="android:Widget.Holo.Light.Spinner">
 		<item name="android:dropDownVerticalOffset">0dip</item>
 		<item name="android:dropDownHorizontalOffset">0dip</item>
 		<item name="android:dropDownWidth">wrap_content</item>
 	</style>
-	
+
 	<style name="SpinnerDropDownItemStyle" parent="android:Widget.DropDownItem.Spinner">
 		<item name="android:textAppearance">@style/DropDownItemTextAppearance</item>
 	</style>
-	
+
 	<style name="DropDownItemTextAppearance" parent="android:TextAppearance.Widget.DropDownItem">
 	</style>
-	
+
 </resources>
