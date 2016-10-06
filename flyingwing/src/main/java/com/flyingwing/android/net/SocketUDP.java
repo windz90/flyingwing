@@ -1,16 +1,19 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.4
+ * @version 1.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.net;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -22,6 +25,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -82,49 +86,60 @@ public class SocketUDP {
 		mReadWriteLock = new ReentrantReadWriteLock();
 		try {
 			mDatagramSocket = new DatagramSocket(null);
-			try {
-				mDatagramSocket.setReuseAddress(isReuseAddress);
-				mDatagramSocket.bind(new InetSocketAddress(portLocal));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			mDatagramSocket.setReuseAddress(isReuseAddress);
+			mDatagramSocket.bind(new InetSocketAddress(portLocal));
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
-
-	public SocketUDP(@IntRange(from = 0, to = 65535) int portLocal){
-		mReadWriteLock = new ReentrantReadWriteLock();
-		try {
-			mDatagramSocket = new DatagramSocket(portLocal);
-		} catch (Exception e) {
-			e.printStackTrace();
-			try {
-				mDatagramSocket = new DatagramSocket(null);
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
 		}
 	}
 
 	/**
-	 * Try loop bind unused local port
+	 * Reuse random port
+	 * @param portRangeMin random min value
+	 * @param portRangeMax random max value
+	 * @param isTryAsyncLoopBind is try async loop bind unused local port in the range(not reuseAddress)
 	 */
-	public SocketUDP(@IntRange(from = 0, to = 65535) int loopPortStart, @IntRange(from = 0, to = 65535) int loopPortEnd){
+	public SocketUDP(@IntRange(from = 0, to = 65535) final int portRangeMin, @IntRange(from = 0, to = 65535) final int portRangeMax, boolean isTryAsyncLoopBind
+			, final int...excludePort){
 		mReadWriteLock = new ReentrantReadWriteLock();
+		int randomPort = (int)(Math.random() * (portRangeMax - portRangeMin + 1)) + portRangeMin;
+		for(int i=0; i<excludePort.length; i++){
+			if(randomPort == excludePort[i]){
+				randomPort = (int)(Math.random() * (portRangeMax - portRangeMin + 1)) + portRangeMin;
+				i = -1;
+			}
+		}
 		try {
 			mDatagramSocket = new DatagramSocket(null);
-			bindLoop(loopPortStart, loopPortEnd);
+			mDatagramSocket.setReuseAddress(true);
+			mDatagramSocket.bind(new InetSocketAddress(randomPort));
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+		if(isTryAsyncLoopBind){
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					bindLoop(portRangeMin, portRangeMax, excludePort);
+				}
+			}).start();
 		}
 	}
 
 	/**
-	 * Try loop bind unused local port
+	 * Reuse random port
+	 * @param portRangeMin random min value
+	 * @param portRangeMax random max value
+	 */
+	public SocketUDP(@IntRange(from = 0, to = 65535) final int portRangeMin, @IntRange(from = 0, to = 65535) final int portRangeMax, int...excludePort){
+		this(portRangeMin, portRangeMax, false, excludePort);
+	}
+
+	/**
+	 * Reuse random port
 	 */
 	public SocketUDP(){
-		this(1025, 65535);
+		this(1025, 65535, false);
 	}
 
 	public void setBroadcast(boolean broadcast){
@@ -166,18 +181,39 @@ public class SocketUDP {
 	}
 
 	/**
-	 * Try loop bind unused local port
+	 * Try loop bind unused local port in the range(not reuseAddress)
 	 */
-	public void bindLoop(@IntRange(from = 0, to = 65535) int loopPortStart, @IntRange(from = 0, to = 65535) int loopPortEnd){
+	public void bindLoop(@IntRange(from = 0, to = 65535) int portRangeMin, @IntRange(from = 0, to = 65535) int portRangeMax, int...excludePort){
+		if(excludePort.length > 1){
+			Arrays.sort(excludePort);
+		}
 		InetSocketAddress inetSocketAddress;
-		for(int i=loopPortStart; i<=loopPortEnd; i++){
+		for(int i=portRangeMin; i<=portRangeMax; i++){
+			if(excludePort.length > 0){
+				if(i == excludePort[0] || i == excludePort[excludePort.length - 1]){
+					continue;
+				}else if(i > excludePort[0] || i < excludePort[excludePort.length - 1]){
+					boolean isMatch = false;
+					int j = 0;
+					while (j < excludePort.length) {
+						if(i == excludePort[j]){
+							isMatch = true;
+							break;
+						}
+						j++;
+					}
+					if(isMatch){
+						continue;
+					}
+				}
+			}
 			try {
 				inetSocketAddress = new InetSocketAddress(i);
 				mDatagramSocket.bind(inetSocketAddress);
 				break;
 			} catch (Exception ignored) {}
-			if(i == loopPortEnd){
-				System.out.println(loopPortStart + "-" + loopPortEnd + " local port bind fail");
+			if(i == portRangeMax){
+				System.out.println(portRangeMin + "-" + portRangeMax + " local port bind fail");
 			}
 		}
 	}
@@ -208,6 +244,11 @@ public class SocketUDP {
 	@Nullable
 	public SocketAddress getSocketRemoteSocketAddress(){
 		return mDatagramSocket == null ? null : mDatagramSocket.getRemoteSocketAddress();
+	}
+
+	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	public ParcelFileDescriptor getDatagramSocketFileDescriptor(){
+		return ParcelFileDescriptor.fromDatagramSocket(mDatagramSocket);
 	}
 
 	public void setReceiveBufferSize(int size){
