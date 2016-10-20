@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.0
+ * @version 3.5.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -31,7 +31,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
@@ -51,9 +50,6 @@ public class NetworkAccess {
 	public static final int CONNECTION_CONNECTED = 101;
 	public static final int CONNECTION_LOAD_FAIL = 102;
 	public static final int CONNECTION_LOADED = 103;
-	public static final int SPLIT_AUTO_MAX_QUANTITY = 0;
-	public static final int SPLIT_BY_QUANTITY = 1;
-	public static final int SPLIT_BY_LENGTH = 2;
 	public static final String[] ONLY_READ_HEADER = new String[]{"Range", "bytes=0-0"};
 	private static final String HTTP_METHOD_GET = "GET";
 	private static final String HTTP_METHOD_POST = "POST";
@@ -150,6 +146,7 @@ public class NetworkAccess {
 			, Handler handler){
 		if(httpURLConnection == null){
 			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 				connectionResult.setStatusMessage("Connection open failed");
 			}
 			return;
@@ -165,10 +162,11 @@ public class NetworkAccess {
 			InputStream inputStreamError = httpURLConnection.getErrorStream();
 			if(inputStreamError != null){
 				if(connectionResult != null){
+					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 					connectionResult.setStatusMessage(inputStreamToString(inputStreamError, null, NETWORKSETTING.mBufferSize));
 				}
 				if(handler != null){
-					Message msg = new Message();
+					Message msg = Message.obtain(handler);
 					msg.what = CONNECTION_CONNECT_FAIL;
 					msg.obj = connectionResult;
 					handler.sendMessage(msg);
@@ -185,10 +183,11 @@ public class NetworkAccess {
 				printInfo("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode()
 						, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
 				if(connectionResult != null){
+					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 					connectionResult.setStatusMessage("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
 				}
 				if(handler != null){
-					Message msg = new Message();
+					Message msg = Message.obtain(handler);
 					msg.what = CONNECTION_CONNECT_FAIL;
 					msg.obj = connectionResult;
 					handler.sendMessage(msg);
@@ -203,41 +202,62 @@ public class NetworkAccess {
 			}
 
 			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_CONNECTED);
 				connectionResult.setStatusMessage("Connect success");
 				connectionResult.setContentEncoding(httpURLConnection.getContentEncoding());
 				connectionResult.setContentLength(httpURLConnection.getContentLength());
 				connectionResult.setContentType(httpURLConnection.getContentType());
+				connectionResult.setContentCharset(getCharset(httpURLConnection.getContentType()));
+			}
+			if(handler != null){
+				Message msg = Message.obtain(handler);
+				msg.what = CONNECTION_CONNECTED;
+				msg.obj = connectionResult;
+				handler.sendMessage(msg);
 			}
 		} catch (Exception e) {
 			printInfo("Connection connect failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
 			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 				connectionResult.setStatusMessage("Connection connect failed, exception " + e);
 			}
-		}
-
-		if(handler != null){
-			Message msg = new Message();
-			msg.what = CONNECTION_CONNECTED;
-			msg.obj = connectionResult;
-			handler.sendMessage(msg);
-		}
-
-		if(connectionResult != null){
-			try {
-				if(isSkipDataRead){
-					connectionResult.setHttpURLConnection(httpURLConnection);
-					connectionResult.setContent(httpURLConnection.getInputStream());
-					return;
-				}
-				loadDataForConnectionResult(httpURLConnection.getInputStream(), connectionResult);
-			} catch (Exception e) {
-				printInfo("Connection loading failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
-				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+			if(handler != null){
+				Message msg = Message.obtain(handler);
+				msg.what = CONNECTION_CONNECT_FAIL;
+				msg.obj = connectionResult;
+				handler.sendMessage(msg);
 			}
 		}
-		if(!isSkipDataRead){
-			httpURLConnection.disconnect();
+
+		if(connectionResult == null){
+			if(!isSkipDataRead){
+				httpURLConnection.disconnect();
+			}
+			return;
 		}
+		try {
+			if(isSkipDataRead){
+				connectionResult.setHttpURLConnection(httpURLConnection);
+				connectionResult.setContent(httpURLConnection.getInputStream());
+				return;
+			}
+
+			connectionResult.setContent(inputStreamToByteArray(httpURLConnection.getInputStream(), NETWORKSETTING.mBufferSize));
+			connectionResult.setStatusCode(CONNECTION_LOADED);
+			connectionResult.setStatusMessage("Connection complete");
+
+			Object object = connectionResult.getContent();
+			if(object instanceof String && object.equals("OutOfMemoryError")){
+				connectionResult.setContent(null);
+				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
+				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+			}
+		} catch (Exception e) {
+			printInfo("Connection loading failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
+			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
+			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+		}
+		httpURLConnection.disconnect();
 	}
 
 	public static boolean isAvailable(Context context) {
@@ -550,60 +570,18 @@ public class NetworkAccess {
 		return connectionResult;
 	}
 
-	private static Object loadData(InputStream is, String contentType){
-		if(is == null){
-			return null;
-		}
-		ConnectionResult connectionResult = new ConnectionResult();
-		connectionResult.setContentType(contentType);
-		Object object;
-		if(checkContentTypeIsText(connectionResult)){
-			object = inputStreamToString(is, connectionResult.getContentCharset(), NETWORKSETTING.mBufferSize);
-		}else{
-			object = inputStreamToByteArray(is, NETWORKSETTING.mBufferSize);
-		}
-		return object;
-	}
-
-	private static void loadDataForConnectionResult(InputStream is, ConnectionResult connectionResult){
-		if(is == null){
-			return;
-		}
-		Object object;
-		if(checkContentTypeIsText(connectionResult)){
-			object = inputStreamToString(is, connectionResult.getContentCharset(), NETWORKSETTING.mBufferSize);
-		}else{
-			object = inputStreamToByteArray(is, NETWORKSETTING.mBufferSize);
-		}
-		if(object instanceof String && object.equals("OutOfMemoryError")){
-			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			object = null;
-		}
-		connectionResult.setContent(object);
-	}
-
-	public static boolean checkContentTypeIsText(ConnectionResult connectionResult){
-		boolean isText = false;
-		Charset charset = null;
-		String contentType = connectionResult.getContentType();
+	public static Charset getCharset(String contentType){
 		if(contentType != null && contentType.trim().length() > 0){
 			String[] values = contentType.split(";");
 			// 取得網頁文字編碼
 			for(String value : values){
 				value = value.trim();
-				if(value.contains("text/")){
-					isText = true;
-				}
-				if(value.toLowerCase(Locale.ENGLISH).startsWith("charset=")){
-					charset = Charset.forName(value.substring("charset=".length()));
-					connectionResult.setContentCharset(charset);
-				}
-				if(isText && charset != null){
-					break;
+				if(value.toLowerCase().startsWith("charset=")){
+					return Charset.forName(value.substring("charset=".length()));
 				}
 			}
 		}
-		return isText;
+		return null;
 	}
 
 	public static String inputStreamToString(InputStream is, Charset charset, int bufferSize){
@@ -648,7 +626,7 @@ public class NetworkAccess {
 		if(is == null){
 			return null;
 		}
-		Object byteArray = null;
+		Object object = null;
 		int progress;
 		if(bufferSize < 8192){
 			bufferSize = 8192;
@@ -667,7 +645,7 @@ public class NetworkAccess {
 				is.close();
 			}
 			try {
-				byteArray = baos.toByteArray();
+				object = baos.toByteArray();
 			} finally {
 				baos.close();
 			}
@@ -675,36 +653,38 @@ public class NetworkAccess {
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
 			is = null;
-			byteArray = null;
+			object = null;
 			buffer = null;
 			baos = null;
-			byteArray = "OutOfMemoryError";
+			object = "OutOfMemoryError";
 			e.printStackTrace();
 		}
-		return byteArray;
+		return object;
 	}
 
 	public static class ConnectionResult {
 
 		private int mResponseCode;
+		private int mStatusCode;
 		private String mResponseMessage;
+		private String mStatusMessage;
 		private String mRequestType;
 		private String mConnectUrl;
-		private String mStatusMessage;
-		private String mContentType;
 		private String mContentEncoding;
+		private String mContentType;
 		private long mContentLength;
 		private Charset mContentCharset;
 		private Object mContent;
 		private HttpURLConnection mHttpURLConnection;
 
-		public void setResult(String requestType, String connectUrl, int responseCode, String responseMessage
+		public void setResult(String requestType, String connectUrl, int responseCode, String responseMessage, int statusCode
 				, String statusMessage, Object content, String contentEncoding, long contentLength, String contentType
 				, Charset contentCharset){
 			mRequestType = requestType;
 			mConnectUrl = connectUrl;
 			mResponseCode = responseCode;
 			mResponseMessage = responseMessage;
+			mStatusCode = statusCode;
 			mStatusMessage = statusMessage;
 			mContent = content;
 			mContentEncoding = contentEncoding;
@@ -735,6 +715,10 @@ public class NetworkAccess {
 
 		public void setResponseMessage(String responseMessage){
 			mResponseMessage = responseMessage;
+		}
+
+		public void setStatusCode(int statusCode){
+			mStatusCode = statusCode;
 		}
 
 		public void setStatusMessage(String statusMessage){
@@ -777,6 +761,10 @@ public class NetworkAccess {
 			return mResponseMessage;
 		}
 
+		public int getStatusCode(){
+			return mStatusCode;
+		}
+
 		public String getStatusMessage(){
 			return mStatusMessage;
 		}
@@ -802,8 +790,9 @@ public class NetworkAccess {
 		}
 
 		public String getConnectionInfo(){
-			String connectionInfo = mResponseCode + ", " + mResponseMessage + ", " + mRequestType + ", " + mStatusMessage +
-					", \n" + mConnectUrl +
+			String connectionInfo = mRequestType + ", " + mConnectUrl +
+					", \n" +  + mResponseCode + ", " + mResponseMessage +
+					", \n" +  + mStatusCode + ", " + mStatusMessage +
 					", \n" + mContentEncoding + ", " + mContentLength +
 					", \n" + mContentType;
 			return connectionInfo;
