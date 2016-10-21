@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.1
+ * @version 3.5.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -14,12 +14,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -43,7 +44,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "UnusedAssignment", "WeakerAccess", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "WeakerAccess", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock"})
 public class NetworkAccess {
 
 	public static final int CONNECTION_CONNECT_FAIL = 100;
@@ -120,7 +121,15 @@ public class NetworkAccess {
 	public static ConnectionResult connectUseHttpURLConnection(Context context, HttpURLConnection httpURLConnection, boolean isSkipDataRead, Handler handler){
 		ConnectionResult connectionResult = getInitConnectResult();
 		if(isAvailable(context)){
-			connectUseHttpURLConnection(httpURLConnection, isSkipDataRead, connectionResult, handler);
+			connectUseHttpURLConnection(httpURLConnection, isSkipDataRead, null, connectionResult, handler);
+		}
+		return connectionResult;
+	}
+
+	public static ConnectionResult connectUseHttpURLConnection(Context context, HttpURLConnection httpURLConnection, File fileOutput, Handler handler){
+		ConnectionResult connectionResult = getInitConnectResult();
+		if(isAvailable(context)){
+			connectUseHttpURLConnection(httpURLConnection, false, fileOutput, connectionResult, handler);
 		}
 		return connectionResult;
 	}
@@ -128,7 +137,7 @@ public class NetworkAccess {
 	public static ConnectionResult connectUseHttpURLConnection(Context context, HttpURLConnection httpURLConnection, Handler handler){
 		ConnectionResult connectionResult = getInitConnectResult();
 		if(isAvailable(context)){
-			connectUseHttpURLConnection(httpURLConnection, false, connectionResult, handler);
+			connectUseHttpURLConnection(httpURLConnection, false, null, connectionResult, handler);
 		}
 		return connectionResult;
 	}
@@ -138,12 +147,12 @@ public class NetworkAccess {
 	 */
 	public static void connectControlHttpURLConnection(Context context, HttpURLConnection httpURLConnection, Handler handler){
 		if(isAvailable(context)){
-			connectUseHttpURLConnection(httpURLConnection, true, null, handler);
+			connectUseHttpURLConnection(httpURLConnection, true, null, null, handler);
 		}
 	}
 
-	private static void connectUseHttpURLConnection(HttpURLConnection httpURLConnection, boolean isSkipDataRead, ConnectionResult connectionResult
-			, Handler handler){
+	private static void connectUseHttpURLConnection(HttpURLConnection httpURLConnection, boolean isSkipDataRead, File fileOutput
+			, ConnectionResult connectionResult, Handler handler){
 		if(httpURLConnection == null){
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
@@ -157,34 +166,16 @@ public class NetworkAccess {
 			if(connectionResult != null){
 				connectionResult.setConnectUrl(httpURLConnection.getURL().getPath());
 				connectionResult.setRequestType(httpURLConnection.getRequestMethod());
+				connectionResult.setResponseCode(httpURLConnection.getResponseCode());
+				connectionResult.setResponseMessage(httpURLConnection.getResponseMessage());
 			}
 
 			InputStream inputStreamError = httpURLConnection.getErrorStream();
 			if(inputStreamError != null){
 				if(connectionResult != null){
 					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
-					connectionResult.setStatusMessage(inputStreamToString(inputStreamError, null, NETWORKSETTING.mBufferSize));
-				}
-				if(handler != null){
-					Message msg = Message.obtain(handler);
-					msg.what = CONNECTION_CONNECT_FAIL;
-					msg.obj = connectionResult;
-					handler.sendMessage(msg);
-				}
-				return;
-			}
-
-			if(connectionResult != null){
-				connectionResult.setResponseCode(httpURLConnection.getResponseCode());
-				connectionResult.setResponseMessage(httpURLConnection.getResponseMessage());
-			}
-			if(httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_OK &&
-					httpURLConnection.getResponseCode() != HttpURLConnection.HTTP_PARTIAL){
-				printInfo("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode()
-						, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
-				if(connectionResult != null){
-					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
-					connectionResult.setStatusMessage("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
+					connectionResult.setStatusMessage(new String(inputStreamToByteArray(inputStreamError, NETWORKSETTING.mBufferSize, connectionResult)
+							, Charset.forName("UTF-8")));
 				}
 				if(handler != null){
 					Message msg = Message.obtain(handler);
@@ -199,6 +190,20 @@ public class NetworkAccess {
 				printInfo("Connection connect OK, StatusCode " + httpURLConnection.getResponseCode(), false);
 			}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
 				printInfo("Connection connecting, StatusCode " + httpURLConnection.getResponseCode(), false);
+			}else{
+				printInfo("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode()
+						, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
+				if(connectionResult != null){
+					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
+					connectionResult.setStatusMessage("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
+				}
+				if(handler != null){
+					Message msg = Message.obtain(handler);
+					msg.what = CONNECTION_CONNECT_FAIL;
+					msg.obj = connectionResult;
+					handler.sendMessage(msg);
+				}
+				return;
 			}
 
 			if(connectionResult != null){
@@ -238,20 +243,17 @@ public class NetworkAccess {
 		try {
 			if(isSkipDataRead){
 				connectionResult.setHttpURLConnection(httpURLConnection);
-				connectionResult.setContent(httpURLConnection.getInputStream());
 				return;
 			}
 
-			connectionResult.setContent(inputStreamToByteArray(httpURLConnection.getInputStream(), NETWORKSETTING.mBufferSize));
+			if(fileOutput == null){
+				connectionResult.setContentBytes(inputStreamToByteArray(httpURLConnection.getInputStream(), NETWORKSETTING.mBufferSize, connectionResult));
+			}else{
+				inputStreamWriteOutputStream(httpURLConnection.getInputStream(), new FileOutputStream(fileOutput), NETWORKSETTING.mBufferSize, connectionResult);
+				connectionResult.setOutputFile(fileOutput);
+			}
 			connectionResult.setStatusCode(CONNECTION_LOADED);
 			connectionResult.setStatusMessage("Connection complete");
-
-			Object object = connectionResult.getContent();
-			if(object instanceof String && object.equals("OutOfMemoryError")){
-				connectionResult.setContent(null);
-				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			}
 		} catch (Exception e) {
 			printInfo("Connection loading failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
@@ -522,22 +524,22 @@ public class NetworkAccess {
 				return true;
 			}
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
-			String charsetName = Charset.forName("UTF-8").displayName();
+			Charset charset = Charset.forName("UTF-8");
 			for(Object[] contentArray : contentArrays){
 				dataOutputStream.writeBytes(hyphens + boundary + breakLine);
 				if (contentArray.length == 2) {
 					dataOutputStream.write(("Content-Disposition: form-data;" +
-							" name=\"" + contentArray[0] + "\"").getBytes(charsetName));
+							" name=\"" + contentArray[0] + "\"").getBytes(charset));
 					dataOutputStream.writeBytes(breakLine);
 					dataOutputStream.writeBytes(breakLine);
 
-					dataOutputStream.write(((String) contentArray[1]).getBytes(charsetName));
+					dataOutputStream.write(((String) contentArray[1]).getBytes(charset));
 				} else if (contentArray.length == 4) {
 					dataOutputStream.write(("Content-Disposition: form-data;" +
 							" name=\"" + contentArray[0] + "\";" +
-							" filename=\"" + contentArray[1] + "\"").getBytes(charsetName));
+							" filename=\"" + contentArray[1] + "\"").getBytes(charset));
 					dataOutputStream.writeBytes(breakLine);
-					dataOutputStream.write(("Content-Type: " + contentArray[2]).getBytes(charsetName));
+					dataOutputStream.write(("Content-Type: " + contentArray[2]).getBytes(charset));
 					dataOutputStream.writeBytes(breakLine);
 					dataOutputStream.writeBytes(breakLine);
 
@@ -584,59 +586,21 @@ public class NetworkAccess {
 		return null;
 	}
 
-	public static String inputStreamToString(InputStream is, Charset charset, int bufferSize){
+	@SuppressWarnings("UnusedAssignment")
+	private static byte[] inputStreamToByteArray(InputStream is, int bufferSize, ConnectionResult connectionResult){
 		if(is == null){
 			return null;
 		}
-		if(charset == null){
-			charset = Charset.forName("ISO-8859-1");
-			printInfo("charset get fail, using default, ", false);
-		}
-		printInfo("charset = " + charset.displayName(), false);
+		byte[] byteArray = null;
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}
-		BufferedReader reader;
-		StringBuilder stringBuilder = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
-		String line;
-		try {
-			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
-			try {
-				while((line = reader.readLine()) != null){
-					stringBuilder.append(line).append("\n");
-				}
-			} finally {
-				is.close();
-				reader.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			is = null;
-			reader = null;
-			stringBuilder = null;
-			line = null;
-			stringBuilder = new StringBuilder("OutOfMemoryError");
-			e.printStackTrace();
-		}
-		return stringBuilder.toString();
-	}
-
-	public static Object inputStreamToByteArray(InputStream is, int bufferSize){
-		if(is == null){
-			return null;
-		}
-		Object object = null;
-		int progress;
-		if(bufferSize < 8192){
-			bufferSize = 8192;
-		}
-		byte[] buffer;
 		ByteArrayOutputStream baos;
 		try {
-			buffer = new byte[bufferSize];
 			baos = new ByteArrayOutputStream();
 			try {
+				int progress;
+				byte[] buffer = new byte[bufferSize];
 				while((progress = is.read(buffer)) != -1){
 					baos.write(buffer, 0, progress);
 				}
@@ -645,21 +609,58 @@ public class NetworkAccess {
 				is.close();
 			}
 			try {
-				object = baos.toByteArray();
+				byteArray = baos.toByteArray();
 			} finally {
 				baos.close();
 			}
 		} catch (IOException e) {
+			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
+			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
 			e.printStackTrace();
 		} catch (OutOfMemoryError e) {
-			is = null;
-			object = null;
-			buffer = null;
 			baos = null;
-			object = "OutOfMemoryError";
+			byteArray = null;
+			is = null;
+			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
+			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
 			e.printStackTrace();
 		}
-		return object;
+		return byteArray;
+	}
+
+	@SuppressWarnings("UnusedAssignment")
+	private static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os, int bufferSize, ConnectionResult connectionResult){
+		if(is == null || os == null){
+			return false;
+		}
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		try {
+			try {
+				int progress;
+				byte[] buffer = new byte[bufferSize];
+				while((progress = is.read(buffer)) != -1){
+					os.write(buffer, 0, progress);
+				}
+				os.flush();
+			} finally {
+				is.close();
+				os.close();
+			}
+			return true;
+		} catch (IOException e) {
+			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
+			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+			e.printStackTrace();
+		} catch (OutOfMemoryError e) {
+			os = null;
+			is = null;
+			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
+			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	public static class ConnectionResult {
@@ -674,11 +675,12 @@ public class NetworkAccess {
 		private String mContentType;
 		private long mContentLength;
 		private Charset mContentCharset;
-		private Object mContent;
+		private byte[] mBytes;
+		private File mFileOutput;
 		private HttpURLConnection mHttpURLConnection;
 
 		public void setResult(String requestType, String connectUrl, int responseCode, String responseMessage, int statusCode
-				, String statusMessage, Object content, String contentEncoding, long contentLength, String contentType
+				, String statusMessage, byte[] bytes, String contentEncoding, long contentLength, String contentType
 				, Charset contentCharset){
 			mRequestType = requestType;
 			mConnectUrl = connectUrl;
@@ -686,15 +688,15 @@ public class NetworkAccess {
 			mResponseMessage = responseMessage;
 			mStatusCode = statusCode;
 			mStatusMessage = statusMessage;
-			mContent = content;
+			mBytes = bytes;
 			mContentEncoding = contentEncoding;
 			mContentLength = contentLength;
 			mContentType = contentType;
 			mContentCharset = contentCharset;
 		}
 
-		public void setData(Object content, String contentEncoding, long contentLength, String contentType, Charset contentCharset){
-			mContent = content;
+		public void setData(byte[] bytes, String contentEncoding, long contentLength, String contentType, Charset contentCharset){
+			mBytes = bytes;
 			mContentEncoding = contentEncoding;
 			mContentLength = contentLength;
 			mContentType = contentType;
@@ -725,8 +727,8 @@ public class NetworkAccess {
 			mStatusMessage = statusMessage;
 		}
 
-		public void setContent(Object content){
-			mContent = content;
+		public void setContentBytes(byte[] bytes){
+			mBytes = bytes;
 		}
 
 		public void setContentEncoding(String contentEncoding){
@@ -743,6 +745,14 @@ public class NetworkAccess {
 
 		public void setContentCharset(Charset contentCharset){
 			mContentCharset = contentCharset;
+		}
+
+		private void setOutputFile(File fileOutput){
+			mFileOutput = fileOutput;
+		}
+
+		private void setHttpURLConnection(HttpURLConnection httpURLConnection){
+			mHttpURLConnection = httpURLConnection;
 		}
 
 		public String getRequestType(){
@@ -769,8 +779,15 @@ public class NetworkAccess {
 			return mStatusMessage;
 		}
 
-		public Object getContent(){
-			return mContent;
+		public byte[] getContentBytes(){
+			return mBytes;
+		}
+
+		public String getContentString(){
+			if(mBytes == null){
+				return null;
+			}
+			return new String(mBytes, mContentCharset == null ? Charset.forName("UTF-8") : mContentCharset);
 		}
 
 		public String getContentEncoding(){
@@ -789,6 +806,14 @@ public class NetworkAccess {
 			return mContentCharset;
 		}
 
+		public HttpURLConnection getHttpURLConnection(){
+			return mHttpURLConnection;
+		}
+
+		public File getOutputFile(){
+			return mFileOutput;
+		}
+
 		public String getConnectionInfo(){
 			String connectionInfo = mRequestType + ", " + mConnectUrl +
 					", \n" +  + mResponseCode + ", " + mResponseMessage +
@@ -796,10 +821,6 @@ public class NetworkAccess {
 					", \n" + mContentEncoding + ", " + mContentLength +
 					", \n" + mContentType;
 			return connectionInfo;
-		}
-
-		private void setHttpURLConnection(HttpURLConnection httpURLConnection){
-			mHttpURLConnection = httpURLConnection;
 		}
 
 		public void disconnect(){
