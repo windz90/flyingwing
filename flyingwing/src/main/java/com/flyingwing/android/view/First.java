@@ -14,7 +14,7 @@ import com.flyingwing.android.R;
 import com.flyingwing.android.graphics.ImageProcessor;
 import com.flyingwing.android.net.NetworkAccess;
 import com.flyingwing.android.util.DisplayUtils;
-import com.flyingwing.android.util.DisplayUtils.EventCallback;
+import com.flyingwing.android.util.DisplayUtils.MeasureCallback;
 import com.flyingwing.android.util.Utils;
 import com.flyingwing.android.widget.CustomProgressDialog;
 
@@ -44,12 +44,12 @@ public class First extends Activity {
 		NetworkAccess.setPrintConnectException(BuildConfig.DEBUG_LOG);
 		ImageProcessor.setPrintLoadStreamException(false);
 
-		DisplayUtils.measureVisibleHeightWaitOnDraw(this, new EventCallback() {
+		DisplayUtils.measureUsableHeightWaitOnDraw(this, new MeasureCallback() {
 
 			@Override
-			public void completed(int visibleHe) {
+			public void completed(int usableHe) {
 				Utils.putSharedPreferences(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT
-						, DisplayUtils.getDisplayMetricsFromWindowManager(First.this).heightPixels - visibleHe, null);
+						, DisplayUtils.getDisplayMetricsFromWindowManager(First.this).heightPixels - usableHe, null);
 
 				next();
 			}

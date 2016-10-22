@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.4
+ * @version 3.3.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -46,8 +46,8 @@ public class DisplayUtils {
 	public static final float RATIO_SILVER = 2.414f;
 	public static final float RATIO_BRONZE = 3.303f;
 
-	public interface EventCallback {
-		void completed(int visibleHe);
+	public interface MeasureCallback {
+		void completed(int usableHe);
 	}
 
 	public static Display getDisplayFromActivity(Activity activity){
@@ -154,7 +154,7 @@ public class DisplayUtils {
 		return width < height ? height : width;
 	}
 
-	public static void measureVisibleHeightWaitOnDraw(final View view, final EventCallback eventCallback){
+	public static void measureUsableHeightWaitOnDraw(final View view, final MeasureCallback measureCallback){
 		view.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
 			@Override
 			public void onGlobalLayout() {
@@ -164,36 +164,39 @@ public class DisplayUtils {
 					//noinspection deprecation
 					view.getViewTreeObserver().removeGlobalOnLayoutListener(this);
 				}
-				eventCallback.completed(measureVisibleHeightForOnDraw(view));
+				measureCallback.completed(measureUsableHeightForOnDraw(view));
 			}
 		});
 	}
 
-	public static void measureVisibleHeightWaitOnDraw(Activity activity, EventCallback eventCallback){
-		measureVisibleHeightWaitOnDraw(activity.getWindow().getDecorView(), eventCallback);
+	public static void measureUsableHeightWaitOnDraw(Activity activity, MeasureCallback measureCallback){
+		measureUsableHeightWaitOnDraw(activity.getWindow().getDecorView(), measureCallback);
 	}
 
-	public static int measureVisibleWidthForOnDraw(View view){
+	public static int measureUsableWidthForOnDraw(View view){
 		Rect rect = new Rect();
 		view.getWindowVisibleDisplayFrame(rect);
 		return Math.abs(rect.left - rect.right);
 	}
 
-	public static int measureVisibleWidthForOnDraw(Activity activity){
-		return measureVisibleWidthForOnDraw(activity.getWindow().getDecorView());
+	public static int measureUsableWidthForOnDraw(Activity activity){
+		return measureUsableWidthForOnDraw(activity.getWindow().getDecorView());
 	}
 
 	/**
 	 * Not contain StatusBar
 	 */
-	public static int measureVisibleHeightForOnDraw(View view){
+	public static int measureUsableHeightForOnDraw(View view){
 		Rect rect = new Rect();
 		view.getWindowVisibleDisplayFrame(rect);
 		return Math.abs(rect.top - rect.bottom);
 	}
 
-	public static int measureVisibleHeightForOnDraw(Activity activity){
-		return measureVisibleHeightForOnDraw(activity.getWindow().getDecorView());
+	/**
+	 * Not contain StatusBar
+	 */
+	public static int measureUsableHeightForOnDraw(Activity activity){
+		return measureUsableHeightForOnDraw(activity.getWindow().getDecorView());
 	}
 
 	/**
@@ -207,85 +210,68 @@ public class DisplayUtils {
 	}
 
 	public static int measureStatusBarHeightForOnDraw(Activity activity){
-		return getHeightPixels(getDisplayMetricsFromWindowManager(activity), false) - measureVisibleHeightForOnDraw(activity);
+		return getHeightPixels(getDisplayMetricsFromWindowManager(activity), false) - measureUsableHeightForOnDraw(activity);
 	}
 
 	public static int measureStatusBarHeightForOnDraw(Activity activity, DisplayMetrics displayMetrics){
-		return getHeightPixels(displayMetrics, false) - measureVisibleHeightForOnDraw(activity);
+		return getHeightPixels(displayMetrics, false) - measureUsableHeightForOnDraw(activity);
 	}
 
-	public static int getVisibleHeight(Context context){
+	public static int getUsableHeight(Context context){
 		return getHeightPixels(getDisplayMetricsFromWindowManager(context), false) - getStatusBarHeight(0);
 	}
 
-	public static int getVisibleHeight(DisplayMetrics displayMetrics){
+	public static int getUsableHeight(DisplayMetrics displayMetrics){
 		return getHeightPixels(displayMetrics, false) - getStatusBarHeight(0);
 	}
 
-	public static int getStatusBarHeight(int defValue){
+	public static int getStatusBarHeight(int defInt){
 		Resources res = Resources.getSystem();
 		int resourceId = res.getIdentifier("status_bar_height", "dimen", "android");
 		if(resourceId > 0){
 			// displayMetricsFromResources
 			return res.getDimensionPixelSize(resourceId);
 		}
-		return defValue;
+		return defInt;
 	}
 
-	public static int getNavigationBarHeight(int defValue){
+	public static int getNavigationBarHeight(Context context, int defInt){
 		Resources res = Resources.getSystem();
-		int resourceId = res.getIdentifier("navigation_bar_height", "dimen", "android");
+		int orientation = context.getResources().getConfiguration().orientation;
+		int resourceId = res.getIdentifier(orientation == Configuration.ORIENTATION_PORTRAIT ? "navigation_bar_height" : "navigation_bar_height_landscape", "dimen", "android");
 		if(resourceId > 0){
 			// displayMetricsFromResources
 			return res.getDimensionPixelSize(resourceId);
 		}
-		return defValue;
+		return defInt;
 	}
 
-	public static int getActionBarHeight(Context context, int defValue){
+	public static boolean hasNavigationBar(boolean defBoolean){
+		Resources res = Resources.getSystem();
+		int resourceId = res.getIdentifier("config_showNavigationBar", "bool", "android");
+		if(resourceId > 0){
+			return res.getBoolean(resourceId);
+		}
+		return defBoolean;
+	}
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static int measureNavigationBarHeight(Context context, DisplayMetrics displayMetrics){
+		return getRealDisplayMetricsFromWindowManager(context).heightPixels - displayMetrics.heightPixels;
+	}
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static int measureNavigationBarHeight(Context context){
+		return getRealDisplayMetricsFromWindowManager(context).heightPixels - getDisplayMetricsFromWindowManager(context).heightPixels;
+	}
+
+	public static int getActionBarHeight(Context context, int defInt){
 		TypedValue typedValue = new TypedValue();
 		if(context.getTheme().resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
 			// displayMetricsFromResources
 			return context.getResources().getDimensionPixelSize(typedValue.resourceId);
 		}
-		return defValue;
-	}
-
-	// 比較動態測量與查詢ResourceID取得的高度資料，返回大於零且較小的值
-	public static int compareVisibleHeight(int visibleDisplayFrameHe, int displayHe, int statusBarHe){
-		if(statusBarHe == 0){
-			if(visibleDisplayFrameHe == 0){
-				return displayHe;
-			}
-			return visibleDisplayFrameHe < displayHe ? visibleDisplayFrameHe : displayHe;
-		}
-		if(visibleDisplayFrameHe == 0){
-			return displayHe - statusBarHe;
-		}
-		// statusBar沒有單獨配置空間時
-		if(visibleDisplayFrameHe == displayHe){
-			return visibleDisplayFrameHe;
-		}
-		return visibleDisplayFrameHe < displayHe - statusBarHe ? visibleDisplayFrameHe : displayHe - statusBarHe;
-	}
-
-	public static int compareVisibleHeight(DisplayMetrics displayMetrics, View view){
-		int visibleDisplayFrameHe = measureVisibleHeightForOnDraw(view);
-		int displayHe = getHeightPixels(displayMetrics, false);
-		int statusBarHe = getStatusBarHeight(0);
-		return compareVisibleHeight(visibleDisplayFrameHe, displayHe, statusBarHe);
-	}
-
-	public static int compareVisibleHeight(Activity activity, DisplayMetrics displayMetrics){
-		return compareVisibleHeight(displayMetrics, activity.getWindow().getDecorView());
-	}
-
-	public static int compareVisibleHeight(Activity activity){
-		return compareVisibleHeight(getDisplayMetricsFromWindowManager(activity), activity.getWindow().getDecorView());
-	}
-
-	public static int compareVisibleHeight(Context context, View view){
-		return compareVisibleHeight(getDisplayMetricsFromWindowManager(context), view);
+		return defInt;
 	}
 
 	public static boolean isOrientationPortrait(Context context){
