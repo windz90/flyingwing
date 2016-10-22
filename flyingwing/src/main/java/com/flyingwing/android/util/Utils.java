@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.3
+ * @version 3.5.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -30,7 +30,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.pm.Signature;
-import android.content.res.ColorStateList;
 import android.content.res.Resources.Theme;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -288,13 +287,10 @@ public class Utils {
 					baos.write(buffer, 0, progress);
 				}
 				baos.flush();
-			} finally {
-				is.close();
-			}
-			try {
 				byteArray = baos.toByteArray();
 			} finally {
 				baos.close();
+				is.close();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -394,8 +390,8 @@ public class Utils {
 				}
 				os.flush();
 			} finally {
-				is.close();
 				os.close();
+				is.close();
 			}
 			return true;
 		} catch (IOException e) {
@@ -875,10 +871,10 @@ public class Utils {
 
 	public static String[][] getMapToArray(Map<String, ?> map, boolean isReview){
 		String[][] strArray = new String[map.size()][2];
-		Iterator<? extends Entry<String, ?>> entryIterator = map.entrySet().iterator();
+		Iterator<? extends Entry<String, ?>> iteratorEntry = map.entrySet().iterator();
 		Entry<String, ?> entry;
 		for(int i=0; i<map.size(); i++){
-			entry = entryIterator.next();
+			entry = iteratorEntry.next();
 			strArray[i][0] = entry.getKey();
 			strArray[i][1] = entry.getValue().toString();
 			if(isReview){
@@ -1294,7 +1290,7 @@ public class Utils {
 		return defResource;
 	}
 
-	public static int getAttributePixels(Context context, DisplayMetrics displayMetrics, int attrResource, int defValue){
+	public static int getAttributePixels(Context context, DisplayMetrics displayMetrics, int attrResource, int defInt){
 		TypedValue typedValue = new TypedValue();
 		Theme theme = context.getTheme();
 		if(theme != null){
@@ -1302,18 +1298,18 @@ public class Utils {
 				return TypedValue.complexToDimensionPixelSize(typedValue.data, displayMetrics);
 			}
 		}
-		return defValue;
+		return defInt;
 	}
 
-	public static int getVisibleHeightSP(Context context, DisplayMetrics displayMetrics, String spName){
+	public static int getUsableHeightSP(Context context, DisplayMetrics displayMetrics, String spName){
 		return displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
 	}
 
-	public static int getVisibleHeightSP(Context context, String spName){
+	public static int getUsableHeightSP(Context context, String spName){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		return getVisibleHeightSP(context, displayMetrics, spName);
+		return getUsableHeightSP(context, displayMetrics, spName);
 	}
 
 	public static int getStatusBarHeightSP(Context context, String spName){
@@ -1322,8 +1318,8 @@ public class Utils {
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defValue){
-		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defValue);
+	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defInt){
+		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defInt);
 	}
 
 	public static boolean isOnViewVisible(View parentsView, View view){
@@ -1621,21 +1617,21 @@ public class Utils {
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spOldKey = sp.getString(spMapHeadKey, "");
-		Set<String> oldKeySet = new HashSet<String>();
+		Set<String> setOldKey = new HashSet<String>();
 		if(!TextUtils.isEmpty(spOldKey)){
 			String[] spOldKeyArray = spOldKey.split(SP_MAP_DELIMITER);
-			Collections.addAll(oldKeySet, spOldKeyArray);
+			Collections.addAll(setOldKey, spOldKeyArray);
 		}
 
-		Iterator<Entry<String, String>> entryIterator;
+		Iterator<Entry<String, String>> iteratorEntry;
 		Entry<String, String> entry;
 		String spNewKey = null;
 		if(map != null){
 			spNewKey = "";
-			entryIterator = map.entrySet().iterator();
+			iteratorEntry = map.entrySet().iterator();
 			try {
-				while(entryIterator.hasNext()){
-					entry = entryIterator.next();
+				while(iteratorEntry.hasNext()){
+					entry = iteratorEntry.next();
 
 					if(toggleMode && sp.contains(spMapHeadKey + entry.getKey())){
 						spEdit.remove(spMapHeadKey + entry.getKey());
@@ -1643,8 +1639,8 @@ public class Utils {
 						spEdit.putString(spMapHeadKey + entry.getKey(), entry.getValue());
 						spNewKey = getStringSymbolCombine(spNewKey, entry.getKey(), SP_MAP_DELIMITER, false);
 					}
-					if(oldKeySet.size() > 0){
-						oldKeySet.remove(entry.getKey());
+					if(setOldKey.size() > 0){
+						setOldKey.remove(entry.getKey());
 					}
 				}
 			} catch (Exception e) {
@@ -1653,9 +1649,9 @@ public class Utils {
 		}
 		spEdit.putString(spMapHeadKey, spNewKey);
 
-		int size = oldKeySet.size();
+		int size = setOldKey.size();
 		if(size > 0){
-			Iterator<String> iterator = oldKeySet.iterator();
+			Iterator<String> iterator = setOldKey.iterator();
 			for(int i=0; i<size; i++){
 				spEdit.remove(spMapHeadKey + iterator.next());
 			}
@@ -2213,16 +2209,20 @@ public class Utils {
 	/**
 	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
 	 * SCREEN_BRIGHTNESS_MODE_MANUAL = 0　為手動調節螢幕亮度
+	 * android.permission.WRITE_SETTINGS
 	 */
 	public static void setScreenBrightnessMode(Context context, int screenBrightnessMode){
+		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 		Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
 	}
 
 	// 設定系統亮度
 	/**
 	 * brightness = 0 - 255
+	 * android.permission.WRITE_SETTINGS
 	 */
 	public static void setScreenBrightnessForSystem(Context context, int screenBrightness){
+		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
 		Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
 	}
 
@@ -2234,6 +2234,14 @@ public class Utils {
 		WindowManager.LayoutParams windowManagerLayoutParams = activity.getWindow().getAttributes();
 		windowManagerLayoutParams.screenBrightness = screenBrightness / 255.0f;
 		activity.getWindow().setAttributes(windowManagerLayoutParams);
+	}
+
+	/**
+	 * android.permission.WRITE_SETTINGS
+	 */
+	public static void setTouchPoint(Context context, boolean isShow){
+		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+		Settings.System.putInt(context.getContentResolver(), "show_touches", isShow ? 1 : 0);
 	}
 
 	// 控制鍵盤開關
