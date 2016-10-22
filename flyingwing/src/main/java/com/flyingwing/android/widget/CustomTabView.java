@@ -86,7 +86,7 @@ public class CustomTabView extends LinearLayout {
 		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
 		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
 		
-		LinearLayout relLayHorizScrollLinLay;
+		LinearLayout relLayHorizontalScrollLinLay;
 		
 		mList = new ArrayList<View[]>();
 		
@@ -106,7 +106,7 @@ public class CustomTabView extends LinearLayout {
 		mItemHe = LayoutParams.WRAP_CONTENT;
 		mRelLayPar = new RelativeLayout.LayoutParams(mItemWi, mItemHe);
 		mRelLayPar.addRule(RelativeLayout.LEFT_OF, R.id.dismissButton);
-		HorizontalScrollView relLayHorizScrollView = new HorizontalScrollView(context){
+		HorizontalScrollView relLayHorizontalScrollView = new HorizontalScrollView(context){
 
 			@Override
 			public boolean onTouchEvent(@NonNull MotionEvent ev) {
@@ -114,23 +114,23 @@ public class CustomTabView extends LinearLayout {
 				return false;
 			}
 		};
-		relLayHorizScrollView.setLayoutParams(mRelLayPar);
-		relLayHorizScrollView.setFillViewport(true);
-		relLayHorizScrollView.setHorizontalScrollBarEnabled(false);
-		mRelLay.addView(relLayHorizScrollView);
+		relLayHorizontalScrollView.setLayoutParams(mRelLayPar);
+		relLayHorizontalScrollView.setFillViewport(true);
+		relLayHorizontalScrollView.setHorizontalScrollBarEnabled(false);
+		mRelLay.addView(relLayHorizontalScrollView);
 		
 		mItemWi = LayoutParams.MATCH_PARENT;
 		mItemHe = LayoutParams.MATCH_PARENT;
-		relLayHorizScrollLinLay = new LinearLayout(context);
-		relLayHorizScrollLinLay.setOrientation(LinearLayout.VERTICAL);
-		relLayHorizScrollLinLay.setLayoutParams(new FrameLayout.LayoutParams(mItemWi, mItemHe));
-		relLayHorizScrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
-		relLayHorizScrollView.addView(relLayHorizScrollLinLay);
+		relLayHorizontalScrollLinLay = new LinearLayout(context);
+		relLayHorizontalScrollLinLay.setOrientation(LinearLayout.VERTICAL);
+		relLayHorizontalScrollLinLay.setLayoutParams(new FrameLayout.LayoutParams(mItemWi, mItemHe));
+		relLayHorizontalScrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
+		relLayHorizontalScrollView.addView(relLayHorizontalScrollLinLay);
 		
 		mRadioGroup = new RadioGroup(context);
 		mRadioGroup.setOrientation(LinearLayout.HORIZONTAL);
 		mRadioGroup.setGravity(Gravity.CENTER);
-		relLayHorizScrollLinLay.addView(mRadioGroup);
+		relLayHorizontalScrollLinLay.addView(mRadioGroup);
 		
 		mCustomPagerAdapter = new CustomPagerAdapter();
 		
