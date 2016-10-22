@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.2
+ * @version 3.5.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -31,6 +31,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -67,6 +68,8 @@ public class NetworkAccess {
 		private int mBufferSize = 1024 * 16;
 		private boolean mIsPrintConnectionUrl = true;
 		private boolean mIsPrintConnectException = true;
+		private boolean mIsPrintConnectionRequest = false;
+		private boolean mIsPrintConnectionResponse = false;
 	}
 
 	public static void setConnectTimeout(int connectTimeout){
@@ -109,10 +112,24 @@ public class NetworkAccess {
 		return NetworkAccess.NETWORKSETTING.mIsPrintConnectException;
 	}
 
-	private static void printInfo(String info, boolean isPrint){
-		if(isPrint){
-			System.out.println(info);
-		}
+	public static void setPrintConnectRequest(boolean isPrintConnectRequest){
+		NetworkAccess.NETWORKSETTING.mIsPrintConnectionRequest = isPrintConnectRequest;
+	}
+
+	public static boolean isPrintConnectRequest(){
+		return NetworkAccess.NETWORKSETTING.mIsPrintConnectionRequest;
+	}
+
+	public static void setPrintConnectResponse(boolean isPrintConnectResponse){
+		NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse = isPrintConnectResponse;
+	}
+
+	public static boolean isPrintConnectResponse(){
+		return NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse;
+	}
+
+	private static void printInfo(String info){
+		System.out.println(info);
 	}
 
 	/**
@@ -187,12 +204,14 @@ public class NetworkAccess {
 			}
 
 			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
-				printInfo("Connection connect OK, StatusCode " + httpURLConnection.getResponseCode(), false);
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+					printInfo("Connection connect OK, StatusCode " + httpURLConnection.getResponseCode());
+				}
 			}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
-				printInfo("Connection connecting, StatusCode " + httpURLConnection.getResponseCode(), false);
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+					printInfo("Connection connecting, StatusCode " + httpURLConnection.getResponseCode());
+				}
 			}else{
-				printInfo("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode()
-						, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
 				if(connectionResult != null){
 					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 					connectionResult.setStatusMessage("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
@@ -203,16 +222,20 @@ public class NetworkAccess {
 					msg.obj = connectionResult;
 					handler.sendMessage(msg);
 				}
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					printInfo("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
+				}
 				return;
 			}
 
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_CONNECTED);
-				connectionResult.setStatusMessage("Connect success");
+				connectionResult.setStatusMessage("Connection connected");
 				connectionResult.setContentEncoding(httpURLConnection.getContentEncoding());
 				connectionResult.setContentLength(httpURLConnection.getContentLength());
 				connectionResult.setContentType(httpURLConnection.getContentType());
 				connectionResult.setContentCharset(getCharset(httpURLConnection.getContentType()));
+				connectionResult.setHttpURLConnection(httpURLConnection);
 			}
 			if(handler != null){
 				Message msg = Message.obtain(handler);
@@ -220,8 +243,10 @@ public class NetworkAccess {
 				msg.obj = connectionResult;
 				handler.sendMessage(msg);
 			}
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+				printMap(httpURLConnection.getHeaderFields(), "Response");
+			}
 		} catch (Exception e) {
-			printInfo("Connection connect failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 				connectionResult.setStatusMessage("Connection connect failed, exception " + e);
@@ -232,32 +257,47 @@ public class NetworkAccess {
 				msg.obj = connectionResult;
 				handler.sendMessage(msg);
 			}
-		}
-
-		if(connectionResult == null){
-			if(!isSkipDataRead){
-				httpURLConnection.disconnect();
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection connect failed, exception " + e);
 			}
+		}
+		if(isSkipDataRead){
 			return;
 		}
-		try {
-			if(isSkipDataRead){
-				connectionResult.setHttpURLConnection(httpURLConnection);
-				return;
-			}
+		if(connectionResult == null){
+			httpURLConnection.disconnect();
+			return;
+		}
 
+		try {
 			if(fileOutput == null){
 				connectionResult.setContentBytes(inputStreamToByteArray(httpURLConnection.getInputStream(), NETWORKSETTING.mBufferSize, connectionResult));
 			}else{
 				inputStreamWriteOutputStream(httpURLConnection.getInputStream(), new FileOutputStream(fileOutput), NETWORKSETTING.mBufferSize, connectionResult);
 				connectionResult.setOutputFile(fileOutput);
 			}
-			connectionResult.setStatusCode(CONNECTION_LOADED);
-			connectionResult.setStatusMessage("Connection complete");
+			if(connectionResult.getStatusCode() != CONNECTION_LOAD_FAIL){
+				connectionResult.setStatusCode(CONNECTION_LOADED);
+				connectionResult.setStatusMessage("Connection loaded");
+				if(handler != null){
+					Message msg = Message.obtain(handler);
+					msg.what = CONNECTION_LOADED;
+					msg.obj = connectionResult;
+					handler.sendMessage(msg);
+				}
+			}
 		} catch (Exception e) {
-			printInfo("Connection loading failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+			if(handler != null){
+				Message msg = Message.obtain(handler);
+				msg.what = CONNECTION_LOAD_FAIL;
+				msg.obj = connectionResult;
+				handler.sendMessage(msg);
+			}
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection loading failed, exception " + e);
+			}
 		}
 		httpURLConnection.disconnect();
 	}
@@ -302,9 +342,13 @@ public class NetworkAccess {
 				httpURLConnection = null;
 			}
 		} catch (Exception e) {
-			printInfo("Connection open failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection open failed, exception " + e);
+			}
 		}finally{
-			printInfo(httpMethod + ", " + strUrl, NetworkAccess.NETWORKSETTING.mIsPrintConnectionUrl);
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionUrl){
+				printInfo(httpMethod + ", " + strUrl);
+			}
 		}
 		return httpURLConnection;
 	}
@@ -425,7 +469,9 @@ public class NetworkAccess {
 					sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
 					return sslContext;
 				} catch (GeneralSecurityException | IOException e) {
-					printInfo("Connection https certificate file init failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
+					if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+						printInfo("Connection https certificate file init failed, exception " + e);
+					}
 				} finally {
 					try {
 						inputStreamServer.close();
@@ -449,7 +495,9 @@ public class NetworkAccess {
 				}
 			}}, new SecureRandom());
 		} catch (GeneralSecurityException e) {
-			printInfo("Connection https security init failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection https security init failed, exception " + e);
+			}
 		}
 		return null;
 	}
@@ -519,31 +567,47 @@ public class NetworkAccess {
 					httpURLConnection.setRequestProperty(headerArray[0], headerArray[1]);
 				}
 			}
+			if(NETWORKSETTING.mIsPrintConnectionRequest){
+				printMap(httpURLConnection.getRequestProperties(), "Request");
+			}
 
 			if(contentArrays == null || contentArrays.length == 0 || contentArrays[0].length < 2){
 				return true;
 			}
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
 			Charset charset = Charset.forName("UTF-8");
+			String line;
 			for(Object[] contentArray : contentArrays){
-				dataOutputStream.writeBytes(hyphens + boundary + breakLine);
-				if (contentArray.length == 2) {
-					dataOutputStream.write(("Content-Disposition: form-data;" +
-							" name=\"" + contentArray[0] + "\"").getBytes(charset));
-					dataOutputStream.writeBytes(breakLine);
-					dataOutputStream.writeBytes(breakLine);
+				line = hyphens + boundary +
+						breakLine;
+				dataOutputStream.write(line.getBytes(charset));
+				if(NETWORKSETTING.mIsPrintConnectionRequest){
+					printInfo(line);
+				}
+				if(contentArray.length == 2){
+					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"" +
+							breakLine + breakLine;
+					dataOutputStream.write(line.getBytes(charset));
+					if(NETWORKSETTING.mIsPrintConnectionRequest){
+						printInfo(line);
+					}
 
-					dataOutputStream.write(((String) contentArray[1]).getBytes(charset));
-				} else if (contentArray.length == 4) {
-					dataOutputStream.write(("Content-Disposition: form-data;" +
-							" name=\"" + contentArray[0] + "\";" +
-							" filename=\"" + contentArray[1] + "\"").getBytes(charset));
-					dataOutputStream.writeBytes(breakLine);
-					dataOutputStream.write(("Content-Type: " + contentArray[2]).getBytes(charset));
-					dataOutputStream.writeBytes(breakLine);
-					dataOutputStream.writeBytes(breakLine);
+					line = contentArray[1] + breakLine;
+					dataOutputStream.write(line.getBytes(charset));
+					if(NETWORKSETTING.mIsPrintConnectionRequest){
+						printInfo(line);
+					}
+				}else if (contentArray.length == 4){
+					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"; filename=\"" + contentArray[1] + "\"" +
+							breakLine +
+							"Content-Type: " + contentArray[2] +
+							breakLine + breakLine;
+					dataOutputStream.write(line.getBytes(charset));
+					if(NETWORKSETTING.mIsPrintConnectionRequest){
+						printInfo(line);
+					}
 
-					if (contentArray[3] != null && contentArray[3] instanceof InputStream) {
+					if(contentArray[3] != null && contentArray[3] instanceof InputStream){
 						InputStream inputStream = (InputStream) contentArray[3];
 						int progress;
 						byte[] buffer = new byte[NETWORKSETTING.mBufferSize];
@@ -552,16 +616,32 @@ public class NetworkAccess {
 						}
 						dataOutputStream.flush();
 						inputStream.close();
+						line = "write stream";
+					}else if(contentArray[3] != null && contentArray[3] instanceof byte[]){
+						dataOutputStream.write((byte[]) contentArray[3]);
+						dataOutputStream.flush();
+						line = "write bytes, length " + ((byte[]) contentArray[3]).length;
+					}else{
+						line = "";
+					}
+					dataOutputStream.writeBytes(breakLine);
+					if(NETWORKSETTING.mIsPrintConnectionRequest){
+						printInfo(line + breakLine);
 					}
 				}
-				dataOutputStream.writeBytes(breakLine);
 			}
-			dataOutputStream.writeBytes(hyphens + boundary + hyphens);
+			line = hyphens + boundary + hyphens;
+			dataOutputStream.write(line.getBytes(charset));
+			if(NETWORKSETTING.mIsPrintConnectionRequest){
+				printInfo(line);
+			}
 			dataOutputStream.flush();
 			dataOutputStream.close();
 		} catch (Exception e) {
-			printInfo("Connection prepare failed, exception " + e, NetworkAccess.NETWORKSETTING.mIsPrintConnectException);
 			httpURLConnection = null;
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection prepare failed, exception " + e);
+			}
 		}
 		return httpURLConnection != null;
 	}
@@ -586,6 +666,21 @@ public class NetworkAccess {
 		return null;
 	}
 
+	private static void printMap(Map<String, List<String>> map, String prefix){
+		Iterator<Map.Entry<String, List<String>>> iteratorEntry = map.entrySet().iterator();
+		Map.Entry<String, List<String>> entry;
+		List<String> list;
+		Iterator<String> iterator;
+		while(iteratorEntry.hasNext()){
+			entry = iteratorEntry.next();
+			list = entry.getValue();
+			iterator = list.iterator();
+			while(iterator.hasNext()){
+				printInfo(prefix + " key: " + entry.getKey() + " value: " + iterator.next());
+			}
+		}
+	}
+
 	@SuppressWarnings("UnusedAssignment")
 	private static byte[] inputStreamToByteArray(InputStream is, int bufferSize, ConnectionResult connectionResult){
 		if(is == null){
@@ -605,25 +700,29 @@ public class NetworkAccess {
 					baos.write(buffer, 0, progress);
 				}
 				baos.flush();
-			} finally {
-				is.close();
-			}
-			try {
 				byteArray = baos.toByteArray();
 			} finally {
 				baos.close();
+				is.close();
+			}
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+				printInfo("read bytes, length " + byteArray.length);
 			}
 		} catch (IOException e) {
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			e.printStackTrace();
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+			}
 		} catch (OutOfMemoryError e) {
 			baos = null;
 			byteArray = null;
 			is = null;
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			e.printStackTrace();
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+			}
 		}
 		return byteArray;
 	}
@@ -645,20 +744,27 @@ public class NetworkAccess {
 				}
 				os.flush();
 			} finally {
-				is.close();
 				os.close();
+				is.close();
+			}
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+				printInfo("read stream and output");
 			}
 			return true;
 		} catch (IOException e) {
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			e.printStackTrace();
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+			}
 		} catch (OutOfMemoryError e) {
 			os = null;
 			is = null;
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			e.printStackTrace();
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+			}
 		}
 		return false;
 	}
@@ -806,12 +912,12 @@ public class NetworkAccess {
 			return mContentCharset;
 		}
 
-		public HttpURLConnection getHttpURLConnection(){
-			return mHttpURLConnection;
-		}
-
 		public File getOutputFile(){
 			return mFileOutput;
+		}
+
+		public HttpURLConnection getHttpURLConnection(){
+			return mHttpURLConnection;
 		}
 
 		public String getConnectionInfo(){
