@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.4
+ * @version 3.5.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -12,6 +12,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.io.BufferedReader;
@@ -139,53 +140,57 @@ public class NetworkAccess {
 		System.out.println(info);
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputBytes(Context context, HttpURLConnection httpURLConnection, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputBytes(@NonNull Context context, HttpURLConnection httpURLConnection, Handler handler){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() == 0){
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
 			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_BYTES, null, null, connectionResult, handler);
 		}
 		return connectionResult;
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputString(Context context, HttpURLConnection httpURLConnection, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection, Handler handler){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() == 0){
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
 			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, null, null, connectionResult, handler);
 		}
 		return connectionResult;
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputString(Context context, HttpURLConnection httpURLConnection, Charset charset, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection, Charset charset
+			, Handler handler){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() == 0){
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
 			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, charset, null, connectionResult, handler);
 		}
 		return connectionResult;
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputFile(Context context, HttpURLConnection httpURLConnection, File fileOutput, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputFile(@NonNull Context context, HttpURLConnection httpURLConnection, File fileOutput
+			, Handler handler){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() == 0){
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
 			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_FILE, null, fileOutput, connectionResult, handler);
 		}
 		return connectionResult;
 	}
 
 	/**
+	 * 僅完成連線，不自動下載回傳內容，成功後的狀態為{@link #CONNECTION_CONNECTED}
 	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
 	 */
-	public static ConnectionResult connectUseHttpURLConnectionOutputSkip(Context context, HttpURLConnection httpURLConnection, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputSkip(@NonNull Context context, HttpURLConnection httpURLConnection, Handler handler){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() == 0){
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
 			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, connectionResult, handler);
 		}
 		return connectionResult;
 	}
 
 	/**
+	 * 僅完成連線，不自動下載回傳內容，成功後的狀態為{@link #CONNECTION_CONNECTED}
 	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
 	 */
-	public static void connectControlHttpURLConnection(Context context, HttpURLConnection httpURLConnection, Handler handler){
+	public static void connectControlHttpURLConnection(@NonNull Context context, HttpURLConnection httpURLConnection, @NonNull Handler handler){
 		if(isAvailable(context)){
 			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, null, handler);
 		}
@@ -249,18 +254,10 @@ public class NetworkAccess {
 			}
 
 			if(connectionResult != null){
-				connectionResult.setStatusCode(CONNECTION_CONNECTED);
-				connectionResult.setStatusMessage("Connection connected");
 				try {
 					connectionResult.setContentLength(Long.parseLong(httpURLConnection.getHeaderField("content-length")));
 				} catch (Exception ignored) {}
 				connectionResult.setContentCharset(getCharset(httpURLConnection.getContentType()));
-			}
-			if(handler != null){
-				Message msg = Message.obtain(handler);
-				msg.what = CONNECTION_CONNECTED;
-				msg.obj = connectionResult;
-				handler.sendMessage(msg);
 			}
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
 				printMap(httpURLConnection.getHeaderFields(), "Response");
@@ -282,6 +279,16 @@ public class NetworkAccess {
 			return;
 		}
 		if(outputType == OUTPUT_TYPE_SKIP){
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_CONNECTED);
+				connectionResult.setStatusMessage("Connection connected");
+			}
+			if(handler != null){
+				Message msg = Message.obtain(handler);
+				msg.what = CONNECTION_CONNECTED;
+				msg.obj = connectionResult;
+				handler.sendMessage(msg);
+			}
 			return;
 		}
 		if(connectionResult == null){
@@ -332,13 +339,13 @@ public class NetworkAccess {
 		httpURLConnection.disconnect();
 	}
 
-	public static boolean isAvailable(Context context) {
+	public static boolean isAvailable(@NonNull Context context) {
 		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
 
-	private static ConnectionResult getNetworkCheckConnectResult(Context context){
+	private static ConnectionResult getNetworkCheckConnectResult(@NonNull Context context){
 		ConnectionResult connectionResult = new ConnectionResult();
 		if(!isAvailable(context)){
 			connectionResult.setStatusCode(CONNECTION_NO_NETWORK);
@@ -347,7 +354,7 @@ public class NetworkAccess {
 		return connectionResult;
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, String strUrl, String[][] headerArrays, Object[][] contentArrays
+	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		HttpURLConnection httpURLConnection = null;
 		try {
@@ -393,34 +400,34 @@ public class NetworkAccess {
 		return httpURLConnection;
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(String strUrl, String[][] headerArrays, Object[][] contentArrays
+	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_GET, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(String strUrl, String[][] headerArrays, Object[][] contentArrays
+	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_POST, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(String strUrl, String[][] headerArrays, Object[][] contentArrays
+	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_HEAD, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, String strUrl, String[][] headerArrays, Object[][] contentArrays){
+	public static HttpURLConnection openHttpURLConnectionWithHttps(@NonNull String httpMethod, String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(httpMethod, strUrl, headerArrays, contentArrays, null, null);
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(String strUrl, String[][] headerArrays, Object[][] contentArrays){
+	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_GET, strUrl, headerArrays, contentArrays, null, null);
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(String strUrl, String[][] headerArrays, Object[][] contentArrays){
+	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_POST, strUrl, headerArrays, contentArrays, null, null);
 	}
 
-	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(String strUrl, String[][] headerArrays, Object[][] contentArrays){
+	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_HEAD, strUrl, headerArrays, contentArrays, null, null);
 	}
 
@@ -431,7 +438,7 @@ public class NetworkAccess {
 	 * String MIME Type : map.get("2");<br>
 	 * InputStream stream : map.get("3");
 	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, String strUrl, List<String[]> headerList
+	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, List<String[]> headerList
 			, List<Map<String, Object>> contentList, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		String[][] headerArrays = null;
 		Object[][] contentArrays = null;
@@ -466,7 +473,7 @@ public class NetworkAccess {
 	 * String MIME Type : map.get("2");<br>
 	 * InputStream stream : map.get("3");
 	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, String strUrl, List<String[]> headerList
+	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, List<String[]> headerList
 			, List<Map<String, Object>> contentList){
 		return openHttpURLConnectionWithHttps(httpMethod, strUrl, headerList, contentList, null, null);
 	}
@@ -706,6 +713,9 @@ public class NetworkAccess {
 	}
 
 	private static void printMap(Map<String, List<String>> map, String prefix){
+		if(map == null || map.size() == 0){
+			return;
+		}
 		Iterator<Map.Entry<String, List<String>>> iteratorEntry = map.entrySet().iterator();
 		Map.Entry<String, List<String>> entry;
 		List<String> list;
