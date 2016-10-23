@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.8
+ * @version 3.2.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -227,7 +227,7 @@ public abstract class ConnectManager {
 					connectionResult = connect(connectAction, connectSetting.isUseHandler() ? handler : null);
 				}
 				if(!connectSetting.isUseHandler() && connectionResult != null){
-					reply(connectionResult, connectSetting, connectListener);
+					reply(connectionResult.getStatusCode()/* send final status */, connectionResult, connectSetting, connectListener);
 				}
 			}
 		};
@@ -254,7 +254,7 @@ public abstract class ConnectManager {
 		}
 		NetworkAccess.ConnectionResult connectionResult = connect(connectAction, null);
 		if(connectionResult != null){
-			reply(connectionResult, connectSetting, connectListener);
+			reply(connectionResult.getStatusCode()/* send final status */, connectionResult, connectSetting, connectListener);
 		}
 	}
 
@@ -293,14 +293,13 @@ public abstract class ConnectManager {
 			CustomProgressDialog.setInstanceMessage(text);
 		}
 
-		Thread thread = new Thread(new Runnable() {
+		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				connect(connectAction, handler);
 			}
-		});
-		thread.start();
+		}).start();
 	}
 
 	public static void asyncConnection(ConnectAction connectAction, int runMode, boolean isShow, boolean isDismiss, String text
@@ -328,7 +327,7 @@ public abstract class ConnectManager {
 				if(msg.obj == null || !(msg.obj instanceof NetworkAccess.ConnectionResult)){
 					return false;
 				}
-				reply((NetworkAccess.ConnectionResult) msg.obj, connectSetting, connectListener);
+				reply(msg.what/* send current status */, (NetworkAccess.ConnectionResult) msg.obj, connectSetting, connectListener);
 				return false;
 			}
 		};
@@ -350,7 +349,7 @@ public abstract class ConnectManager {
 	private static void noNetworkConnection(ConnectSetting connectSetting, ConnectListener connectListener){
 		NetworkAccess.ConnectionResult connectionResult = new NetworkAccess.ConnectionResult();
 		connectionResult.setStatusMessage("Connect Fail No Network Connection");
-		reply(connectionResult, connectSetting, connectListener);
+		reply(NetworkAccess.CONNECTION_NO_NETWORK, connectionResult, connectSetting, connectListener);
 	}
 
 	private static NetworkAccess.ConnectionResult connect(ConnectAction connectAction, Handler handler){
@@ -361,7 +360,7 @@ public abstract class ConnectManager {
 		return connect(connectAction, handler);
 	}
 
-	private static void reply(@NonNull NetworkAccess.ConnectionResult connectionResult, ConnectSetting connectSetting, ConnectListener connectListener){
+	private static void reply(int connectStatus, @NonNull NetworkAccess.ConnectionResult connectionResult, ConnectSetting connectSetting, ConnectListener connectListener){
 		// RUN_FOREGROUND_SINGLE_TAG若顯式Tag被使用者取消，後續不進行任何處理
 		if(connectSetting.mRunMode == RUN_MODE_FOREGROUND_SINGLE_TAG && connectionResult.getStatusCode() != 0 &&
 				(!CustomProgressDialog.hasInstanceDialog() || !CustomProgressDialog.isInstanceShowing())){
@@ -374,11 +373,11 @@ public abstract class ConnectManager {
 				}
 			}
 		}
-		if(connectionResult.getStatusCode() == 0){
+		if(connectStatus == NetworkAccess.CONNECTION_NO_NETWORK){
 			connectListener.onConnectionNoNetwork(connectionResult);
-			connectListener.onConnectionStatusChange(0, connectionResult);
+			connectListener.onConnectionStatusChange(connectStatus, connectionResult);
 		}else{
-			connectListener.onConnectionStatusChange(connectionResult.getStatusCode(), connectionResult);
+			connectListener.onConnectionStatusChange(connectStatus, connectionResult);
 		}
 	}
 }
