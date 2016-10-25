@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.5
+ * @version 3.5.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -10,8 +10,6 @@ package com.flyingwing.android.net;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
@@ -140,64 +138,61 @@ public class NetworkAccess {
 		System.out.println(info);
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputBytes(@NonNull Context context, HttpURLConnection httpURLConnection, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputBytes(@NonNull Context context, HttpURLConnection httpURLConnection){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
 		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_BYTES, null, null, connectionResult, handler);
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_BYTES, null, null, connectionResult);
 		}
 		return connectionResult;
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
 		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, null, null, connectionResult, handler);
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, null, null, connectionResult);
 		}
 		return connectionResult;
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection, Charset charset
-			, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection, Charset charset){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
 		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, charset, null, connectionResult, handler);
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, charset, null, connectionResult);
 		}
 		return connectionResult;
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputFile(@NonNull Context context, HttpURLConnection httpURLConnection, File fileOutput
-			, Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputFile(@NonNull Context context, HttpURLConnection httpURLConnection, File fileOutput){
 		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
 		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_FILE, null, fileOutput, connectionResult, handler);
-		}
-		return connectionResult;
-	}
-
-	/**
-	 * 僅完成連線，不自動下載回傳內容，成功後的狀態為{@link #CONNECTION_CONNECTED}
-	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
-	 */
-	public static ConnectionResult connectUseHttpURLConnectionOutputSkip(@NonNull Context context, HttpURLConnection httpURLConnection, Handler handler){
-		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, connectionResult, handler);
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_FILE, null, fileOutput, connectionResult);
 		}
 		return connectionResult;
 	}
 
 	/**
-	 * 僅完成連線，不自動下載回傳內容，成功後的狀態為{@link #CONNECTION_CONNECTED}
+	 * 僅完成連線，不自動下載回傳內容，成功後{@link ConnectionResult#getStatusCode()}的狀態為{@link #CONNECTION_CONNECTED}
 	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
 	 */
-	public static void connectControlHttpURLConnection(@NonNull Context context, HttpURLConnection httpURLConnection, @NonNull Handler handler){
+	public static ConnectionResult connectUseHttpURLConnectionOutputSkip(@NonNull Context context, HttpURLConnection httpURLConnection){
+		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, connectionResult);
+		}
+		return connectionResult;
+	}
+
+	/**
+	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
+	 */
+	public static void connectControlHttpURLConnection(@NonNull Context context, HttpURLConnection httpURLConnection){
 		if(isAvailable(context)){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, null, handler);
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, null);
 		}
 	}
 
 	private static void connectUseHttpURLConnection(HttpURLConnection httpURLConnection, int outputType, Charset charset, File fileOutput
-			, ConnectionResult connectionResult, Handler handler){
+			, ConnectionResult connectionResult){
 		if(httpURLConnection == null){
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
@@ -219,12 +214,6 @@ public class NetworkAccess {
 					connectionResult.setStatusMessage(new String(inputStreamToByteArray(inputStreamError, NETWORKSETTING.mBufferSize, connectionResult)
 							, Charset.forName("UTF-8")));
 				}
-				if(handler != null){
-					Message msg = Message.obtain(handler);
-					msg.what = CONNECTION_CONNECT_FAIL;
-					msg.obj = connectionResult;
-					handler.sendMessage(msg);
-				}
 				return;
 			}
 
@@ -240,12 +229,6 @@ public class NetworkAccess {
 				if(connectionResult != null){
 					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 					connectionResult.setStatusMessage("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
-				}
-				if(handler != null){
-					Message msg = Message.obtain(handler);
-					msg.what = CONNECTION_CONNECT_FAIL;
-					msg.obj = connectionResult;
-					handler.sendMessage(msg);
 				}
 				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
 					printInfo("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
@@ -267,12 +250,6 @@ public class NetworkAccess {
 				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
 				connectionResult.setStatusMessage("Connection connect failed, exception " + e);
 			}
-			if(handler != null){
-				Message msg = Message.obtain(handler);
-				msg.what = CONNECTION_CONNECT_FAIL;
-				msg.obj = connectionResult;
-				handler.sendMessage(msg);
-			}
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
 				printInfo("Connection connect failed, exception " + e);
 			}
@@ -282,12 +259,6 @@ public class NetworkAccess {
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_CONNECTED);
 				connectionResult.setStatusMessage("Connection connected");
-			}
-			if(handler != null){
-				Message msg = Message.obtain(handler);
-				msg.what = CONNECTION_CONNECTED;
-				msg.obj = connectionResult;
-				handler.sendMessage(msg);
 			}
 			return;
 		}
@@ -306,32 +277,13 @@ public class NetworkAccess {
 				inputStreamWriteOutputStream(httpURLConnection.getInputStream(), new FileOutputStream(fileOutput), NETWORKSETTING.mBufferSize, connectionResult);
 				connectionResult.setContentOutputFile(fileOutput);
 			}
-			if(connectionResult.getStatusCode() == CONNECTION_LOAD_FAIL){
-				if(handler != null){
-					Message msg = Message.obtain(handler);
-					msg.what = CONNECTION_LOAD_FAIL;
-					msg.obj = connectionResult;
-					handler.sendMessage(msg);
-				}
-			}else{
+			if(connectionResult.getStatusCode() != CONNECTION_LOAD_FAIL){
 				connectionResult.setStatusCode(CONNECTION_LOADED);
 				connectionResult.setStatusMessage("Connection loaded");
-				if(handler != null){
-					Message msg = Message.obtain(handler);
-					msg.what = CONNECTION_LOADED;
-					msg.obj = connectionResult;
-					handler.sendMessage(msg);
-				}
 			}
 		} catch (Exception e) {
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			if(handler != null){
-				Message msg = Message.obtain(handler);
-				msg.what = CONNECTION_LOAD_FAIL;
-				msg.obj = connectionResult;
-				handler.sendMessage(msg);
-			}
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
 				printInfo("Connection loading failed, exception " + e);
 			}

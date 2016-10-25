@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.2.10
+ * @version 3.3.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -18,52 +18,37 @@ import android.support.annotation.NonNull;
 
 import com.flyingwing.android.widget.CustomProgressDialog;
 
-import java.net.HttpURLConnection;
 import java.util.concurrent.ExecutorService;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
-public abstract class ConnectManager {
+public class ConnectManager {
 
 	public static final int RUN_MODE_BACKGROUND = 0;
 	public static final int RUN_MODE_BACKGROUND_ALLOW = 1;
 	public static final int RUN_MODE_FOREGROUND_SINGLE_TAG = 2;
 
-	public static abstract class ConnectAction {
+	public interface ConnectAction {
+		/**
+		 * Return a {@link Message} for {@link ConnectListener#onConnectionStatusChange(int, Object)}<br>
+		 * int connectStatus = {@link Message#what}<br>
+		 * Object object = {@link Message#obj}
+		 */
+		Message onConnectAction();
+	}
 
-		protected Context mContext;
-		protected int mFlag;
-		protected String[] mStringArray;
-		protected Object[] mObjectArray;
-
-		public ConnectAction(@NonNull Context context, int flag, String...stringArray){
-			mContext = context;
-			mFlag = flag;
-			mStringArray = stringArray;
-		}
-
-		public ConnectAction(@NonNull Context context, int flag, Object...objectArray){
-			mContext = context;
-			mFlag = flag;
-			mObjectArray = objectArray;
-		}
-
-		public Context getContext(){
-			return mContext;
-		}
-
-		public abstract NetworkAccess.ConnectionResult runConnectAction(Handler handler);
-
-		public abstract HttpURLConnection runHttpURLConnection();
+	public static abstract class ConnectListener {
+		public abstract void onConnectionStatusChange(int connectStatus, Object object);
+		public void onCancelForegroundWait(DialogInterface dialog){}
 	}
 
 	public static class ConnectSetting {
 
 		private static boolean sSyncConnectRunning;
 
-		private boolean mIsUseThread, mIsUseHandler, mIsDialogShow, mIsDialogDismiss, mIsSyncLock;
-		private int mRunMode;
-		private String mHintText;
-		private ExecutorService mExecutorService;
+		protected boolean mIsUseThread, mIsUseHandler, mIsDialogShow, mIsDialogDismiss, mIsSyncLock;
+		protected int mRunMode;
+		protected String mHintText;
+		protected ExecutorService mExecutorService;
 
 		public static void setSyncConnectRunning(boolean isSyncConnectRunning){
 			sSyncConnectRunning = isSyncConnectRunning;
@@ -75,8 +60,8 @@ public abstract class ConnectManager {
 
 		public ConnectSetting(){}
 
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int runMode
-				, String hintText, boolean isSyncLock, ExecutorService executorService){
+		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int runMode, String hintText
+				, boolean isSyncLock, ExecutorService executorService){
 			mIsUseThread = isUseThread;
 			mIsUseHandler = isUseHandler;
 			mIsDialogShow = isDialogShow;
@@ -178,27 +163,42 @@ public abstract class ConnectManager {
 		}
 	}
 
-	public static abstract class ConnectListener {
-		public void onConnectionNoNetwork(NetworkAccess.ConnectionResult connectionResult){}
-		public abstract void onConnectionStatusChange(int connectStatus, NetworkAccess.ConnectionResult connectionResult);
-		public void onCancelForegroundWait(DialogInterface dialog){}
+	public static class ConnectSettingHalfSync extends ConnectSetting {
+		public ConnectSettingHalfSync(){
+			mIsUseThread = false;
+			mIsUseHandler = true;
+			mIsDialogShow = false;
+			mIsDialogDismiss = false;
+			mIsSyncLock = false;
+			mRunMode = RUN_MODE_BACKGROUND;
+			mExecutorService = null;
+		}
 	}
 
-	public static void customConnection(Looper looper, @NonNull final ConnectAction connectAction, @NonNull final ConnectSetting connectSetting
-			, final ConnectListener connectListener){
-		final Handler handler = getHandler(looper, connectSetting, connectListener);
-		if(!NetworkAccess.isAvailable(connectAction.getContext())){
-			if(connectSetting.isUseHandler()){
-				noNetworkConnection(handler);
-			}else{
-				noNetworkConnection(connectSetting, connectListener);
-			}
-			return;
+	public static class ConnectSettingAsync extends ConnectSetting {
+		public ConnectSettingAsync(int runMode, boolean isShow, boolean isDismiss, String text){
+			mIsUseThread = true;
+			mIsUseHandler = true;
+			mIsDialogShow = isShow;
+			mIsDialogDismiss = isDismiss;
+			mIsSyncLock = false;
+			mRunMode = runMode;
+			mHintText = text;
+			mExecutorService = null;
 		}
+		public ConnectSettingAsync(int runMode, boolean isShow, boolean isDismiss){
+			this(runMode, isShow, isDismiss, null);
+		}
+		public ConnectSettingAsync(int runMode, String text){
+			this(runMode, true, true, null);
+		}
+	}
 
+	public static void connection(@NonNull final Context context, final Looper looper, @NonNull final ConnectAction connectAction
+			, @NonNull final ConnectSetting connectSetting, final ConnectListener connectListener){
 		if((connectSetting.mRunMode == RUN_MODE_FOREGROUND_SINGLE_TAG || connectSetting.mRunMode == RUN_MODE_BACKGROUND_ALLOW) &&
 				connectSetting.mIsDialogShow){
-			CustomProgressDialog.getInstance(connectAction.getContext(), connectSetting.mHintText).show();
+			CustomProgressDialog.getInstance(context, connectSetting.mHintText).show();
 			CustomProgressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
 
 				@Override
@@ -217,20 +217,24 @@ public abstract class ConnectManager {
 
 			@Override
 			public void run() {
-				NetworkAccess.ConnectionResult connectionResult;
-				if(connectSetting.isSyncLock()){
+				Message msg;
+				if(connectSetting.mIsSyncLock){
 					ConnectSetting.sSyncConnectRunning = true;
-					connectionResult = connectSynchronized(connectAction, connectSetting.isUseHandler() ? handler : null);
+					msg = onConnectActionSynchronized(connectAction);
 					ConnectSetting.sSyncConnectRunning = false;
 				}else{
-					connectionResult = connect(connectAction, connectSetting.isUseHandler() ? handler : null);
+					msg = connectAction.onConnectAction();
 				}
-				if(!connectSetting.isUseHandler() && connectionResult != null){
-					report(connectionResult.getStatusCode(), connectionResult, connectSetting, connectListener);
+				if(msg != null){
+					if(connectSetting.mIsUseHandler){
+						getHandler(context, looper, connectSetting, connectListener).sendMessage(msg);
+					}else{
+						report(msg, connectSetting, connectListener);
+					}
 				}
 			}
 		};
-		if(connectSetting.isUseThread()){
+		if(connectSetting.mIsUseThread){
 			if(connectSetting.mExecutorService == null){
 				new Thread(runnable).start();
 			}else{
@@ -241,128 +245,35 @@ public abstract class ConnectManager {
 		}
 	}
 
-	public static void customConnection(@NonNull ConnectAction connectAction, @NonNull ConnectSetting connectSetting, ConnectListener connectListener){
-		customConnection(null, connectAction, connectSetting, connectListener);
-	}
-
-	public static void baseConnection(Looper looper, @NonNull ConnectAction connectAction, ConnectListener connectListener){
-		ConnectSetting connectSetting = new ConnectSetting(false, false, false, false, RUN_MODE_BACKGROUND);
-		if(!NetworkAccess.isAvailable(connectAction.getContext())){
-			noNetworkConnection(connectSetting, connectListener);
-			return;
-		}
-		NetworkAccess.ConnectionResult connectionResult = connect(connectAction, null);
-		if(connectionResult != null){
-			report(connectionResult.getStatusCode(), connectionResult, connectSetting, connectListener);
-		}
-	}
-
-	public static void baseConnection(@NonNull ConnectAction connectAction, ConnectListener connectListener){
-		baseConnection(null, connectAction, connectListener);
-	}
-
-	public static void syncConnection(Looper looper, @NonNull ConnectAction connectAction, final ConnectListener connectListener){
-		Handler handler = getHandler(looper, new ConnectSetting(false, true, false, false, RUN_MODE_BACKGROUND), connectListener);
-		if(!NetworkAccess.isAvailable(connectAction.getContext())){
-			noNetworkConnection(handler);
-			return;
-		}
-		connect(connectAction, handler);
-	}
-
-	public static void asyncConnection(Looper looper, @NonNull final ConnectAction connectAction, int runMode, boolean isShow, boolean isDismiss, String text
-			, final ConnectListener connectListener){
-		final Handler handler = getHandler(looper, new ConnectSetting(true, true, isShow, isDismiss, runMode), connectListener);
-		if(!NetworkAccess.isAvailable(connectAction.getContext())){
-			noNetworkConnection(handler);
-			return;
-		}
-
-		if((runMode == RUN_MODE_FOREGROUND_SINGLE_TAG || runMode == RUN_MODE_BACKGROUND_ALLOW) && isShow){
-			CustomProgressDialog.getInstance(connectAction.getContext(), text).show();
-			CustomProgressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
-
-				@Override
-				public void onCancel(DialogInterface dialog) {
-					CustomProgressDialog.clearInstance();
-					if(connectListener != null){
-						connectListener.onCancelForegroundWait(dialog);
-					}
-				}
-			});
-		}else if(text != null){
-			CustomProgressDialog.setInstanceMessage(text);
-		}
-
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				connect(connectAction, handler);
-			}
-		}).start();
-	}
-
-	public static void asyncConnection(@NonNull ConnectAction connectAction, int runMode, boolean isShow, boolean isDismiss, String text
+	public static void connection(@NonNull Context context, @NonNull ConnectAction connectAction, @NonNull ConnectSetting connectSetting
 			, ConnectListener connectListener){
-		asyncConnection(null, connectAction, runMode, isShow, isDismiss, text, connectListener);
+		connection(context, null, connectAction, connectSetting, connectListener);
 	}
 
-	public static void asyncConnection(@NonNull ConnectAction connectAction, int runMode, ConnectListener connectListener){
-		asyncConnection(connectAction, runMode, true, true, null, connectListener);
-	}
-
-	public static void asyncConnection(@NonNull ConnectAction connectAction, int runMode, boolean isShow, boolean isDismiss, ConnectListener connectListener){
-		asyncConnection(connectAction, runMode, isShow, isDismiss, null, connectListener);
-	}
-
-	public static void asyncConnection(@NonNull ConnectAction connectAction, int runMode, String text, ConnectListener connectListener){
-		asyncConnection(connectAction, runMode, true, true, text, connectListener);
-	}
-
-	public static Handler getHandler(Looper looper, @NonNull final ConnectSetting connectSetting, final ConnectListener connectListener){
+	public static Handler getHandler(@NonNull Context context, Looper looper, @NonNull final ConnectSetting connectSetting, final ConnectListener connectListener){
 		Callback callback = new Callback() {
 
 			@Override
 			public boolean handleMessage(Message msg) {
-				if(msg.obj == null || !(msg.obj instanceof NetworkAccess.ConnectionResult)){
+				if(msg.obj == null){
 					return false;
 				}
-				report(msg.what, (NetworkAccess.ConnectionResult) msg.obj, connectSetting, connectListener);
+				report(msg, connectSetting, connectListener);
 				return false;
 			}
 		};
 		if(looper == null){
-			return new Handler(callback);
+			return new Handler(context.getMainLooper(), callback);
 		}else{
 			return new Handler(looper, callback);
 		}
 	}
 
-	private static void noNetworkConnection(Handler handler){
-		NetworkAccess.ConnectionResult connectionResult = new NetworkAccess.ConnectionResult();
-		connectionResult.setStatusMessage("Connect Fail No Network Connection");
-		Message msg = Message.obtain(handler);
-		msg.obj = connectionResult;
-		handler.sendMessage(msg);
+	private static synchronized Message onConnectActionSynchronized(@NonNull ConnectAction connectAction){
+		return connectAction.onConnectAction();
 	}
 
-	private static void noNetworkConnection(@NonNull ConnectSetting connectSetting, ConnectListener connectListener){
-		NetworkAccess.ConnectionResult connectionResult = new NetworkAccess.ConnectionResult();
-		connectionResult.setStatusMessage("Connect Fail No Network Connection");
-		report(NetworkAccess.CONNECTION_NO_NETWORK, connectionResult, connectSetting, connectListener);
-	}
-
-	private static NetworkAccess.ConnectionResult connect(@NonNull ConnectAction connectAction, Handler handler){
-		return connectAction.runConnectAction(handler);
-	}
-
-	private static synchronized NetworkAccess.ConnectionResult connectSynchronized(@NonNull ConnectAction connectAction, Handler handler){
-		return connect(connectAction, handler);
-	}
-
-	private static void report(int connectStatus, NetworkAccess.ConnectionResult connectionResult, @NonNull ConnectSetting connectSetting
-			, ConnectListener connectListener){
+	private static void report(@NonNull Message msg, @NonNull ConnectSetting connectSetting, ConnectListener connectListener){
 		// RUN_FOREGROUND_SINGLE_TAG若顯式Tag被使用者取消，後續不進行任何處理
 		if(connectSetting.mRunMode == RUN_MODE_FOREGROUND_SINGLE_TAG && !CustomProgressDialog.isInstanceShowing()){
 			return;
@@ -374,11 +285,6 @@ public abstract class ConnectManager {
 		if(connectListener == null){
 			return;
 		}
-		if(connectStatus == NetworkAccess.CONNECTION_NO_NETWORK){
-			connectListener.onConnectionNoNetwork(connectionResult);
-			connectListener.onConnectionStatusChange(connectStatus, connectionResult);
-		}else{
-			connectListener.onConnectionStatusChange(connectStatus, connectionResult);
-		}
+		connectListener.onConnectionStatusChange(msg.what, msg.obj);
 	}
 }
