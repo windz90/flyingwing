@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.5
+ * @version 3.5.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1409,18 +1409,32 @@ public class Utils {
 	/**
 	 * @param textView {@link TextView#getLayoutParams()}.{@link ViewGroup.LayoutParams#width} or {@link View#getWidth()} must have actual width value.
 	 */
-	public static float autoFitSingleLineTextSize(TextView textView, String text){
+	public static float adjustSingleLineTextSizeFitWidth(Context context, TextView textView, String text){
 		int width = 0;
 		if(textView.getLayoutParams().width > 0){
 			width = textView.getLayoutParams().width;
 		}else if(textView.getWidth() > 0){
 			width = textView.getWidth();
 		}
+		if(width == 0){
+			return 0;
+		}
+
 		Paint paint = textView.getPaint();
-		while (width > 0 && paint.measureText(text) < width) {
+		int length = text.length();
+		int widthDiff = (int) (width - paint.measureText(text, 0, length));
+		if(widthDiff == 0){
+			return 0;
+		}
+		DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+		paint.setTextSize(paint.getTextSize() + (int) (widthDiff / displayMetrics.scaledDensity));
+		widthDiff = (int) (width - paint.measureText(text, 0, length));
+		paint.setTextSize(paint.getTextSize() + (int) (widthDiff / displayMetrics.scaledDensity));
+
+		while (paint.measureText(text, 0, length) < width) {
 			paint.setTextSize(paint.getTextSize() + 1);
 		}
-		while (width > 0 && paint.measureText(text) > width) {
+		while (paint.measureText(text, 0, length) > width) {
 			paint.setTextSize(paint.getTextSize() - 1);
 		}
 		// Adjust layout
