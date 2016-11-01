@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2016 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -18,7 +18,7 @@ public class TextViewAttribute {
 
 	private int mGravity = Gravity.TOP | Gravity.START;
 	private ColorStateList mColorStateList;
-	private int mTextSize;
+	private float mTextSize;
 	private Typeface mTypeface;
 	private boolean mSingleLine;
 	private TextUtils.TruncateAt mTruncateAt;
@@ -75,11 +75,11 @@ public class TextViewAttribute {
 		return mColorStateList;
 	}
 
-	public void setTextSize(int textSize){
+	public void setTextSize(float textSize){
 		mTextSize = textSize;
 	}
 
-	public int getTextSize(){
+	public float getTextSize(){
 		return mTextSize;
 	}
 

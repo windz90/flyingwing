@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.4
+ * @version 3.5.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -120,26 +120,27 @@ import java.util.StringTokenizer;
 @SuppressWarnings({"unused", "WeakerAccess", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock"})
 public class Utils {
 
-	public static final int SIZE_TEXT_S = 0;
-	public static final int SIZE_BULLET_S = 1;
-	public static final int SIZE_TITLE_S = 2;
-	public static final int SIZE_TAB_S = 3;
-	public static final int SIZE_SUBJECT_S = 4;
-	public static final int SIZE_TEXT = 5;
-	public static final int SIZE_BULLET = 6;
-	public static final int SIZE_TITLE = 7;
-	public static final int SIZE_TAB = 8;
-	public static final int SIZE_SUBJECT = 9;
-	public static final int SIZE_TEXT_L = 10;
-	public static final int SIZE_BULLET_L = 11;
-	public static final int SIZE_TITLE_L = 12;
-	public static final int SIZE_TAB_L = 13;
-	public static final int SIZE_SUBJECT_L = 14;
-	public static final int SIZE_TEXT_XL = 15;
-	public static final int SIZE_BULLET_XL = 16;
-	public static final int SIZE_TITLE_XL = 17;
-	public static final int SIZE_TAB_XL = 18;
-	public static final int SIZE_SUBJECT_XL = 19;
+	public static final int SIZE_TEXT_S = 10;
+	public static final int SIZE_BULLET_S = 11;
+	public static final int SIZE_TITLE_S = 12;
+	// Above is not recommended
+	public static final int SIZE_TAB_S = 13;
+	public static final int SIZE_SUBJECT_S = 14;
+	public static final int SIZE_TEXT = 15;
+	public static final int SIZE_BULLET = 16;
+	public static final int SIZE_TITLE = 17;
+	public static final int SIZE_TAB = 18;
+	public static final int SIZE_SUBJECT = 19;
+	public static final int SIZE_TEXT_L = 20;
+	public static final int SIZE_BULLET_L = 21;
+	public static final int SIZE_TITLE_L = 22;
+	public static final int SIZE_TAB_L = 23;
+	public static final int SIZE_SUBJECT_L = 24;
+	public static final int SIZE_TEXT_XL = 25;
+	public static final int SIZE_BULLET_XL = 26;
+	public static final int SIZE_TITLE_XL = 27;
+	public static final int SIZE_TAB_XL = 28;
+	public static final int SIZE_SUBJECT_XL = 29;
 
 	public static final String SP_KEY_STATUS_BAR_HEIGHT = "statusBarHe";
 	public static final String SP_MAP_HEAD = "/!#/spMapHead/#!/";
@@ -245,8 +246,8 @@ public class Utils {
 					stringBuilder.append(line).append("\n");
 				}
 			} finally {
-				is.close();
 				reader.close();
+				is.close();
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -255,9 +256,8 @@ public class Utils {
 			reader = null;
 			is = null;
 			e.printStackTrace();
-			return "";
 		}
-		return stringBuilder.toString();
+		return stringBuilder == null ? null : stringBuilder.toString();
 	}
 
 	public static String inputStreamToString(InputStream is, Charset charset){
@@ -1364,106 +1364,74 @@ public class Utils {
 		}
 	}
 
-	public static void setTextSize(Context context, TextView textView, int unit, float size){
-		DisplayMetrics dmWin = new DisplayMetrics();
+	public static void setTextSizeFix(Context context, TextView textView, int unit, float textSize){
+		DisplayMetrics displayMetricsFromWindowManager = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(dmWin);
-		DisplayMetrics dmRes = context.getResources().getDisplayMetrics();
-		if(dmWin.scaledDensity == dmRes.scaledDensity){
-			textView.setTextSize(unit, size);
-		}else{
-			if(size != textView.getTextSize()){
-				textView.getPaint().setTextSize(TypedValue.applyDimension(unit, size, dmWin));
-				if (textView.getLayout() != null) {
-					// Reflection反射調用private方法
-					try {
-						Method method = textView.getClass().getDeclaredMethod("nullLayouts");
-						method.setAccessible(true);
-						method.invoke(textView);
-						method.setAccessible(false);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-					textView.requestLayout();
-					textView.invalidate();
-				}
+		windowManager.getDefaultDisplay().getMetrics(displayMetricsFromWindowManager);
+		DisplayMetrics displayMetricsFromResources = context.getResources().getDisplayMetrics();
+		if(displayMetricsFromWindowManager.scaledDensity == displayMetricsFromResources.scaledDensity){
+			textView.setTextSize(unit, textSize);
+			return;
+		}
+		// Reflection反射調用private方法
+		try {
+			Method method = textView.getClass().getDeclaredMethod("setRawTextSize", float.class);
+			method.setAccessible(true);
+			method.invoke(textView, TypedValue.applyDimension(unit, textSize, displayMetricsFromWindowManager));
+			method.setAccessible(false);
+		} catch (Exception e) {
+			float sizeRaw = TypedValue.applyDimension(unit, textSize, displayMetricsFromWindowManager);
+			if(sizeRaw == textView.getTextSize()){
+				return;
 			}
+			textView.getPaint().setTextSize(sizeRaw);
+			// Adjust layout
+			textView.setEllipsize(textView.getEllipsize());
+			e.printStackTrace();
 		}
 	}
 
-	public static void setTextSize(Context context, TextView textView, float size){
-		setTextSize(context, textView, TypedValue.COMPLEX_UNIT_SP, size);
+	public static void setTextSizeFix(Context context, TextView textView, float textSize){
+		setTextSizeFix(context, textView, TypedValue.COMPLEX_UNIT_SP, textSize);
 	}
 
-	public static void setTextSizeMethod(Context context, TextView textView, int unit, float size){
-		DisplayMetrics dmWin = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(dmWin);
-		DisplayMetrics dmRes = context.getResources().getDisplayMetrics();
-		if(dmWin.scaledDensity == dmRes.scaledDensity){
-			textView.setTextSize(unit, size);
-		}else{
-			// Reflection反射調用private方法
-			try {
-				Method method = textView.getClass().getDeclaredMethod("setRawTextSize", float.class);
-				method.setAccessible(true);
-				method.invoke(textView, TypedValue.applyDimension(unit, size, dmWin));
-				method.setAccessible(false);
-			} catch (Exception e) {
-				setTextSize(context, textView, unit, size);
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public static void setTextSizeMethod(Context context, TextView textView, float size){
-		setTextSizeMethod(context, textView, TypedValue.COMPLEX_UNIT_SP, size);
-	}
-
-	public static int getTextSize(int flag){
-		int textSize = 15;
-		switch (flag) {
-			case SIZE_SUBJECT_XL:textSize = 29;break;
-			case SIZE_TAB_XL:textSize = 28;break;
-			case SIZE_TITLE_XL:textSize = 27;break;
-			case SIZE_BULLET_XL:textSize = 26;break;
-			case SIZE_TEXT_XL:textSize = 25;break;
-			case SIZE_SUBJECT_L:textSize = 24;break;
-			case SIZE_TAB_L:textSize = 23;break;
-			case SIZE_TITLE_L:textSize = 22;break;
-			case SIZE_BULLET_L:textSize = 21;break;
-			case SIZE_TEXT_L:textSize = 20;break;
-			case SIZE_SUBJECT:textSize = 19;break;
-			case SIZE_TAB:textSize = 18;break;
-			case SIZE_TITLE:textSize = 17;break;
-			case SIZE_BULLET:textSize = 16;break;
-			case SIZE_TEXT:textSize = 15;break;
-			case SIZE_SUBJECT_S:textSize = 14;break;
-			case SIZE_TAB_S:textSize = 13;break;
-			// Not recommended
-			case SIZE_TITLE_S:textSize = 12;break;
-			case SIZE_BULLET_S:textSize = 11;break;
-			case SIZE_TEXT_S:textSize = 10;break;
-		}
-		return textSize;
-	}
-
-	public static int getTextSize(int flag, boolean isBigScreen, int offsetSize){
-		int textSize = getTextSize(flag);
+	public static float getTextSize(float textSize, boolean isBigScreen, float offsetSize){
 		if(isBigScreen){
 			textSize = textSize + offsetSize;
 		}
 		return textSize;
 	}
 
-	public static int getTextSize(int flag, boolean isBigScreen){
-		return getTextSize(flag, isBigScreen, 3);
+	public static float getTextSize(float textSize, boolean isBigScreen){
+		return getTextSize(textSize, isBigScreen, 3);
 	}
 
-	public static float getTextWidths(Paint paint, String text){
+	/**
+	 * @param textView {@link TextView#getLayoutParams()}.{@link ViewGroup.LayoutParams#width} or {@link View#getWidth()} must have actual width value.
+	 */
+	public static float autoFitSingleLineTextSize(TextView textView, String text){
+		int width = 0;
+		if(textView.getLayoutParams().width > 0){
+			width = textView.getLayoutParams().width;
+		}else if(textView.getWidth() > 0){
+			width = textView.getWidth();
+		}
+		Paint paint = textView.getPaint();
+		while (width > 0 && paint.measureText(text) < width) {
+			paint.setTextSize(paint.getTextSize() + 1);
+		}
+		while (width > 0 && paint.measureText(text) > width) {
+			paint.setTextSize(paint.getTextSize() - 1);
+		}
+		// Adjust layout
+		textView.setEllipsize(textView.getEllipsize());
+		return paint.getTextSize();
+	}
+
+	public static float getTextWidths(Paint textViewPaint, String text){
 		/*
 		 * 1.
-		 * width = paint.measureText(text);
+		 * width = TextView.getPaint().measureText(text);
 		 * 
 		 * 2.
 		 * width = Layout.getDesiredWidth(text, textPaint);
@@ -1484,11 +1452,25 @@ public class Utils {
 
 		int length = text.length();
 		float[] widths = new float[length];
-		paint.getTextWidths(text, widths);
+		textViewPaint.getTextWidths(text, widths);
 		for(int i=0; i<length; i++){
 			width = width + (float)Math.ceil(widths[i]);
 		}
 		return width;
+	}
+
+	public static float getTextWidths(TextView textView, String text){
+		return getTextWidths(textView.getPaint(), text);
+	}
+
+	/**
+	 * Inaccurate, not recommended
+	 */
+	public static float getTextWidths(Context context, float textSize, String text){
+		DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+		Paint paint = new Paint();
+		paint.setTextSize(textSize * displayMetrics.scaledDensity);
+		return getTextWidths(paint, text);
 	}
 
 	public static float getTextBaselineY(Paint paint, int canvasHeight){
@@ -2276,8 +2258,8 @@ public class Utils {
 	}
 
 	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, int color, int smallIcon, Bitmap bitmapLargeIcon
-			, Long when, Intent intent, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault, int notificationPriority, int notificationVisibility
-			, Notification notificationPublic){
+			, Long when, Intent intent, int requestCode, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault, int notificationPriority
+			, int notificationVisibility, Notification notificationPublic){
 		NotificationCompat.Builder notificationCompatBuilder = new NotificationCompat.Builder(context);
 		notificationCompatBuilder.setTicker(ticker);
 		notificationCompatBuilder.setContentTitle(contentTitle);
@@ -2293,7 +2275,7 @@ public class Utils {
 		if(intent == null){
 			intent = new Intent();
 		}
-		PendingIntent pendingIntent = PendingIntent.getActivity(context, 1, intent, pendingIntentFlag);
+		PendingIntent pendingIntent = PendingIntent.getActivity(context, requestCode, intent, pendingIntentFlag);
 		notificationCompatBuilder.setContentIntent(pendingIntent);
 		notificationCompatBuilder.setAutoCancel(isAutoCancel);
 		notificationCompatBuilder.setDefaults(notificationDefault);
@@ -2305,20 +2287,21 @@ public class Utils {
 	}
 
 	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, int color, int smallIcon, Bitmap bitmapLargeIcon
-			, Long when, Intent intent, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault, int notificationVisibility, Notification notificationPublic){
-		return getNotification(context, ticker, contentTitle, contentText, color, smallIcon, bitmapLargeIcon, when, intent, pendingIntentFlag, isAutoCancel
+			, Long when, Intent intent, int requestCode, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault, int notificationVisibility
+			, Notification notificationPublic){
+		return getNotification(context, ticker, contentTitle, contentText, color, smallIcon, bitmapLargeIcon, when, intent, requestCode, pendingIntentFlag, isAutoCancel
 				, notificationDefault, NotificationCompat.PRIORITY_DEFAULT, notificationVisibility, notificationPublic);
 	}
 
 	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, int color, int smallIcon, Bitmap bitmapLargeIcon
-			, Long when, Intent intent, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault, int notificationPriority){
-		return getNotification(context, ticker, contentTitle, contentText, color, smallIcon, bitmapLargeIcon, when, intent, pendingIntentFlag, isAutoCancel
+			, Long when, Intent intent, int requestCode, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault, int notificationPriority){
+		return getNotification(context, ticker, contentTitle, contentText, color, smallIcon, bitmapLargeIcon, when, intent, requestCode, pendingIntentFlag, isAutoCancel
 				, notificationDefault, notificationPriority, NotificationCompat.VISIBILITY_PRIVATE, null);
 	}
 
 	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, int color, int smallIcon, Bitmap bitmapLargeIcon
-			, Long when, Intent intent, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault){
-		return getNotification(context, ticker, contentTitle, contentText, color, smallIcon, bitmapLargeIcon, when, intent, pendingIntentFlag, isAutoCancel
+			, Long when, Intent intent, int requestCode, int pendingIntentFlag, boolean isAutoCancel, int notificationDefault){
+		return getNotification(context, ticker, contentTitle, contentText, color, smallIcon, bitmapLargeIcon, when, intent, requestCode, pendingIntentFlag, isAutoCancel
 				, notificationDefault, NotificationCompat.PRIORITY_DEFAULT, NotificationCompat.VISIBILITY_PRIVATE, null);
 	}
 
