@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.6
+ * @version 3.5.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -65,6 +65,7 @@ import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -82,6 +83,8 @@ import android.webkit.CookieSyncManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.flyingwing.android.R;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -1034,6 +1037,19 @@ public class Utils {
 		return null;
 	}
 
+	public static Object reflectionField(Object objectSrc, String fieldName){
+		try {
+			Field field = objectSrc.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			Object objectField = field.get(objectSrc);
+			field.setAccessible(false);
+			return objectField;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	// 計算兩點距離API版
 	public static double getDistance1(double lat1, double lon1, double lat2, double lon2) {
 		float[] results=new float[1];
@@ -1268,6 +1284,37 @@ public class Utils {
 		return "android.resource://" + context.getPackageName() + "/" + rawResourceId;
 	}
 
+	@SuppressLint("PrivateResource")
+	public static Toolbar getToolbar(Context context, Drawable backgroundDrawable, int containsStatusHeight){
+		int itemWi = ViewGroup.LayoutParams.MATCH_PARENT;
+		int itemHe = context.getResources().getDimensionPixelSize(R.dimen.toolbarHeight);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && containsStatusHeight > 0){
+			itemHe += containsStatusHeight;
+		}
+		ViewGroup.MarginLayoutParams viewGroupMarginLayoutParams = new ViewGroup.MarginLayoutParams(itemWi, itemHe);
+		Toolbar toolbar = new Toolbar(context);
+		toolbar.setId(R.id.toolbar);
+		if(backgroundDrawable != null){
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				toolbar.setBackground(backgroundDrawable);
+			}else{
+				//noinspection deprecation
+				toolbar.setBackgroundDrawable(backgroundDrawable);
+			}
+		}
+		toolbar.setLayoutParams(viewGroupMarginLayoutParams);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && containsStatusHeight > 0){
+			toolbar.setPadding(0, containsStatusHeight, 0, 0);
+		}
+		toolbar.setContentInsetsRelative(0, 0);
+		toolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
+		return toolbar;
+	}
+
+	public static Toolbar getToolbar(Context context, Drawable backgroundDrawable){
+		return getToolbar(context, backgroundDrawable, 0);
+	}
+
 	public static TypedValue getAttribute(Context context, int attrResource){
 		TypedValue typedValue = new TypedValue();
 		Theme theme = context.getTheme();
@@ -1301,6 +1348,11 @@ public class Utils {
 		return defInt;
 	}
 
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defInt){
+		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defInt);
+	}
+
 	public static int getUsableHeightSP(Context context, DisplayMetrics displayMetrics, String spName){
 		return displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
 	}
@@ -1315,11 +1367,6 @@ public class Utils {
 	public static int getStatusBarHeightSP(Context context, String spName){
 		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		return sp.getInt(SP_KEY_STATUS_BAR_HEIGHT, 0);
-	}
-
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defInt){
-		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defInt);
 	}
 
 	public static boolean isOnViewVisible(View parentsView, View view){
@@ -2090,57 +2137,54 @@ public class Utils {
 		return path;
 	}
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static String[] getFilesPathFromIntentUri(Context context, Intent intent){
 		Uri[] uris = getIntentUris(intent);
 		String[] paths = new String[uris.length];
 		for(int i=0; i<uris.length; i++){
-			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
-				if(uris[i].getScheme().equals("content")){
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+				if(!DocumentsContract.isDocumentUri(context, uris[i])){
 					paths[i] = queryFilePathFromUri(context, uris[i]);
-				}else{
-					paths[i] = uris[i].getPath();
+					continue;
 				}
-				continue;
+
+				String authority = uris[i].getAuthority();
+				String docId = DocumentsContract.getDocumentId(uris[i]);
+				if(authority.equals("com.android.providers.downloads.documents")){
+					uris[i] = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(docId));
+					paths[i] = queryFilePathFromUri(context, uris[i]);
+					continue;
+				}
+
+				String[] divide = docId.split(":");
+				String type = divide[0];
+				if(authority.equals("com.android.externalstorage.documents")){
+					if(type.equals("primary")){
+						paths[i] = Environment.getExternalStorageDirectory() + File.separator + divide[1];
+					}
+				}else if(authority.equals("com.android.providers.media.documents")){
+					if(type.equals("image")){
+						uris[i] = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
+						paths[i] = queryFilePathFromUri(context, uris[i]);
+					}else if(type.equals("audio")){
+						uris[i] = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
+						paths[i] = queryFilePathFromUri(context, uris[i]);
+					}else if(type.equals("video")){
+						uris[i] = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
+						paths[i] = queryFilePathFromUri(context, uris[i]);
+					}
+				}
 			}
 
-			if(!DocumentsContract.isDocumentUri(context, uris[i])){
+			if(uris[i].getScheme().equals("content")){
 				paths[i] = queryFilePathFromUri(context, uris[i]);
-				continue;
-			}
-
-			String authority = uris[i].getAuthority();
-			String docId = DocumentsContract.getDocumentId(uris[i]);
-			if(authority.equals("com.android.providers.downloads.documents")){
-				uris[i] = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(docId));
-				paths[i] = queryFilePathFromUri(context, uris[i]);
-				continue;
-			}
-
-			String[] divide = docId.split(":");
-			String type = divide[0];
-			if(authority.equals("com.android.externalstorage.documents")){
-				if(type.equals("primary")){
-					paths[i] = Environment.getExternalStorageDirectory() + File.separator + divide[1];
-				}
-			}else if(authority.equals("com.android.providers.media.documents")){
-				if(type.equals("image")){
-					uris[i] = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
-					paths[i] = queryFilePathFromUri(context, uris[i]);
-				}else if(type.equals("audio")){
-					uris[i] = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
-					paths[i] = queryFilePathFromUri(context, uris[i]);
-				}else if(type.equals("video")){
-					uris[i] = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
-					paths[i] = queryFilePathFromUri(context, uris[i]);
-				}
+			}else{
+				paths[i] = uris[i].getPath();
 			}
 		}
 		return paths;
 	}
 
 	@SuppressWarnings("ResourceType")
-	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static Uri[] getIntentUrisWithPath(Context context, Intent intent){
 		Uri[] uris = getIntentUris(intent);
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
@@ -2156,7 +2200,6 @@ public class Utils {
 		return uris;
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	public static Uri[] getIntentUris(Intent intent){
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
 			return new Uri[]{intent.getData()};
@@ -2520,7 +2563,6 @@ public class Utils {
 	}
 
 	// 列印系統記憶體資訊
-	@SuppressLint("NewApi")
 	public static void logActivityManagerMemoryInfo(Context context){
 		// ActivityManager.MemoryInfo：系统可用記憶體資訊
 		// ActivityManager.RecentTaskInfo：最近的任務資訊
@@ -2537,11 +2579,13 @@ public class Utils {
 		// Log.w()，w代表warning，在Logcat中輸出顏色是橘色，代表警告的訊息
 		// Log.e()，e代表error，在Logcat中輸出顏色是紅色，代表錯誤的訊息
 		Log.v("ActivityManager", "AppProcess的記憶體限制：" + activityManager.getMemoryClass() + "MB");
-		Log.v("ActivityManager", "AppLargeHeapProcess的記憶體限制：" + activityManager.getLargeMemoryClass() + "MB");
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+			Log.v("ActivityManager", "AppLargeHeapProcess的記憶體限制：" + activityManager.getLargeMemoryClass() + "MB");
+		}
 		Log.v("ActivityManager", "ActivityManager.MemoryInfo 系統剩餘記憶體：" + (activityMemoryInfo.availMem >> 10) + "KB");
 		Log.v("ActivityManager", "ActivityManager.MemoryInfo 系統目前是否執行低記憶體模式：" + activityMemoryInfo.lowMemory);
 		Log.v("ActivityManager", "ActivityManager.MemoryInfo 系統記憶體低於" + (activityMemoryInfo.threshold >> 10) + "KB時執行低記憶體模式");
-		if(Build.VERSION.SDK_INT >= 16){
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 			Log.v("ActivityManager", "MemoryInfo系統總記憶體" + (activityMemoryInfo.totalMem >> 10) + "KB");
 		}
 	}
