@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.1
+ * @version 3.3.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -150,10 +150,23 @@ public class ConnectManager {
 		}
 	}
 
-	public static class ConnectSettingHalfSync extends ConnectSetting {
-		public ConnectSettingHalfSync(){
+	public static class ConnectSettingSyncBegin extends ConnectSetting {
+		public ConnectSettingSyncBegin(){
 			setUseThread(false);
 			setUseHandler(true);
+			setDialogShow(false);
+			setDialogDismiss(false);
+			setSyncLock(false);
+			setConnectionType(CONNECTION_TYPE_ALWAYS_QUIET);
+			setNoticeText(null);
+			setExecutorService(null);
+		}
+	}
+
+	public static class ConnectSettingSyncEnd extends ConnectSetting {
+		public ConnectSettingSyncEnd(){
+			setUseThread(true);
+			setUseHandler(false);
 			setDialogShow(false);
 			setDialogDismiss(false);
 			setSyncLock(false);
