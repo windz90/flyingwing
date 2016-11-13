@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.7
+ * @version 3.5.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -65,7 +65,6 @@ import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -83,8 +82,6 @@ import android.webkit.CookieSyncManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.flyingwing.android.R;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -802,23 +799,23 @@ public class Utils {
 		return getStringSymbolCombine(body, sub, SP_MAP_DELIMITER, isAllowRepeat);
 	}
 
-	public static String findStringTarget(String text, String target, String borderFront, String borderRear){
-		if(text == null || target == null || borderFront == null || borderRear == null){
+	public static String findStringTarget(String text, String target, String prefix, String suffix){
+		if(text == null || target == null || prefix == null || suffix == null){
 			return null;
 		}
-		int indexRear = text.indexOf(target);
-		if(indexRear < 0){
+		int indexSuffix = text.indexOf(target);
+		if(indexSuffix < 0){
 			return null;
 		}
-		indexRear = text.indexOf(borderRear, indexRear);
-		if(indexRear < 0){
+		indexSuffix = text.indexOf(suffix, indexSuffix);
+		if(indexSuffix < 0){
 			return null;
 		}
-		int indexFront = text.lastIndexOf(borderFront, indexRear - 1);
-		if(indexFront < 0){
+		int indexPrefix = text.lastIndexOf(prefix, indexSuffix - 1);
+		if(indexPrefix < 0){
 			return null;
 		}
-		return text.substring(indexFront, indexRear + 1);
+		return text.substring(indexPrefix, indexSuffix + 1);
 	}
 
 	public static List<String> filterDigitInString(String text, boolean isAddAloneExistKeyword, String...jointKeywords){
@@ -1037,11 +1034,11 @@ public class Utils {
 		return null;
 	}
 
-	public static Object reflectionField(Object objectSrc, String fieldName){
+	public static Object reflectionField(Object objectClass, String fieldName){
 		try {
-			Field field = objectSrc.getClass().getDeclaredField(fieldName);
+			Field field = objectClass.getClass().getDeclaredField(fieldName);
 			field.setAccessible(true);
-			Object objectField = field.get(objectSrc);
+			Object objectField = field.get(objectClass);
 			field.setAccessible(false);
 			return objectField;
 		} catch (Exception e) {
@@ -1282,37 +1279,6 @@ public class Utils {
 
 	public static String getRawPath(Context context, int rawResourceId){
 		return "android.resource://" + context.getPackageName() + "/" + rawResourceId;
-	}
-
-	@SuppressLint("PrivateResource")
-	public static Toolbar getToolbar(Context context, Drawable backgroundDrawable, int containsStatusHeight){
-		int itemWi = ViewGroup.LayoutParams.MATCH_PARENT;
-		int itemHe = context.getResources().getDimensionPixelSize(R.dimen.toolbarHeight);
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && containsStatusHeight > 0){
-			itemHe += containsStatusHeight;
-		}
-		ViewGroup.MarginLayoutParams viewGroupMarginLayoutParams = new ViewGroup.MarginLayoutParams(itemWi, itemHe);
-		Toolbar toolbar = new Toolbar(context);
-		toolbar.setId(R.id.toolbar);
-		if(backgroundDrawable != null){
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-				toolbar.setBackground(backgroundDrawable);
-			}else{
-				//noinspection deprecation
-				toolbar.setBackgroundDrawable(backgroundDrawable);
-			}
-		}
-		toolbar.setLayoutParams(viewGroupMarginLayoutParams);
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && containsStatusHeight > 0){
-			toolbar.setPadding(0, containsStatusHeight, 0, 0);
-		}
-		toolbar.setContentInsetsRelative(0, 0);
-		toolbar.setNavigationIcon(R.drawable.abc_ic_ab_back_material);
-		return toolbar;
-	}
-
-	public static Toolbar getToolbar(Context context, Drawable backgroundDrawable){
-		return getToolbar(context, backgroundDrawable, 0);
 	}
 
 	public static TypedValue getAttribute(Context context, int attrResource){
