@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.1
+ * @version 2.4.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -24,6 +24,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.text.InputFilter;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
 import android.util.DisplayMetrics;
@@ -65,7 +66,7 @@ public class SubWindow {
 	public static boolean sIsInstanceShow;
 
 	public interface ClickAction {
-		void action(View v, int clickIndex, Bundle bundle);
+		void action(View v, int which, Bundle bundle);
 	}
 
 	public static void alertBuilderMessage(Context context, String title, String message, final DialogInterface.OnClickListener click) {
@@ -333,8 +334,9 @@ public class SubWindow {
 		}
 	}
 
-	public static void alertBuilderInput(final Context context, String title, String message, String editDefault, String editHint, final int min, final int max
-			, final String inputContentKey, final String[] excludeArray, final String[] excludeHintArray, boolean isOutsideCancel, final ClickAction clickAction){
+	public static void alertBuilderInput(final Context context, String title, String message, String editDefault, String editHint, final int minLength
+			, final int maxLength, final String inputContentKey, final String[] excludeArray, final String[] excludeHintArray, boolean isOutsideCancel
+			, final ClickAction clickAction){
 		final Resources res = context.getResources();
 
 		DisplayMetrics dm = new DisplayMetrics();
@@ -360,6 +362,9 @@ public class SubWindow {
 		editText.setGravity(Gravity.CENTER_VERTICAL);
 		editText.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isFillScreenDip480));
 		editText.setSingleLine(true);
+		if(maxLength > 0){
+			editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLength)});
+		}
 		editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
 		linearLayout.addView(editText);
 
@@ -379,8 +384,8 @@ public class SubWindow {
 					return;
 				}
 				String inputName = editText.getText().toString().trim();
-				if(inputName.length() < min || (inputName.length() > max && max > 0)){
-					Utils.setToast(context, res.getString(R.string.char_length_hint, "" + min, "" + max));
+				if(inputName.length() < minLength || (inputName.length() > maxLength && maxLength > 0)){
+					Utils.setToast(context, res.getString(R.string.char_length_hint, "" + minLength, "" + maxLength));
 					return;
 				}
 				Bundle bundle = new Bundle();
@@ -472,9 +477,19 @@ public class SubWindow {
 		alertDialog.show();
 	}
 
+	public static void alertBuilderInput(final Context context, String title, String message, String editDefault, String editHint, final int minLength
+			, final int maxLength, final String inputContentKey, boolean isOutsideCancel, final ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, minLength, maxLength, inputContentKey, null, null, isOutsideCancel, clickAction);
+	}
+
 	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, String inputContentKey
 			, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel, ClickAction clickAction){
 		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, inputContentKey, excludeArray, excludeHintArray, isOutsideCancel, clickAction);
+	}
+
+	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, String inputContentKey
+			, boolean isOutsideCancel, ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, inputContentKey, null, null, isOutsideCancel, clickAction);
 	}
 
 	public static void alertMenuUseButton(final Context context, int width, int height, String title, TextViewAttribute[] textViewAttributes
