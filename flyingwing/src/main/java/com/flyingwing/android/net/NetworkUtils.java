@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.1
+ * @version 1.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -754,6 +754,20 @@ public class NetworkUtils {
 				bluetoothLeScan(context, isStartScan, leScanCallback, handlerNoPermissions);
 			}
 		}
+	}
+
+	public static boolean bluetoothLeRefresh(@NonNull BluetoothGatt bluetoothGatt){
+		boolean isRefresh = false;
+		// Reflection反射調用hide方法
+		try {
+			Method method = bluetoothGatt.getClass().getDeclaredMethod("refresh");
+			method.setAccessible(true);
+			isRefresh = (boolean) method.invoke(bluetoothGatt);
+			method.setAccessible(false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return isRefresh;
 	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
