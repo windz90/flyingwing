@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.2
+ * @version 2.4.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -171,7 +171,7 @@ public class SubWindow {
 			@Override
 			public void onDismiss() {
 				if(clickAction != null){
-					clickAction.action(anchorView, -1, null);
+					clickAction.action(anchorView, DialogInterface.BUTTON_NEGATIVE, null);
 				}
 			}
 		});
@@ -331,6 +331,36 @@ public class SubWindow {
 		});
 		if(!activity.isFinishing()){
 			alertDialogBuilder.show();
+		}
+	}
+
+	public static void popupWindow(Context context, final View contentView, final View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity
+			, int x, int y, int width, int height, final ClickAction clickAction){
+		PopupWindow popupWindow = new PopupWindow(context);
+		popupWindow.setBackgroundDrawable(drawableBackground);
+		popupWindow.setWidth(width);
+		popupWindow.setHeight(height);
+		popupWindow.setFocusable(true);
+		popupWindow.setOutsideTouchable(true);
+		popupWindow.setContentView(contentView);
+
+		popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+
+			@Override
+			public void onDismiss() {
+				if(clickAction != null){
+					clickAction.action(anchorView, DialogInterface.BUTTON_NEGATIVE, null);
+				}
+			}
+		});
+
+		if(context instanceof Activity && ((Activity)context).isFinishing()){
+			return;
+		}
+		if(isSetLocation){
+			popupWindow.showAtLocation(anchorView, gravity, x, y);
+		}else{
+			popupWindow.showAsDropDown(anchorView);
 		}
 	}
 
@@ -571,7 +601,7 @@ public class SubWindow {
 			@Override
 			public void onDismiss(DialogInterface dialog) {
 				if(clickAction != null){
-					clickAction.action(null, -1, null);
+					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
 				}
 			}
 		});
@@ -858,7 +888,7 @@ public class SubWindow {
 			@Override
 			public void onDismiss(DialogInterface dialog) {
 				if(clickAction != null){
-					clickAction.action(null, -1, null);
+					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
 				}
 			}
 		});
@@ -1031,7 +1061,7 @@ public class SubWindow {
 			@Override
 			public void onDismiss(DialogInterface dialog) {
 				if(clickAction != null){
-					clickAction.action(null, -1, null);
+					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
 				}
 			}
 		});
@@ -1202,7 +1232,7 @@ public class SubWindow {
 			@Override
 			public void onDismiss() {
 				if(clickAction != null){
-					clickAction.action(view, -1, null);
+					clickAction.action(view, DialogInterface.BUTTON_NEGATIVE, null);
 				}
 			}
 		});
