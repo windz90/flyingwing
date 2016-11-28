@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.3
+ * @version 2.4.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -186,10 +186,67 @@ public class SubWindow {
 		}
 	}
 
-	public static void popupMessage(Context context, final View anchorView, boolean isSetLocation, int gravity, int x, int y, int width, int height
-			, TextViewAttribute[] textViewAttributes, String[] strArray, final ClickAction clickAction){
+	public static void popupMessage(Context context, View anchorView, boolean isSetLocation, int gravity, int x, int y, int width, int height
+			, TextViewAttribute[] textViewAttributes, String[] strArray, ClickAction clickAction){
 		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), isSetLocation, gravity, x, y, width, height
 				, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity, int x, int y
+			, TextViewAttribute[] textViewAttributes, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, drawableBackground, isSetLocation, gravity, x, y, ViewGroup.LayoutParams.WRAP_CONTENT
+				, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, boolean isSetLocation, int gravity, int x, int y, TextViewAttribute[] textViewAttributes
+			, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), isSetLocation, gravity, x, y
+				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int gravity, int x, int y, int width, int height
+			, TextViewAttribute[] textViewAttributes, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, drawableBackground, true, gravity, x, y, width, height, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, int gravity, int x, int y, int width, int height, TextViewAttribute[] textViewAttributes
+			, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), true, gravity, x, y, width, height
+				, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int gravity, int x, int y, TextViewAttribute[] textViewAttributes
+			, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, drawableBackground, true, gravity, x, y, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+				, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, int gravity, int x, int y, TextViewAttribute[] textViewAttributes, String[] strArray
+			, ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), true, gravity, x, y
+				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int width, int height, TextViewAttribute[] textViewAttributes
+			, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, drawableBackground, false, Gravity.NO_GRAVITY, 0, 0, width, height, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, int width, int height, TextViewAttribute[] textViewAttributes, String[] strArray
+			, final ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0, width, height
+				, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, TextViewAttribute[] textViewAttributes, String[] strArray
+			, ClickAction clickAction){
+		popupMessage(context, anchorView, drawableBackground, false, Gravity.NO_GRAVITY, 0, 0, ViewGroup.LayoutParams.WRAP_CONTENT
+				, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, TextViewAttribute[] textViewAttributes, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0
+				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
 	}
 
 	public static void popupMessage(Context context, final View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity, int x, int y
@@ -215,49 +272,34 @@ public class SubWindow {
 		popupMessage(context, anchorView, drawableBackground, isSetLocation, gravity, x, y, width, height, textViewAttributes, strArray, clickAction);
 	}
 
-	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity, int x, int y
-			, TextViewAttribute[] textViewAttributes, String[] strArray, ClickAction clickAction){
-		popupMessage(context, anchorView, drawableBackground, isSetLocation, gravity, x, y, ViewGroup.LayoutParams.WRAP_CONTENT
-				, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
-	}
-
-	public static void popupMessage(Context context, View anchorView, boolean isSetLocation, int gravity, int x, int y, TextViewAttribute[] textViewAttributes
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int gravity, int x, int y, int width, int height
 			, String[] strArray, ClickAction clickAction){
-		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), isSetLocation, gravity, x, y
-				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
+		popupMessage(context, anchorView, drawableBackground, true, gravity, x, y, width, height, strArray, clickAction);
 	}
 
-	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity, int x, int y
-			, String[] strArray, ClickAction clickAction){
-		popupMessage(context, anchorView, drawableBackground, isSetLocation, gravity, x, y, ViewGroup.LayoutParams.WRAP_CONTENT
-				, ViewGroup.LayoutParams.WRAP_CONTENT, strArray, clickAction);
+	public static void popupMessage(Context context, View anchorView, int gravity, int x, int y, int width, int height, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), true, gravity, x, y, width, height
+				, strArray, clickAction);
 	}
 
-	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int width, int height
-			, TextViewAttribute[] textViewAttributes, String[] strArray, ClickAction clickAction){
-		popupMessage(context, anchorView, drawableBackground, false, Gravity.NO_GRAVITY, 0, 0, width, height, textViewAttributes, strArray, clickAction);
-	}
-
-	public static void popupMessage(Context context, View anchorView, int width, int height, TextViewAttribute[] textViewAttributes, String[] strArray
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int gravity, int x, int y, String[] strArray
 			, ClickAction clickAction){
-		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0
-				, width, height, textViewAttributes, strArray, clickAction);
+		popupMessage(context, anchorView, drawableBackground, true, gravity, x, y, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+				, strArray, clickAction);
 	}
 
-	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int width, int height, String[] strArray
-			, ClickAction clickAction){
+	public static void popupMessage(Context context, View anchorView, int gravity, int x, int y, String[] strArray, ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, gravity, x, y
+				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, strArray, clickAction);
+	}
+
+	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, int width, int height, String[] strArray, ClickAction clickAction){
 		popupMessage(context, anchorView, drawableBackground, false, Gravity.NO_GRAVITY, 0, 0, width, height, strArray, clickAction);
 	}
 
-	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, TextViewAttribute[] textViewAttributes
-			, String[] strArray, ClickAction clickAction){
-		popupMessage(context, anchorView, drawableBackground, false, Gravity.NO_GRAVITY, 0, 0, ViewGroup.LayoutParams.WRAP_CONTENT
-				, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
-	}
-
-	public static void popupMessage(Context context, View anchorView, TextViewAttribute[] textViewAttributes, String[] strArray, ClickAction clickAction){
-		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0
-				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, textViewAttributes, strArray, clickAction);
+	public static void popupMessage(Context context, View anchorView, int width, int height, String[] strArray, final ClickAction clickAction){
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0, width, height
+				, strArray, clickAction);
 	}
 
 	public static void popupMessage(Context context, View anchorView, Drawable drawableBackground, String[] strArray, ClickAction clickAction){
@@ -266,7 +308,8 @@ public class SubWindow {
 	}
 
 	public static void popupMessage(Context context, View anchorView, String[] strArray, ClickAction clickAction){
-		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), strArray, clickAction);
+		popupMessage(context, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0
+				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, strArray, clickAction);
 	}
 
 	public static void alertBuilderConfirm(final Context context, String title, String message, final ClickAction clickAction){
@@ -334,7 +377,7 @@ public class SubWindow {
 		}
 	}
 
-	public static void popupWindow(Context context, final View contentView, final View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity
+	public static void popupWindow(Context context, View contentView, final View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity
 			, int x, int y, int width, int height, final ClickAction clickAction){
 		PopupWindow popupWindow = new PopupWindow(context);
 		popupWindow.setBackgroundDrawable(drawableBackground);
@@ -362,6 +405,45 @@ public class SubWindow {
 		}else{
 			popupWindow.showAsDropDown(anchorView);
 		}
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, Drawable drawableBackground, int gravity, int x, int y, int width, int height
+			, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, drawableBackground, true, gravity, x, y, width, height, clickAction);
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, int gravity, int x, int y, int width, int height, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), true, gravity, x, y, width, height
+				, clickAction);
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, Drawable drawableBackground, int gravity, int x, int y, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, drawableBackground, true, gravity, x, y, ViewGroup.LayoutParams.WRAP_CONTENT
+				, ViewGroup.LayoutParams.WRAP_CONTENT, clickAction);
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, int gravity, int x, int y, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), true, gravity, x, y
+				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, clickAction);
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, Drawable drawableBackground, int width, int height, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, drawableBackground, false, Gravity.NO_GRAVITY, 0, 0, width, height, clickAction);
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, int width, int height, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0
+				, width, height, clickAction);
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, Drawable drawableBackground, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, drawableBackground, false, Gravity.NO_GRAVITY, 0, 0, ViewGroup.LayoutParams.WRAP_CONTENT
+				, ViewGroup.LayoutParams.WRAP_CONTENT, clickAction);
+	}
+
+	public static void popupWindow(Context context, View contentView, View anchorView, ClickAction clickAction){
+		popupWindow(context, contentView, anchorView, ContextCompat.getDrawable(context, R.drawable.popup_background_mtrl_mult), false, Gravity.NO_GRAVITY, 0, 0
+				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, clickAction);
 	}
 
 	public static void alertBuilderInput(final Context context, String title, String message, String editDefault, String editHint, final int minLength
