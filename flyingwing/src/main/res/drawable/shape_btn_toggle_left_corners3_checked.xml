@@ -1,17 +1,17 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-	<item android:id="@+id/item1" android:left="-1dip" android:right="-1dip">
+	<item android:id="@+id/item1" android:right="-1dip">
 		<shape android:shape="rectangle">
 			<corners
-				android:topLeftRadius="0dip"
+				android:topLeftRadius="3dip"
 				android:topRightRadius="0dip"
-				android:bottomLeftRadius="0dip"
+				android:bottomLeftRadius="3dip"
 				android:bottomRightRadius="0dip"/>
-			<solid android:color="@android:color/transparent"/>
+			<solid android:color="#22000000"/>
 			<padding
-				android:left="5dip"
-				android:top="5dip"
-				android:right="5dip"
-				android:bottom="5dip"/>
+				android:left="4dip"
+				android:top="4dip"
+				android:right="4dip"
+				android:bottom="4dip"/>
 			<stroke
 				android:color="@color/WhiteGray"
 				android:width="2dip"/>

@@ -6,12 +6,12 @@
 				android:topRightRadius="0dip"
 				android:bottomLeftRadius="0dip"
 				android:bottomRightRadius="0dip"/>
-			<solid android:color="#22000000"/>
+			<solid android:color="@android:color/transparent"/>
 			<padding
-				android:left="5dip"
-				android:top="5dip"
-				android:right="5dip"
-				android:bottom="5dip"/>
+				android:left="4dip"
+				android:top="4dip"
+				android:right="4dip"
+				android:bottom="4dip"/>
 			<stroke
 				android:color="@color/WhiteGray"
 				android:width="2dip"/>
