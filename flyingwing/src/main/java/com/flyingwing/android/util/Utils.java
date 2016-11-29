@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.9
+ * @version 3.5.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1878,9 +1878,7 @@ public class Utils {
 		return intent;
 	}
 
-	public static Intent getLauncherIntent(String packageName, String className){
-		Intent intent = new Intent();
-		intent.setComponent(new ComponentName(packageName, className));
+	public static Intent getLauncherIntent(Intent intent){
 		intent.setAction(Intent.ACTION_MAIN);
 		intent.addCategory(Intent.CATEGORY_LAUNCHER);
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -1888,23 +1886,49 @@ public class Utils {
 		return intent;
 	}
 
-	public static Intent getLauncherIntent(Context context, Class<?> targetClass){
-		return getLauncherIntent(context.getPackageName(), targetClass.getName());
+	public static Intent getLauncherIntent(String packageName, String className){
+		Intent intent = new Intent();
+		intent.setComponent(new ComponentName(packageName, className));
+		return getLauncherIntent(intent);
 	}
 
-	public static Intent getBackTaskIntent(Context context, Class<? extends Activity> targetClass){
-		Intent intent = new Intent(context, targetClass);
+	public static Intent getLauncherIntent(Context context, Class<?> targetClass){
+		return getLauncherIntent(new Intent(context, targetClass));
+	}
+
+	public static Intent getBackTaskIntent(Intent intent){
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		return intent;
 	}
 
+	public static Intent getBackTaskIntent(String packageName, String className){
+		Intent intent = new Intent();
+		intent.setComponent(new ComponentName(packageName, className));
+		return getBackTaskIntent(intent);
+	}
+
+	public static Intent getBackTaskIntent(Context context, Class<? extends Activity> targetClass){
+		return getBackTaskIntent(new Intent(context, targetClass));
+	}
+
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static Intent getBackDifferentTaskIntent(Context context, Class<? extends Activity> targetClass){
-		Intent intent = new Intent(context, targetClass);
+	public static Intent getBackDifferentTaskIntent(Intent intent){
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		return intent;
+	}
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public static Intent getBackDifferentTaskIntent(String packageName, String className){
+		Intent intent = new Intent();
+		intent.setComponent(new ComponentName(packageName, className));
+		return getBackDifferentTaskIntent(intent);
+	}
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public static Intent getBackDifferentTaskIntent(Context context, Class<? extends Activity> targetClass){
+		return getBackDifferentTaskIntent(new Intent(context, targetClass));
 	}
 
 	public static Intent getContentSelectionIntent(String intentType, boolean allowMultiple){
