@@ -34,7 +34,7 @@
 	<string name="permission_denied">Permission denied</string>
 	<string name="try_again">Please try again</string>
 	<string name="connection_failed">Connection failed</string>
-	<string name="no_network_connection">No network connection</string>
+	<string name="network_not_available">Network not available</string>
 	<string name="out_of_memory_error">Out of memory</string>
 	<string name="unknown_error">Unknown error</string>
 </resources>
