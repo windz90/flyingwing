@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.10
+ * @version 3.5.11
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -47,6 +47,7 @@ import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.MemoryFile;
 import android.os.Message;
 import android.os.PowerManager;
@@ -2476,6 +2477,20 @@ public class Utils {
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			needRequestPermissions = isCheckRequest ? checkNeedRequestPermissions(fragment.getActivity(), permissions) : null;
 			fragment.requestPermissions(needRequestPermissions == null ? permissions : needRequestPermissions, onRequestPermissionsResultRequestCode);
+		}
+	}
+
+	public static boolean isMainThread(){
+		// Looper.getMainLooper().getThread() == Thread.currentThread();
+		// Looper.getMainLooper().getThread().getId() == Thread.currentThread().getId();
+		return Looper.getMainLooper() == Looper.myLooper();
+	}
+
+	public static void runMainThread(Handler.Callback callback){
+		if(isMainThread()){
+			callback.handleMessage(null);
+		}else{
+			new Handler(Looper.getMainLooper(), callback).sendEmptyMessage(0);
 		}
 	}
 
