@@ -1,12 +1,13 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.6
+ * @version 3.5.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.net;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -51,9 +52,10 @@ public class NetworkAccess {
 
 	public static final int CONNECTION_NO_NETWORK = 100;
 	public static final int CONNECTION_CONNECT_FAIL = 101;
-	public static final int CONNECTION_CONNECTED = 102;
-	public static final int CONNECTION_LOAD_FAIL = 103;
-	public static final int CONNECTION_LOADED = 104;
+	public static final int CONNECTION_RECEIVED_ERROR = 102;
+	public static final int CONNECTION_CONNECTED = 103;
+	public static final int CONNECTION_LOAD_FAIL = 104;
+	public static final int CONNECTION_LOADED = 105;
 	public static final int OUTPUT_TYPE_BYTES = 0;
 	public static final int OUTPUT_TYPE_STRING = 1;
 	public static final int OUTPUT_TYPE_FILE = 2;
@@ -207,16 +209,6 @@ public class NetworkAccess {
 				connectionResult.setHttpURLConnection(httpURLConnection);
 			}
 
-			InputStream inputStreamError = httpURLConnection.getErrorStream();
-			if(inputStreamError != null){
-				if(connectionResult != null){
-					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
-					connectionResult.setStatusMessage(new String(inputStreamToByteArray(inputStreamError, NETWORKSETTING.mBufferSize, connectionResult)
-							, Charset.forName("UTF-8")));
-				}
-				return;
-			}
-
 			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
 				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
 					printInfo("Connection connect OK, StatusCode " + httpURLConnection.getResponseCode());
@@ -253,6 +245,19 @@ public class NetworkAccess {
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
 				printInfo("Connection connect failed, exception " + e);
 			}
+			return;
+		}
+		InputStream inputStreamError = httpURLConnection.getErrorStream();
+		if(inputStreamError != null){
+			String errorMessage = inputStreamToString(inputStreamError, Charset.forName("UTF-8"), NETWORKSETTING.mBufferSize, connectionResult);
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_RECEIVED_ERROR);
+				connectionResult.setStatusMessage(errorMessage);
+			}
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection received error, message " + errorMessage);
+			}
+			httpURLConnection.disconnect();
 			return;
 		}
 		if(outputType == OUTPUT_TYPE_SKIP){
@@ -482,9 +487,11 @@ public class NetworkAccess {
 
 			// This SSL no verify and trust any certificate, very dangerous.
 			sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+				@SuppressLint("TrustAllX509TrustManager")
 				@Override
 				public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
 
+				@SuppressLint("TrustAllX509TrustManager")
 				@Override
 				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
 
@@ -710,19 +717,23 @@ public class NetworkAccess {
 				printInfo("read bytes, length " + byteArray.length);
 			}
 		} catch (IOException e) {
-			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+				}
 			}
 		} catch (OutOfMemoryError e) {
 			baos = null;
 			byteArray = null;
 			is = null;
-			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+				}
 			}
 		}
 		return byteArray;
@@ -759,19 +770,23 @@ public class NetworkAccess {
 				printInfo(stringBuilder.toString());
 			}
 		} catch (IOException e) {
-			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+				}
 			}
 		} catch (OutOfMemoryError e) {
 			stringBuilder = null;
 			reader = null;
 			is = null;
-			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
+				}
 			}
 		}
 		return stringBuilder == null ? null : stringBuilder.toString();
