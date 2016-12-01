@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.11
+ * @version 3.5.12
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -142,6 +142,8 @@ public class Utils {
 	public static final int SIZE_TITLE_XL = 27;
 	public static final int SIZE_TAB_XL = 28;
 	public static final int SIZE_SUBJECT_XL = 29;
+
+	public static final char[] HEX_CHARS_SAMPLE = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
 	public static final String SP_KEY_STATUS_BAR_HEIGHT = "statusBarHe";
 	public static final String SP_MAP_HEAD = "/!#/spMapHead/#!/";
@@ -309,43 +311,6 @@ public class Utils {
 	}
 
 	@SuppressWarnings("UnusedAssignment")
-	public static OutputStream byteArrayToOutputStream(byte[] byteArray, OutputStream os, int bufferSize){
-		if(byteArray == null || os == null){
-			return null;
-		}
-		if(bufferSize < 8192){
-			bufferSize = 8192;
-		}
-		InputStream is;
-		try {
-			is = new ByteArrayInputStream(byteArray);
-			try {
-				int progress;
-				byte[] buffer = new byte[bufferSize];
-				while((progress = is.read(buffer)) != -1){
-					os.write(buffer, 0, progress);
-				}
-				os.flush();
-			} finally {
-				is.close();
-			}
-			return os;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			is = null;
-			os = null;
-			byteArray = null;
-			e.printStackTrace();
-		}
-		return os;
-	}
-
-	public static OutputStream byteArrayToOutputStream(byte[] byteArray, OutputStream os){
-		return byteArrayToOutputStream(byteArray, os, 1024 * 16);
-	}
-
-	@SuppressWarnings("UnusedAssignment")
 	public static byte[] fileToByteArray(File file){
 		if(file == null){
 			return null;
@@ -372,6 +337,54 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return byteArray;
+	}
+
+	public static String byteArrayToHexString(byte[] bytes){
+		char[] hexChars = new char[bytes.length * 2];
+		int value;
+		for(int i=0; i<bytes.length; i++){
+			value = bytes[i] & 0xFF;
+			hexChars[i * 2] = HEX_CHARS_SAMPLE[value >>> 4];
+			hexChars[i * 2 + 1] = HEX_CHARS_SAMPLE[value & 0x0F];
+		}
+		return new String(hexChars);
+	}
+
+	@SuppressWarnings("UnusedAssignment")
+	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os, int bufferSize){
+		if(byteArray == null || os == null){
+			return false;
+		}
+		if(bufferSize < 8192){
+			bufferSize = 8192;
+		}
+		InputStream is;
+		try {
+			is = new ByteArrayInputStream(byteArray);
+			try {
+				int progress;
+				byte[] buffer = new byte[bufferSize];
+				while((progress = is.read(buffer)) != -1){
+					os.write(buffer, 0, progress);
+				}
+				os.flush();
+			} finally {
+				is.close();
+			}
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (OutOfMemoryError e) {
+			is = null;
+			os = null;
+			byteArray = null;
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os){
+		return ByteArrayWriteOutStream(byteArray, os, 1024 * 16);
 	}
 
 	@SuppressWarnings("UnusedAssignment")
@@ -407,18 +420,6 @@ public class Utils {
 
 	public static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os){
 		return inputStreamWriteOutputStream(is, os, 1024 * 16);
-	}
-
-	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os, int bufferSize){
-		if(byteArray == null || os == null){
-			return false;
-		}
-		InputStream bais = new ByteArrayInputStream(byteArray);
-		return inputStreamWriteOutputStream(bais, os, bufferSize);
-	}
-
-	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os){
-		return ByteArrayWriteOutStream(byteArray, os, 1024 * 16);
 	}
 
 	public static boolean writeMemoryFile(String name, int length, boolean allowPurging, InputStream is, int bufferSize){
