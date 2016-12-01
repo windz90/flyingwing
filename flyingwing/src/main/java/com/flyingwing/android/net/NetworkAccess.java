@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.7
+ * @version 3.5.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -52,10 +52,9 @@ public class NetworkAccess {
 
 	public static final int CONNECTION_NO_NETWORK = 100;
 	public static final int CONNECTION_CONNECT_FAIL = 101;
-	public static final int CONNECTION_RECEIVED_ERROR = 102;
-	public static final int CONNECTION_CONNECTED = 103;
-	public static final int CONNECTION_LOAD_FAIL = 104;
-	public static final int CONNECTION_LOADED = 105;
+	public static final int CONNECTION_CONNECTED = 102;
+	public static final int CONNECTION_LOAD_FAIL = 103;
+	public static final int CONNECTION_LOADED = 104;
 	public static final int OUTPUT_TYPE_BYTES = 0;
 	public static final int OUTPUT_TYPE_STRING = 1;
 	public static final int OUTPUT_TYPE_FILE = 2;
@@ -209,6 +208,17 @@ public class NetworkAccess {
 				connectionResult.setHttpURLConnection(httpURLConnection);
 			}
 
+			InputStream inputStreamError = httpURLConnection.getErrorStream();
+			if(inputStreamError != null){
+				String errorMessage = inputStreamToString(inputStreamError, Charset.forName("UTF-8"), NETWORKSETTING.mBufferSize, connectionResult);
+				if(connectionResult != null){
+					connectionResult.setErrorMessage("Connection received error, message:\n" + errorMessage);
+				}
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					printInfo("Connection received error, message:\n" + errorMessage);
+				}
+			}
+
 			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
 				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
 					printInfo("Connection connect OK, StatusCode " + httpURLConnection.getResponseCode());
@@ -245,19 +255,6 @@ public class NetworkAccess {
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
 				printInfo("Connection connect failed, exception " + e);
 			}
-			return;
-		}
-		InputStream inputStreamError = httpURLConnection.getErrorStream();
-		if(inputStreamError != null){
-			String errorMessage = inputStreamToString(inputStreamError, Charset.forName("UTF-8"), NETWORKSETTING.mBufferSize, connectionResult);
-			if(connectionResult != null){
-				connectionResult.setStatusCode(CONNECTION_RECEIVED_ERROR);
-				connectionResult.setStatusMessage(errorMessage);
-			}
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-				printInfo("Connection received error, message " + errorMessage);
-			}
-			httpURLConnection.disconnect();
 			return;
 		}
 		if(outputType == OUTPUT_TYPE_SKIP){
@@ -584,6 +581,9 @@ public class NetworkAccess {
 			Charset charset = Charset.forName("UTF-8");
 			String line;
 			for(Object[] contentArray : contentArrays){
+				if(contentArray.length == 2 && (contentArray[0] == null || contentArray[1] == null)){
+					continue;
+				}
 				line = hyphens + boundary +
 						breakLine;
 				dataOutputStream.write(line.getBytes(charset));
@@ -843,6 +843,7 @@ public class NetworkAccess {
 		private File mContentOutputFile;
 		private int mStatusCode;
 		private String mStatusMessage;
+		private String mErrorMessage;
 		private HttpURLConnection mHttpURLConnection;
 
 		public void setContentLength(long contentLength){
@@ -871,6 +872,10 @@ public class NetworkAccess {
 
 		public void setStatusMessage(String statusMessage){
 			mStatusMessage = statusMessage;
+		}
+
+		public void setErrorMessage(String errorMessage){
+			mErrorMessage = errorMessage;
 		}
 
 		private void setHttpURLConnection(HttpURLConnection httpURLConnection){
@@ -909,6 +914,10 @@ public class NetworkAccess {
 
 		public String getStatusMessage(){
 			return mStatusMessage;
+		}
+
+		public String getErrorMessage(){
+			return mErrorMessage;
 		}
 
 		public HttpURLConnection getHttpURLConnection(){
