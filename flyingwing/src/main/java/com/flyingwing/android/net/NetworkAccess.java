@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.8
+ * @version 3.5.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -213,9 +213,6 @@ public class NetworkAccess {
 				String errorMessage = inputStreamToString(inputStreamError, Charset.forName("UTF-8"), NETWORKSETTING.mBufferSize, connectionResult);
 				if(connectionResult != null){
 					connectionResult.setErrorMessage("Connection received error, message:\n" + errorMessage);
-				}
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					printInfo("Connection received error, message:\n" + errorMessage);
 				}
 			}
 
