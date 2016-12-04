@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.11
+ * @version 1.0.12
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -295,10 +295,11 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 
 	public void removeRangeItemFromComplexList(int positionStart, int itemCount){
 		if(mComplexList != null && mComplexList.size() >= positionStart + itemCount){
-			for(int i=0; i<itemCount; i++){
+			int size = itemCount;
+			for(int i=0; i<size; i++){
 				mComplexList.remove(positionStart + i);
 				i--;
-				itemCount--;
+				size--;
 			}
 			notifyItemRangeRemoved(positionStart, itemCount);
 			notifyItemRangeChanged(positionStart, itemCount);
@@ -393,10 +394,11 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 
 	public void removeRangeItemFromList(int positionStart, int itemCount){
 		if(mList != null && mList.size() >= positionStart + itemCount){
-			for(int i=0; i<itemCount; i++){
+			int size = itemCount;
+			for(int i=0; i<size; i++){
 				mList.remove(positionStart + i);
 				i--;
-				itemCount--;
+				size--;
 			}
 			notifyItemRangeRemoved(positionStart, itemCount);
 			notifyItemRangeChanged(positionStart, itemCount);
@@ -511,11 +513,12 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 
 	public void removeRangeItemFromJSONArray(int positionStart, int itemCount){
 		if(mJsonArray != null && mJsonArray.length() >= positionStart + itemCount){
+			int size = itemCount;
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
-				for(int i=0; i<itemCount; i++){
+				for(int i=0; i<size; i++){
 					mJsonArray.remove(positionStart + i);
 					i--;
-					itemCount--;
+					size--;
 				}
 				notifyItemRangeRemoved(positionStart, itemCount);
 				notifyItemRangeChanged(positionStart, itemCount);
@@ -523,10 +526,10 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 			}
 			List<Object> list = Utils.reflectionJSONArrayToList(mJsonArray);
 			if(list != null){
-				for(int i=0; i<itemCount; i++){
+				for(int i=0; i<size; i++){
 					list.remove(positionStart + i);
 					i--;
-					itemCount--;
+					size--;
 				}
 				notifyItemRangeRemoved(positionStart, itemCount);
 				notifyItemRangeChanged(positionStart, itemCount);
