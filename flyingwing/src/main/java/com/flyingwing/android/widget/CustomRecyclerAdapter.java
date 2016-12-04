@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.12
+ * @version 1.0.13
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -437,7 +437,7 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 					list.add(positionStart + i, jsonArray.opt(i));
 				}
 			}else{
-				mJsonArray.put(mJsonArray.opt(i));
+				mJsonArray.put(jsonArray.opt(i));
 			}
 		}
 		notifyItemRangeInserted(positionStart, length);
@@ -481,10 +481,10 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		for(int i=0; i<length; i++){
 			if(mJsonArray.length() > positionStart + i){
 				try {
-					mJsonArray.put(positionStart + i, mJsonArray.opt(i));
+					mJsonArray.put(positionStart + i, jsonArray.opt(i));
 				} catch (Exception ignored) {}
 			}else{
-				mJsonArray.put(mJsonArray.opt(i));
+				mJsonArray.put(jsonArray.opt(i));
 			}
 		}
 		notifyItemRangeInserted(positionStart, length);
