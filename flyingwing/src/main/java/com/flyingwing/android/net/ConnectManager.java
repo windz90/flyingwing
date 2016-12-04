@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.4
+ * @version 3.3.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -152,6 +152,40 @@ public class ConnectManager {
 
 		public ExecutorService getExecutorService(){
 			return mExecutorService;
+		}
+	}
+
+	public static class ConnectSettingSync extends ConnectSetting {
+		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText){
+			setUseThread(false);
+			setUseHandler(false);
+			setDialogShow(isDialogShow);
+			setDialogDismiss(isDialogDismiss);
+			setSyncLock(false);
+			setConnectionType(connectionType);
+			setLabelText(labelText);
+			setExecutorService(null);
+		}
+		public ConnectSettingSync(int connectionType, String labelText){
+			this(true, true, connectionType, null);
+		}
+		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, String labelText){
+			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
+		}
+		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
+			this(isDialogShow, isDialogDismiss, connectionType, null);
+		}
+		public ConnectSettingSync(String labelText){
+			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, labelText);
+		}
+		public ConnectSettingSync(int connectionType){
+			this(true, true, connectionType, null);
+		}
+		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss){
+			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
+		}
+		public ConnectSettingSync(){
+			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, null);
 		}
 	}
 
