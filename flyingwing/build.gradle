@@ -17,7 +17,7 @@ android {
 		minSdkVersion 9 // Android Support Library 24.2.0 removes support for Android 2.2 (API level 8) and lower.
 		targetSdkVersion 24
 		versionCode 1
-		versionName "1.0.20"
+		versionName "1.0.21"
 		multiDexEnabled true
 	}
 
