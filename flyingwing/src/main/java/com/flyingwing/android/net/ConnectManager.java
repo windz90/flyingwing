@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.5
+ * @version 3.3.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -167,10 +167,10 @@ public class ConnectManager {
 			setExecutorService(null);
 		}
 		public ConnectSettingSync(int connectionType, String labelText){
-			this(true, true, connectionType, null);
+			this(true, true, connectionType, labelText);
 		}
 		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, String labelText){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
+			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, labelText);
 		}
 		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
 			this(isDialogShow, isDialogDismiss, connectionType, null);
@@ -201,10 +201,10 @@ public class ConnectManager {
 			setExecutorService(null);
 		}
 		public ConnectSettingSyncBegin(int connectionType, String labelText){
-			this(true, true, connectionType, null);
+			this(true, true, connectionType, labelText);
 		}
 		public ConnectSettingSyncBegin(boolean isDialogShow, boolean isDialogDismiss, String labelText){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
+			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, labelText);
 		}
 		public ConnectSettingSyncBegin(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
 			this(isDialogShow, isDialogDismiss, connectionType, null);
@@ -235,10 +235,10 @@ public class ConnectManager {
 			setExecutorService(null);
 		}
 		public ConnectSettingSyncEnd(int connectionType, String labelText){
-			this(true, true, connectionType, null);
+			this(true, true, connectionType, labelText);
 		}
 		public ConnectSettingSyncEnd(boolean isDialogShow, boolean isDialogDismiss, String labelText){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
+			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, labelText);
 		}
 		public ConnectSettingSyncEnd(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
 			this(isDialogShow, isDialogDismiss, connectionType, null);
