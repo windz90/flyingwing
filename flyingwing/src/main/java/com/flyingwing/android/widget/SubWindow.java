@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.4
+ * @version 2.4.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -35,7 +35,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
@@ -446,9 +445,9 @@ public class SubWindow {
 				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, clickAction);
 	}
 
-	public static void alertBuilderInput(final Context context, String title, String message, String editDefault, String editHint, final int minLength
-			, final int maxLength, final String inputContentKey, final String[] excludeArray, final String[] excludeHintArray, boolean isOutsideCancel
-			, final ClickAction clickAction){
+	public static void alertBuilderInput(final Context context, String title, String message, View contentView, final EditText editText, final int imeOptions
+			, final int minLength, final int maxLength, final String inputContentKey, final String[] excludeArray, final String[] excludeHintArray
+			, boolean isOutsideCancel, final ClickAction clickAction){
 		final Resources res = context.getResources();
 
 		DisplayMetrics dm = new DisplayMetrics();
@@ -456,34 +455,17 @@ public class SubWindow {
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH_480);
 
-		int itemWi, itemHe;
-		LayoutParams linearLayoutParams;
-
 		LinearLayout linearLayout;
-		final EditText editText;
 
 		linearLayout = new LinearLayout(context);
 		linearLayout.setOrientation(LinearLayout.VERTICAL);
 		linearLayout.setGravity(Gravity.CENTER_HORIZONTAL);
 
-		itemWi = res.getDimensionPixelSize(R.dimen.dip280);
-		itemHe = res.getDimensionPixelSize(R.dimen.toolbarHeight);
-		linearLayoutParams = new LayoutParams(itemWi, itemHe);
-		editText = new EditText(context);
-		editText.setLayoutParams(linearLayoutParams);
-		editText.setGravity(Gravity.CENTER_VERTICAL);
-		editText.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isFillScreenDip480));
-		editText.setSingleLine(true);
-		if(maxLength > 0){
-			editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLength)});
+		if(contentView == null){
+			contentView = editText;
 		}
-		editText.setImeOptions(EditorInfo.IME_ACTION_DONE);
-		linearLayout.addView(editText);
 
-		editText.setText(editDefault);
-		editText.setSelection(editText.getText().length());
-
-		editText.setHint(editHint);
+		linearLayout.addView(contentView);
 
 		final DialogInterface.OnClickListener onClick = new DialogInterface.OnClickListener() {
 
@@ -530,8 +512,8 @@ public class SubWindow {
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
 		alertDialogBuilder.setView(linearLayout);
-		alertDialogBuilder.setPositiveButton(context.getString(R.string.submit), null); // disable click button auto dismiss
-		alertDialogBuilder.setNegativeButton(context.getString(R.string.cancel), null);
+		alertDialogBuilder.setPositiveButton(res.getString(R.string.submit), null); // disable click button auto dismiss
+		alertDialogBuilder.setNegativeButton(res.getString(R.string.cancel), null);
 		final AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
 		alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
@@ -558,7 +540,7 @@ public class SubWindow {
 			WindowManager.LayoutParams windowManagerLayoutParams = window.getAttributes();
 			windowManagerLayoutParams.x = 0;
 			windowManagerLayoutParams.y = 0;
-			windowManagerLayoutParams.width = itemWi;
+			windowManagerLayoutParams.width = contentView.getLayoutParams().width;
 			window.setAttributes(windowManagerLayoutParams);
 		}
 
@@ -576,7 +558,7 @@ public class SubWindow {
 
 			@Override
 			public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-				if (actionId == EditorInfo.IME_ACTION_DONE && clickAction != null) {
+				if (actionId == imeOptions && clickAction != null) {
 					onClick.onClick(alertDialog, DialogInterface.BUTTON_POSITIVE);
 				}
 				return false;
@@ -589,19 +571,82 @@ public class SubWindow {
 		alertDialog.show();
 	}
 
-	public static void alertBuilderInput(final Context context, String title, String message, String editDefault, String editHint, final int minLength
-			, final int maxLength, final String inputContentKey, boolean isOutsideCancel, final ClickAction clickAction){
-		alertBuilderInput(context, title, message, editDefault, editHint, minLength, maxLength, inputContentKey, null, null, isOutsideCancel, clickAction);
+	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, int minLength, int maxLength
+			, int inputType, int imeOptions, String inputContentKey, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel
+			, ClickAction clickAction){
+		Resources res = context.getResources();
+
+		DisplayMetrics dm = new DisplayMetrics();
+		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		windowManager.getDefaultDisplay().getMetrics(dm);
+		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH_480);
+
+		int itemWi, itemHe;
+		LayoutParams linearLayoutParams;
+
+		itemWi = res.getDimensionPixelSize(R.dimen.dip280);
+		itemHe = res.getDimensionPixelSize(R.dimen.toolbarHeight);
+		linearLayoutParams = new LayoutParams(itemWi, itemHe);
+		EditText editText = new EditText(context);
+		editText.setLayoutParams(linearLayoutParams);
+		editText.setGravity(Gravity.CENTER_VERTICAL);
+		editText.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isFillScreenDip480));
+		editText.setSingleLine(true);
+		if(maxLength > 0){
+			editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLength)});
+		}
+		editText.setInputType(inputType);
+		editText.setImeOptions(imeOptions);
+
+		editText.setText(editDefault);
+		editText.setSelection(editText.getText().length());
+
+		editText.setHint(editHint);
+
+		alertBuilderInput(context, title, message, editText, editText, minLength, maxLength, imeOptions, inputContentKey, excludeArray, excludeHintArray
+				, isOutsideCancel, clickAction);
 	}
 
-	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, String inputContentKey
-			, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel, ClickAction clickAction){
-		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, inputContentKey, excludeArray, excludeHintArray, isOutsideCancel, clickAction);
+	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, int minLength, int maxLength
+			, int imeOptions, String inputContentKey, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel, ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, minLength, maxLength, new EditText(context).getInputType(), imeOptions, inputContentKey
+				, excludeArray, excludeHintArray, isOutsideCancel, clickAction);
+	}
+
+	public static void alertBuilderInput(final Context context, String title, String message, String editDefault, String editHint, final int minLength
+			, final int maxLength, int inputType, int imeOptions, final String inputContentKey, boolean isOutsideCancel, final ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, minLength, maxLength, inputType, imeOptions, inputContentKey, null, null, isOutsideCancel
+				, clickAction);
+	}
+
+	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, int minLength, int maxLength
+			, int imeOptions, String inputContentKey, boolean isOutsideCancel, ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, minLength, maxLength, new EditText(context).getInputType(), imeOptions, inputContentKey
+				, null, null, isOutsideCancel, clickAction);
+	}
+
+	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, int inputType, int imeOptions
+			, String inputContentKey, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel, ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, inputType, imeOptions, inputContentKey, excludeArray, excludeHintArray
+				, isOutsideCancel, clickAction);
+	}
+
+	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, int inputType, int imeOptions
+			, String inputContentKey, boolean isOutsideCancel, ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, inputType, imeOptions, inputContentKey, null, null, isOutsideCancel, clickAction);
+	}
+
+	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, int imeOptions, String inputContentKey
+			, boolean isOutsideCancel, ClickAction clickAction){
+		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, new EditText(context).getInputType(), imeOptions, inputContentKey, null, null
+				, isOutsideCancel, clickAction);
 	}
 
 	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, String inputContentKey
 			, boolean isOutsideCancel, ClickAction clickAction){
-		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, inputContentKey, null, null, isOutsideCancel, clickAction);
+		EditText editText = new EditText(context);
+		alertBuilderInput(context, title, message, editDefault, editHint, -1, -1, editText.getInputType(), editText.getImeOptions(), inputContentKey, null, null
+				, isOutsideCancel, clickAction);
 	}
 
 	public static void alertMenuUseButton(final Context context, int width, int height, String title, TextViewAttribute[] textViewAttributes
