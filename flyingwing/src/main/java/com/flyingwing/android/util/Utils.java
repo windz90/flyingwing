@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.12
+ * @version 3.5.13
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -2438,7 +2438,7 @@ public class Utils {
 				stringBuilder.append(permissions[i].trim());
 			}
 		}
-		return stringBuilder.length() == 0 ? null : stringBuilder.toString().split("\n");
+		return stringBuilder.length() == 0 ? new String[0] : stringBuilder.toString().split("\n");
 	}
 
 	public static String[] checkNeedRationaleRequestPermissions(Activity activity, String...permissions){
@@ -2468,16 +2468,28 @@ public class Utils {
 		String[] needRequestPermissions;
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
-			needRequestPermissions = isCheckRequest ? checkNeedRequestPermissions(activity, permissions) : null;
-			ActivityCompat.requestPermissions(activity, needRequestPermissions == null ? permissions : needRequestPermissions, onRequestPermissionsResultRequestCode);
+			if(isCheckRequest){
+				permissions = checkNeedRequestPermissions(activity, permissions);
+			}
+			if(permissions != null && permissions.length > 0){
+				ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			needRequestPermissions = isCheckRequest ? checkNeedRequestPermissions(fragment.getActivity(), permissions) : null;
-			fragment.requestPermissions(needRequestPermissions == null ? permissions : needRequestPermissions, onRequestPermissionsResultRequestCode);
+			if(isCheckRequest){
+				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
+			}
+			if(permissions != null && permissions.length > 0){
+				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+			}
 		}else if(objectThis instanceof android.app.Fragment && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			needRequestPermissions = isCheckRequest ? checkNeedRequestPermissions(fragment.getActivity(), permissions) : null;
-			fragment.requestPermissions(needRequestPermissions == null ? permissions : needRequestPermissions, onRequestPermissionsResultRequestCode);
+			if(isCheckRequest){
+				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
+			}
+			if(permissions != null && permissions.length > 0){
+				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+			}
 		}
 	}
 
