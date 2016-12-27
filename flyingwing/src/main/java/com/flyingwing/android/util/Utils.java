@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.13
+ * @version 3.5.14
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -36,7 +36,6 @@ import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
 import android.graphics.PointF;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
@@ -1317,11 +1316,6 @@ public class Utils {
 		return defInt;
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defInt){
-		return getAttributePixels(context, displayMetrics, android.R.attr.actionBarSize, defInt);
-	}
-
 	public static int getUsableHeightSP(Context context, DisplayMetrics displayMetrics, String spName){
 		return displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
 	}
@@ -1336,29 +1330,6 @@ public class Utils {
 	public static int getStatusBarHeightSP(Context context, String spName){
 		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		return sp.getInt(SP_KEY_STATUS_BAR_HEIGHT, 0);
-	}
-
-	public static boolean isOnViewVisible(View parentsView, View view){
-		if(view.getVisibility() != View.VISIBLE){
-			return false;
-		}
-		Rect rectHit = new Rect();
-		parentsView.getHitRect(rectHit);
-		return view.getLocalVisibleRect(rectHit);
-	}
-
-	public static boolean isViewVisible(View parentsView, View view, int xOffset, int yOffset){
-		if(view.getVisibility() != View.VISIBLE){
-			return false;
-		}
-		Rect rectScroll = new Rect();
-		parentsView.getDrawingRect(rectScroll);
-		rectScroll.left += xOffset;
-		rectScroll.right += xOffset;
-		rectScroll.top += yOffset;
-		rectScroll.bottom += yOffset;
-		return rectScroll.left <= view.getLeft() && rectScroll.right >= view.getLeft() + view.getWidth() &&
-				rectScroll.top <= view.getTop() && rectScroll.bottom >= view.getTop() + view.getHeight();
 	}
 
 	public static void clearWebViewCookie(Context context){
@@ -2438,7 +2409,7 @@ public class Utils {
 				stringBuilder.append(permissions[i].trim());
 			}
 		}
-		return stringBuilder.length() == 0 ? new String[0] : stringBuilder.toString().split("\n");
+		return stringBuilder.length() == 0 ? null : stringBuilder.toString().split("\n");
 	}
 
 	public static String[] checkNeedRationaleRequestPermissions(Activity activity, String...permissions){
@@ -2453,7 +2424,7 @@ public class Utils {
 				}
 			}
 		}
-		return stringBuilder.length() == 0 ? new String[0] : stringBuilder.toString().split("\n");
+		return stringBuilder.length() == 0 ? null : stringBuilder.toString().split("\n");
 	}
 
 	/**
@@ -2465,13 +2436,12 @@ public class Utils {
 	 * {@link android.app.Fragment#onRequestPermissionsResult(int, String[], int[])}
 	 */
 	public static void requestPermissionsWaitResult(Object objectThis, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
-		String[] needRequestPermissions;
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(activity, permissions);
 			}
-			if(permissions != null && permissions.length > 0){
+			if(permissions != null){
 				ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
@@ -2479,7 +2449,7 @@ public class Utils {
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
 			}
-			if(permissions != null && permissions.length > 0){
+			if(permissions != null){
 				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
 			}
 		}else if(objectThis instanceof android.app.Fragment && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
@@ -2487,7 +2457,7 @@ public class Utils {
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
 			}
-			if(permissions != null && permissions.length > 0){
+			if(permissions != null){
 				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
 			}
 		}

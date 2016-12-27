@@ -47,10 +47,8 @@ public class First extends Activity {
 		DisplayUtils.measureUsableHeightWaitOnDraw(this, new MeasureCallback() {
 
 			@Override
-			public void completed(int usableHe) {
-				Utils.putSharedPreferences(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT
-						, DisplayUtils.getDisplayMetricsFromWindowManager(First.this).heightPixels - usableHe, null);
-
+			public void completed(int statusBarHe, int usableHe) {
+				Utils.putSharedPreferences(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT, statusBarHe, null);
 				next();
 			}
 		});
