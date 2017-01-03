@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.15
+ * @version 3.5.16
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -2457,6 +2457,14 @@ public class Utils {
 		// Looper.getMainLooper().getThread() == Thread.currentThread();
 		// Looper.getMainLooper().getThread().getId() == Thread.currentThread().getId();
 		return Looper.getMainLooper() == Looper.myLooper();
+	}
+
+	public static void runMainThread(Runnable runnable){
+		if(isMainThread()){
+			runnable.run();
+		}else{
+			new Handler(Looper.getMainLooper()).post(runnable);
+		}
 	}
 
 	public static void runMainThread(Handler.Callback callback){
