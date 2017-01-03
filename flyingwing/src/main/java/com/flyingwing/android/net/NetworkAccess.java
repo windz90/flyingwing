@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.9
+ * @version 3.5.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -218,19 +218,19 @@ public class NetworkAccess {
 
 			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
 				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
-					printInfo("Connection connect OK, StatusCode " + httpURLConnection.getResponseCode());
+					printInfo("Connection connect OK, ResponseCode " + httpURLConnection.getResponseCode());
 				}
 			}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
 				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
-					printInfo("Connection connecting, StatusCode " + httpURLConnection.getResponseCode());
+					printInfo("Connection connecting, ResponseCode " + httpURLConnection.getResponseCode());
 				}
 			}else{
 				if(connectionResult != null){
 					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
-					connectionResult.setStatusMessage("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
+					connectionResult.setStatusMessage("Connection connect failed, ResponseCode " + httpURLConnection.getResponseCode());
 				}
 				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					printInfo("Connection connect failed, StatusCode " + httpURLConnection.getResponseCode());
+					printInfo("Connection connect failed, ResponseCode " + httpURLConnection.getResponseCode());
 				}
 				return;
 			}
