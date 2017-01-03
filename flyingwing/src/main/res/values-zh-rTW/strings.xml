@@ -33,7 +33,8 @@
 	<string name="no_app_item">沒有可選程式</string>
 	<string name="permission_denied">請求授權被拒絕</string>
 	<string name="try_again">請再試一次</string>
-	<string name="connection_failed">連線未成功</string>
+	<string name="connection_load_failed">連線接收失敗</string>
+	<string name="connection_connect_failed">連線連接失敗</string>
 	<string name="network_not_available">沒有可用網路</string>
 	<string name="out_of_memory_error">所需記憶體不足</string>
 	<string name="unknown_error">未知的錯誤</string>

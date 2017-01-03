@@ -33,7 +33,8 @@
 	<string name="no_app_item">No application</string>
 	<string name="permission_denied">Permission denied</string>
 	<string name="try_again">Please try again</string>
-	<string name="connection_failed">Connection failed</string>
+	<string name="connection_load_failed">Connection load failed</string>
+	<string name="connection_connect_failed">Connection connect failed</string>
 	<string name="network_not_available">Network not available</string>
 	<string name="out_of_memory_error">Out of memory</string>
 	<string name="unknown_error">Unknown error</string>
