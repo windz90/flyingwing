@@ -1,13 +1,12 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.14
+ * @version 3.5.15
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.util;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -1499,9 +1498,7 @@ public class Utils {
 		setToast(context, text, Toast.LENGTH_SHORT);
 	}
 
-	@SuppressLint("CommitPrefEdits")
-	public static SharedPreferences.Editor getNotYetCommitSharedPreferencesEditor(Context context, String spName, String key, Object value
-			, boolean toggleMode) {
+	public static synchronized boolean putSharedPreferences(Context context, String spName, String key, Object value, boolean toggleMode) {
 		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
 		SharedPreferences.Editor spEdit = sp.edit();
 		if(toggleMode && sp.contains(key)){
@@ -1519,27 +1516,20 @@ public class Utils {
 				spEdit.putString(key, value.toString());
 			}
 		}
-		return spEdit;
-	}
-
-	public static boolean putSharedPreferences(final Context context, final String spName, final String key, final Object value
-			, final boolean toggleMode){
-		return getNotYetCommitSharedPreferencesEditor(context, spName, key, value, toggleMode).commit();
+		return spEdit.commit();
 	}
 
 	public static boolean putSharedPreferences(final Context context, final String spName, final String key, final Object value){
-		return getNotYetCommitSharedPreferencesEditor(context, spName, key, value, false).commit();
+		return putSharedPreferences(context, spName, key, value, false);
 	}
 
 	public static void putSharedPreferences(final Context context, final String spName, final String key, final Object value
 			, final boolean toggleMode, final Handler handler){
-		final SharedPreferences.Editor spEdit = getNotYetCommitSharedPreferencesEditor(context, spName, key, value, toggleMode);
-
 		Thread thread = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				boolean isSuccess = spEdit.commit();
+				boolean isSuccess = putSharedPreferences(context, spName, key, value, toggleMode);
 				if(handler != null){
 					Message msg = new Message();
 					Bundle bundle = new Bundle();
