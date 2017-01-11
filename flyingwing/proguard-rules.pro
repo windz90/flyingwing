@@ -16,7 +16,7 @@
 #   public *;
 #}
 
-# If enable dontoptimize
+# If enable optimize, and need remove Log method in code
 -assumenosideeffects class android.util.Log {
     public static *** v(...);
     public static *** i(...);
@@ -25,14 +25,19 @@
     public static *** e(...);
 }
 
-# If enable dontoptimize
+# If enable optimize, and need remove Print.println() method in code
 -assumenosideeffects class java.io.PrintStream {
     public void println(%);
     public void println(**);
 }
 
+# If enable optimize, and need remove Exception.printStackTrace() method in code
+-assumenosideeffects class java.lang.Exception {
+    public void printStackTrace();
+}
+
 # If use reflection
--keepattributes Signature # Keep Generics and Reflection
+-keepattributes Signature # Keep Generics
 -keepattributes EnclosingMethod
 
 # Keep source code line number(Can display throw exception line number)
@@ -48,6 +53,7 @@
 }
 
 -keep public class * extends android.app.Fragment
+-keep public class * extends android.support.v4.app.Fragment
 -keep public class * extends android.app.Activity
 -keep public class * extends android.app.Application
 -keep public class * extends android.app.Service
