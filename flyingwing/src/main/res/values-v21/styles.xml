@@ -36,8 +36,8 @@
 		<!--<item name="textColorPrimaryDisableOnly">@color/primary_text_disable_only_material_light</item>-->
 		<!--<item name="textColorPrimaryInverseDisableOnly">@color/primary_text_disable_only_material_dark</item>-->
 		<item name="android:editTextColor">@color/abc_primary_text_material_light</item>
-		<!--<item name="textColorHint">@color/hint_foreground_material_light</item>-->
-		<!--<item name="textColorHintInverse">@color/hint_foreground_material_dark</item>-->
+		<!--<item name="textColorHint">@color/abc_hint_foreground_material_light</item>-->
+		<!--<item name="textColorHintInverse">@color/abc_hint_foreground_material_dark</item>-->
 		<!--<item name="textColorHighlight">@color/highlighted_text_material</item>-->
 		<!--<item name="textColorHighlightInverse">@color/highlighted_text_material</item>-->
 		<!--<item name="textColorLink">?attr/colorAccent</item>-->
