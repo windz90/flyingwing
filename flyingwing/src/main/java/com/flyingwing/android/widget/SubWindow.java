@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.6
+ * @version 2.4.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -445,8 +445,8 @@ public class SubWindow {
 				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, clickAction);
 	}
 
-	public static void alertBuilderInput(final Context context, String title, String message, View contentView, final EditText editText, final int imeOptions
-			, final int minLength, final int maxLength, final String inputContentKey, final String[] excludeArray, final String[] excludeHintArray
+	public static void alertBuilderInput(final Context context, String title, String message, View contentView, final EditText editText, final int minLength
+			, final int maxLength, final int imeOptions, final String inputContentKey, final String[] excludeArray, final String[] excludeHintArray
 			, boolean isOutsideCancel, final ClickAction clickAction){
 		final Resources res = context.getResources();
 
@@ -571,7 +571,7 @@ public class SubWindow {
 		alertDialog.show();
 	}
 
-	public static void alertBuilderInput(Context context, String title, String message, int inputType, int imeOptions, int minLength, int maxLength
+	public static void alertBuilderInput(Context context, String title, String message, int inputType, int maxLines, int minLength, int maxLength, int imeOptions
 			, String editDefault, String editHint, String inputContentKey, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel
 			, ClickAction clickAction){
 		Resources res = context.getResources();
@@ -591,11 +591,15 @@ public class SubWindow {
 		editText.setLayoutParams(linearLayoutParams);
 		editText.setGravity(Gravity.CENTER_VERTICAL);
 		editText.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isFillScreenDip480));
-		editText.setSingleLine(true);
+		editText.setInputType(inputType);
+		if(maxLines == 1){
+			editText.setSingleLine(true);
+		}else if(maxLines > 0){
+			editText.setMaxLines(maxLines);
+		}
 		if(maxLength > 0){
 			editText.setFilters(new InputFilter[]{new InputFilter.LengthFilter(maxLength)});
 		}
-		editText.setInputType(inputType);
 		editText.setImeOptions(imeOptions);
 
 		editText.setText(editDefault);
@@ -603,52 +607,53 @@ public class SubWindow {
 
 		editText.setHint(editHint);
 
-		alertBuilderInput(context, title, message, editText, editText, imeOptions, minLength, maxLength, inputContentKey, excludeArray, excludeHintArray
+		alertBuilderInput(context, title, message, editText, editText, minLength, maxLength, imeOptions, inputContentKey, excludeArray, excludeHintArray
 				, isOutsideCancel, clickAction);
 	}
 
-	public static void alertBuilderInput(Context context, String title, String message, int imeOptions, int minLength, int maxLength, String editDefault
+	public static void alertBuilderInput(Context context, String title, String message, int maxLines, int minLength, int maxLength, int imeOptions
+			, String editDefault, String editHint, String inputContentKey, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel
+			, ClickAction clickAction){
+		alertBuilderInput(context, title, message, new EditText(context).getInputType(), maxLines, minLength, maxLength, imeOptions, editDefault, editHint
+				, inputContentKey, excludeArray, excludeHintArray, isOutsideCancel, clickAction);
+	}
+
+	public static void alertBuilderInput(Context context, String title, String message, int maxLines, int minLength, int maxLength, String editDefault
 			, String editHint, String inputContentKey, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel, ClickAction clickAction){
-		alertBuilderInput(context, title, message, new EditText(context).getInputType(), imeOptions, minLength, maxLength, editDefault, editHint, inputContentKey
-				, excludeArray, excludeHintArray, isOutsideCancel, clickAction);
-	}
-
-	public static void alertBuilderInput(Context context, String title, String message, int minLength, int maxLength, String editDefault, String editHint
-			, String inputContentKey, String[] excludeArray, String[] excludeHintArray, boolean isOutsideCancel, ClickAction clickAction){
 		EditText editText = new EditText(context);
-		alertBuilderInput(context, title, message, minLength, maxLength, editText.getInputType(), editText.getImeOptions(), editDefault, editHint, inputContentKey
-				, excludeArray, excludeHintArray, isOutsideCancel, clickAction);
+		alertBuilderInput(context, title, message, editText.getInputType(), maxLines, minLength, maxLength, editText.getImeOptions(), editDefault, editHint
+				, inputContentKey, excludeArray, excludeHintArray, isOutsideCancel, clickAction);
 	}
 
-	public static void alertBuilderInput(final Context context, String title, String message, int minLength, int maxLength, int inputType, int imeOptions
-			, String editDefault, String editHint, String inputContentKey, boolean isOutsideCancel, final ClickAction clickAction){
-		alertBuilderInput(context, title, message, minLength, maxLength, inputType, imeOptions, editDefault, editHint, inputContentKey, null, null, isOutsideCancel
-				, clickAction);
+	public static void alertBuilderInput(final Context context, String title, String message, int inputType, int maxLines, int minLength, int maxLength
+			, int imeOptions, String editDefault, String editHint, String inputContentKey, boolean isOutsideCancel, final ClickAction clickAction){
+		alertBuilderInput(context, title, message, inputType, maxLines, minLength, maxLength, imeOptions, editDefault, editHint, inputContentKey, null, null
+				, isOutsideCancel, clickAction);
 	}
 
-	public static void alertBuilderInput(Context context, String title, String message, int minLength, int maxLength, int imeOptions, String editDefault
+	public static void alertBuilderInput(Context context, String title, String message, int maxLines, int minLength, int maxLength, int imeOptions
+			, String editDefault, String editHint, String inputContentKey, boolean isOutsideCancel, ClickAction clickAction){
+		alertBuilderInput(context, title, message, new EditText(context).getInputType(), maxLines, minLength, maxLength, imeOptions, editDefault, editHint
+				, inputContentKey, null, null, isOutsideCancel, clickAction);
+	}
+
+	public static void alertBuilderInput(Context context, String title, String message, int maxLines, int minLength, int maxLength, String editDefault
 			, String editHint, String inputContentKey, boolean isOutsideCancel, ClickAction clickAction){
-		alertBuilderInput(context, title, message, minLength, maxLength, new EditText(context).getInputType(), imeOptions, editDefault, editHint, inputContentKey
-				, null, null, isOutsideCancel, clickAction);
-	}
-
-	public static void alertBuilderInput(Context context, String title, String message, int minLength, int maxLength, String editDefault, String editHint
-			, String inputContentKey, boolean isOutsideCancel, ClickAction clickAction){
 		EditText editText = new EditText(context);
-		alertBuilderInput(context, title, message, minLength, maxLength, editText.getInputType(), editText.getImeOptions(), editDefault, editHint, inputContentKey
-				, null, null, isOutsideCancel, clickAction);
+		alertBuilderInput(context, title, message, editText.getInputType(), maxLines, minLength, maxLength, editText.getImeOptions(), editDefault, editHint
+				, inputContentKey, null, null, isOutsideCancel, clickAction);
 	}
 
 	public static void alertBuilderInput(Context context, String title, String message, int imeOptions, String editDefault, String editHint, String inputContentKey
 			, boolean isOutsideCancel, ClickAction clickAction){
-		alertBuilderInput(context, title, message, -1, -1, new EditText(context).getInputType(), imeOptions, editDefault, editHint, inputContentKey, null, null
+		alertBuilderInput(context, title, message, new EditText(context).getInputType(), -1, -1, -1, imeOptions, editDefault, editHint, inputContentKey, null, null
 				, isOutsideCancel, clickAction);
 	}
 
 	public static void alertBuilderInput(Context context, String title, String message, String editDefault, String editHint, String inputContentKey
 			, boolean isOutsideCancel, ClickAction clickAction){
 		EditText editText = new EditText(context);
-		alertBuilderInput(context, title, message, -1, -1, editText.getInputType(), editText.getImeOptions(), editDefault, editHint, inputContentKey, null, null
+		alertBuilderInput(context, title, message, editText.getInputType(), -1, -1, -1, editText.getImeOptions(), editDefault, editHint, inputContentKey, null, null
 				, isOutsideCancel, clickAction);
 	}
 
