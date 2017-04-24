@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.16
+ * @version 3.5.17
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -60,6 +60,7 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
+import android.support.annotation.FloatRange;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
@@ -869,11 +870,118 @@ public class Utils {
 		return filterDigitInString(text, false, jointKeywords);
 	}
 
+	public static String getMapToString(Map<String, ?> map){
+		Iterator<? extends Entry<String, ?>> iteratorEntry = map.entrySet().iterator();
+		if(!iteratorEntry.hasNext()){
+			return "{}";
+		}
+
+		Entry<String, ?> entry;
+		String key;
+		Object value;
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append('{');
+		for(;;){
+			entry = iteratorEntry.next();
+			key = entry.getKey();
+			value = entry.getValue();
+			stringBuilder.append(key);
+			stringBuilder.append('=');
+			stringBuilder.append(value.toString());
+			if(!iteratorEntry.hasNext()){
+				return stringBuilder.append('}').toString();
+			}
+			stringBuilder.append(',').append(' ');
+		}
+	}
+
+	public static String getMapsToString(Map<String, ?>[] maps){
+		if(maps.length == 0){
+			return "[]";
+		}
+		Map<String, ?> map;
+		Iterator<? extends Entry<String, ?>> iteratorEntry;
+		Entry<String, ?> entry;
+		String key;
+		Object value;
+		StringBuilder stringBuilder = new StringBuilder();
+		for(int i=0; i<maps.length; i++){
+			map = maps[i];
+			if(i == 0){
+				stringBuilder.append('[').append('{');
+			}else{
+				stringBuilder.append(',').append(' ').append('{');
+			}
+			iteratorEntry = map.entrySet().iterator();
+			if(!iteratorEntry.hasNext()){
+				stringBuilder.append('}');
+				continue;
+			}
+
+			for(;;){
+				entry = iteratorEntry.next();
+				key = entry.getKey();
+				value = entry.getValue();
+				stringBuilder.append(key);
+				stringBuilder.append('=');
+				stringBuilder.append(value.toString());
+				if(!iteratorEntry.hasNext()){
+					stringBuilder.append('}');
+					break;
+				}
+				stringBuilder.append(',').append(' ');
+			}
+		}
+		return stringBuilder.append(']').toString();
+	}
+
+	public static String getListMapToString(List<Map<String, ?>> list){
+		int size = list.size();
+		if(size == 0){
+			return "[]";
+		}
+		Map<String, ?> map;
+		Iterator<? extends Entry<String, ?>> iteratorEntry;
+		Entry<String, ?> entry;
+		String key;
+		Object value;
+		StringBuilder stringBuilder = new StringBuilder();
+		for(int i=0; i<size; i++){
+			map = list.get(i);
+			if(i == 0){
+				stringBuilder.append('[').append('{');
+			}else{
+				stringBuilder.append(',').append(' ').append('{');
+			}
+			iteratorEntry = map.entrySet().iterator();
+			if(!iteratorEntry.hasNext()){
+				stringBuilder.append('}');
+				continue;
+			}
+
+			for(;;){
+				entry = iteratorEntry.next();
+				key = entry.getKey();
+				value = entry.getValue();
+				stringBuilder.append(key);
+				stringBuilder.append('=');
+				stringBuilder.append(value.toString());
+				if(!iteratorEntry.hasNext()){
+					stringBuilder.append('}');
+					break;
+				}
+				stringBuilder.append(',').append(' ');
+			}
+		}
+		return stringBuilder.append(']').toString();
+	}
+
 	public static String[][] getMapToArray(Map<String, ?> map, boolean isReview){
 		String[][] strArray = new String[map.size()][2];
 		Iterator<? extends Entry<String, ?>> iteratorEntry = map.entrySet().iterator();
 		Entry<String, ?> entry;
-		for(int i=0; i<map.size(); i++){
+		int size = map.size();
+		for(int i=0; i<size; i++){
 			entry = iteratorEntry.next();
 			strArray[i][0] = entry.getKey();
 			strArray[i][1] = entry.getValue().toString();
@@ -1104,6 +1212,21 @@ public class Utils {
 	}
 
 	/**
+	 * @param roundRadiusRatio from=0f, to=90f
+	 */
+	public static float getCornerRadiusFromRatio(int width, int height, @FloatRange(from=0f, to=100f) float roundRadiusRatio){
+		float radiusMax = Math.max(width, height) * 0.5f;
+		if(roundRadiusRatio == 100f){
+			return radiusMax;
+		}
+		float radiusMin = radiusMax / 100f;
+		if(roundRadiusRatio == 1f){
+			return radiusMin;
+		}
+		return radiusMin * roundRadiusRatio;
+	}
+
+	/**
 	 * 反射類別資料，包含ClassLoader、DeclaringClass、EnclosingClass、extends Superclass、EnumConstant、implements Interface、Field、Constructor、Method、InnerClass
 	 * @param class1 Instance or Class.forName("className")
 	 */
@@ -1257,20 +1380,23 @@ public class Utils {
 		}
 	}
 
-	// 取得Android機器ID
+	/**
+	 * Android ID(SSAID)在設備出廠後第一次啟動時產生，當設備被執行「恢復原廠設定」時會被重新產生而改變。<br>
+	 * 在Android API 2.2當時的部份設備有bug，會產生相同的ANDROID_ID:9774d56d682e549c
+	 */
 	public static String getAndroidID(Context context){
 		// BuildSerial 硬體的唯一值 API 9
 //		String buildSerial = android.os.Build.SERIAL;
 
 		/*
-		 * UUID(Universally Unique Identifier)全局唯一識別字，是指在一台機器上生成的數字，它保證對在同一時空中的所有機器都是唯一的。
-		 * 按照開放軟體基金會(OSF)制定的標準計算，用到了乙太網卡位址、 納秒級時間、晶片ID碼和許多可能的數位。
-		 * 由以下幾部分的組合：當前日期和時間（UUID的第一個部分與時間有關，如果你在生成一個UUID之後，過幾秒又生成一個UUID，則第一個部分不同，其餘相同）
-		 * ，時鐘序列，全局唯一的IEEE機器識別號（如果有網卡，從網卡獲得，沒有網卡以其他方式獲得），UUID的唯一缺陷在於生成的結果字串會比較長。
+		 * UUID(Universally Unique Identifier)通用唯一識別碼，是指在一台機器上生成的數字，它保證對在同一時空中的所有機器都是唯一的。
+		 * 它會因為不同的應用程式而產生不同的ID，而不是設備唯一ID。
+		 * 按照開放軟體基金會(OSF)制定的標準計算，用到了乙太網卡位址、 奈秒級時間、晶片ID碼和許多可能的數字。
+		 * UUID是以下幾部分的組合：當前日期和時間，時鐘序列，全局唯一的IEEE機器識別號（如果有網卡，從網卡獲得，沒有網卡以其他方式獲得），所以生成的結果串比較長。
+		 * （UUID的第一個部分與時間有關，因此取得後必須儲存，如果你在生成一個UUID之後，過幾秒又生成一個UUID，則第一個部分不同，其餘相同）
 		 */
 //		String uuid = UUID.randomUUID().toString();
 
-		// AndroidID Android API 2.2 當時的部份設備有bug，會產生相同的ANDROID_ID:9774d56d682e549c
 		return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
 	}
 
@@ -2425,32 +2551,56 @@ public class Utils {
 	 * android.app.Fragment reported to<br>
 	 * {@link android.app.Fragment#onRequestPermissionsResult(int, String[], int[])}
 	 */
-	public static void requestPermissionsWaitResult(Object objectThis, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
+	private static boolean requestPermissionsWaitResult(Object objectThis, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(activity, permissions);
 			}
-			if(permissions != null){
-				ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+			if(permissions == null || permissions.length == 0){
+				return false;
 			}
+			ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
 			}
-			if(permissions != null){
-				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+			if(permissions == null || permissions.length == 0){
+				return false;
 			}
-		}else if(objectThis instanceof android.app.Fragment && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+			fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+		}else if(objectThis instanceof android.app.Fragment){
+			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
+				return false;
+			}
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
 			}
-			if(permissions != null){
+			if(permissions == null || permissions.length == 0){
+				return false;
+			}
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+			}else{
+				ActivityCompat.requestPermissions(fragment.getActivity(), permissions, onRequestPermissionsResultRequestCode);
 			}
 		}
+		return true;
+	}
+
+	public static boolean requestPermissionsWaitResult(Activity activity, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
+		return requestPermissionsWaitResult((Object) activity, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+	}
+
+	public static boolean requestPermissionsWaitResult(android.support.v4.app.Fragment fragment, int onRequestPermissionsResultRequestCode, boolean isCheckRequest
+			, String...permissions){
+		return requestPermissionsWaitResult((Object) fragment, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+	}
+
+	public static boolean requestPermissionsWaitResult(android.app.Fragment fragment, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
+		return requestPermissionsWaitResult((Object) fragment, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
 	}
 
 	public static boolean isMainThread(){
@@ -2805,7 +2955,7 @@ public class Utils {
 	 * android.permission.READ_CONTACTS
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_CONTACTS)
-	public static boolean saveContentProvider(Context context, String[] infoArray, Handler handlerNoPermissions){
+	public static boolean writeContactsFromContentResolver(Context context, String[] infoArray, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
@@ -3047,7 +3197,7 @@ public class Utils {
 		}
 	}
 
-	public static void activityFinishClearDrawable(Activity activity, boolean isIndicatesGC){
+	public static void clearActivityInsideDrawable(Activity activity, boolean isIndicatesGC){
 		clearViewGroupInsideDrawable((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
 	}
 
