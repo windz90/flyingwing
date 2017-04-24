@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.7
+ * @version 2.4.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -311,7 +311,7 @@ public class SubWindow {
 				, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, strArray, clickAction);
 	}
 
-	public static void alertBuilderConfirm(final Context context, String title, String message, final ClickAction clickAction){
+	public static void alertBuilderConfirm(Context context, String title, String message, String textPositive, String textNegative, final ClickAction clickAction){
 		final DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
 
 			@Override
@@ -326,8 +326,8 @@ public class SubWindow {
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
-		alertDialogBuilder.setPositiveButton(context.getString(R.string.ok), click);
-		alertDialogBuilder.setNegativeButton(context.getString(R.string.cancel), click);
+		alertDialogBuilder.setPositiveButton(textPositive, click);
+		alertDialogBuilder.setNegativeButton(textNegative, click);
 		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
 
 			@Override
@@ -341,8 +341,12 @@ public class SubWindow {
 		alertDialogBuilder.show();
 	}
 
-	public static void alertBuilderConfirm(final Context context, String message, final ClickAction clickAction){
-		alertBuilderConfirm(context, context.getString(R.string.confirm), message, clickAction);
+	public static void alertBuilderConfirm(Context context, String title, String message, final ClickAction clickAction){
+		alertBuilderConfirm(context, title, message, context.getString(R.string.ok), context.getString(R.string.cancel), clickAction);
+	}
+
+	public static void alertBuilderConfirm(Context context, String message, final ClickAction clickAction){
+		alertBuilderConfirm(context, null, message, context.getString(R.string.ok), context.getString(R.string.cancel), clickAction);
 	}
 
 	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitClass){
@@ -361,7 +365,7 @@ public class SubWindow {
 		};
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
 		alertDialogBuilder.setTitle(activity.getString(R.string.quit));
-		alertDialogBuilder.setMessage(activity.getString(R.string.confirm));
+		alertDialogBuilder.setMessage(activity.getString(R.string.confirm_ask));
 		alertDialogBuilder.setPositiveButton(activity.getString(R.string.ok), click);
 		alertDialogBuilder.setNegativeButton(activity.getString(R.string.cancel), click);
 		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
@@ -477,8 +481,8 @@ public class SubWindow {
 					clickAction.action(null, which, null);
 					return;
 				}
-				String inputName = editText.getText().toString().trim();
-				if(inputName.length() < minLength || (inputName.length() > maxLength && maxLength > 0)){
+				String inputName = editText.getText().toString();
+				if(inputName.trim().length() < minLength || (inputName.length() > maxLength && maxLength > 0)){
 					Utils.setToast(context, res.getString(R.string.char_length_hint, "" + minLength, "" + maxLength));
 					return;
 				}
@@ -827,16 +831,16 @@ public class SubWindow {
 		for(int i=0; i<textViews.length; i++){
 			textViews[i] = new TextView(context);
 			if(i == 0){
-				textViews[i].setId(R.id.topLeft);
+				textViews[i].setId(R.id.topLayoutLeftView);
 				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
 				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 				relLayPar.setMargins(0, space, space, space);
 			}else if(i == 1){
-				textViews[i].setId(R.id.topCenter);
+				textViews[i].setId(R.id.topLayoutCenterView);
 				relLayPar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, height);
-				relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLeft);
+				relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLayoutLeftView);
 			}else{
-				textViews[i].setId(R.id.topRight);
+				textViews[i].setId(R.id.topLayoutRightView);
 				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
 				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 				relLayPar.setMargins(space, space, 0, space);
@@ -857,7 +861,7 @@ public class SubWindow {
 
 		// 偏移位置設定
 		relLayPar = (RelativeLayout.LayoutParams)textViews[1].getLayoutParams();
-		relLayPar.addRule(RelativeLayout.LEFT_OF, R.id.topRight);
+		relLayPar.addRule(RelativeLayout.LEFT_OF, R.id.topLayoutRightView);
 
 		return relLay;
 	}
@@ -882,12 +886,12 @@ public class SubWindow {
 		for(int i=0; i<imageViews.length; i++){
 			imageViews[i] = new ImageView(context);
 			if(i == 0){
-				imageViews[i].setId(R.id.topLeft);
+				imageViews[i].setId(R.id.topLayoutLeftView);
 				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
 				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 				relLayPar.setMargins(0, space, space, space);
 			}else{
-				imageViews[i].setId(R.id.topRight);
+				imageViews[i].setId(R.id.topLayoutRightView);
 				relLayPar = new RelativeLayout.LayoutParams(btnWidth, height - space * 2);
 				relLayPar.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
 				relLayPar.setMargins(space, space, 0, space);
@@ -899,9 +903,9 @@ public class SubWindow {
 
 		for(int i=0; i<textViews.length; i++){
 			relLayPar = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, height);
-			relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLeft);
+			relLayPar.addRule(RelativeLayout.RIGHT_OF, R.id.topLayoutLeftView);
 			textViews[i] = new TextView(context);
-			textViews[i].setId(R.id.topCenter);
+			textViews[i].setId(R.id.topLayoutCenterView);
 			textViews[i].setLayoutParams(relLayPar);
 			textViews[i].setGravity(Gravity.CENTER);
 			textViews[i].setTextColor(Color.BLACK);
@@ -914,7 +918,7 @@ public class SubWindow {
 
 		// 偏移位置設定
 		relLayPar = (RelativeLayout.LayoutParams)textViews[0].getLayoutParams();
-		relLayPar.addRule(RelativeLayout.LEFT_OF, R.id.topRight);
+		relLayPar.addRule(RelativeLayout.LEFT_OF, R.id.topLayoutRightView);
 
 		return relLay;
 	}
@@ -1135,17 +1139,17 @@ public class SubWindow {
 			topBar = getTopBarWithTextView(context, displayMetrics, width, itemHe, itemWi, space);
 
 			topBar.setBackgroundColor(0xFFC0C0C0);
-			topBar.findViewById(R.id.topLeft).setBackgroundResource(android.R.color.white);
+			topBar.findViewById(R.id.topLayoutLeftView).setBackgroundResource(android.R.color.white);
 
-			if(topBar.findViewById(R.id.topLeft) instanceof TextView){
-				((TextView)topBar.findViewById(R.id.topLeft)).setText(res.getString(R.string.cancel));
+			if(topBar.findViewById(R.id.topLayoutLeftView) instanceof TextView){
+				((TextView)topBar.findViewById(R.id.topLayoutLeftView)).setText(res.getString(R.string.cancel));
 			}
 		}
 
 		linLay.addView(topBar);
 
-		if(topBar.findViewById(R.id.topCenter) instanceof TextView){
-			((TextView)topBar.findViewById(R.id.topCenter)).setText(title);
+		if(topBar.findViewById(R.id.topLayoutCenterView) instanceof TextView){
+			((TextView)topBar.findViewById(R.id.topLayoutCenterView)).setText(title);
 		}
 
 		itemWi = width - space * 2;
@@ -1201,8 +1205,8 @@ public class SubWindow {
 			}
 		});
 
-		if(topBar.findViewById(R.id.topLeft) != null){
-			topBar.findViewById(R.id.topLeft).setOnClickListener(new OnClickListener() {
+		if(topBar.findViewById(R.id.topLayoutLeftView) != null){
+			topBar.findViewById(R.id.topLayoutLeftView).setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {

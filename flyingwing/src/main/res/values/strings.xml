@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<!-- 公用詞彙 -->
-	<string name="confirm">Are you sure?</string>
+	<string name="confirm_ask">Are you sure ?</string>
 	<string name="yes">Yes</string>
 	<string name="no">No</string>
 	<string name="on">On</string>
