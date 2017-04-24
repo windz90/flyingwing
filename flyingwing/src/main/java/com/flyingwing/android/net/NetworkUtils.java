@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.2
+ * @version 1.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -58,19 +58,19 @@ import java.util.UUID;
 public class NetworkUtils {
 
 	public static boolean isAvailable(@NonNull Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
 
 	public static boolean isConnected(@NonNull Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected();
 	}
 
 	public static boolean isAnyAvailable(@NonNull Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
 			Network[] networks = connectivityManager.getAllNetworks();
 			NetworkInfo networkInfo;
@@ -95,7 +95,7 @@ public class NetworkUtils {
 	}
 
 	public static boolean isConnectedSelectedType(@NonNull Context context, int connectivityManagerType) {
-		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && networkInfo.getType() == connectivityManagerType;
 	}
@@ -109,7 +109,7 @@ public class NetworkUtils {
 	}
 
 	public static boolean isConnectedFast(Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && isConnectedFast(networkInfo.getType(), networkInfo.getSubtype());
 	}
@@ -179,7 +179,7 @@ public class NetworkUtils {
 			return null;
 		}
 
-		WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 		return wifiManager.getConnectionInfo();
 	}
@@ -223,7 +223,7 @@ public class NetworkUtils {
 			return null;
 		}
 
-		WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 		return wifiManager.getDhcpInfo();
 	}
@@ -242,7 +242,7 @@ public class NetworkUtils {
 	}
 
 	public static boolean isWifiEnabled(@NonNull Context context){
-		WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		return wifiManager.isWifiEnabled();
 	}
 
@@ -276,7 +276,7 @@ public class NetworkUtils {
 		if(broadcastReceiver != null){
 			context.registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
 		}
-		final WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		new Thread(new Runnable() {
 			@RequiresPermission(android.Manifest.permission.CHANGE_WIFI_STATE)
 			@Override
@@ -295,7 +295,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
 	public static void wifiScan(@NonNull final Context context, final BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
-		WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		if(!wifiManager.isWifiEnabled()){
 			return;
 		}
@@ -351,7 +351,7 @@ public class NetworkUtils {
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
 	public static boolean wifiConnect(@NonNull Context context, @NonNull String ssId, String bssId, String password, boolean isUseExistWifiConfiguration
 			, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
-		WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		if(!wifiManager.isWifiEnabled()){
 			return false;
 		}
@@ -448,6 +448,20 @@ public class NetworkUtils {
 		return Settings.Secure.getString(context.getContentResolver(), "bluetooth_address");
 	}
 
+	public static boolean isBluetoothSupported(@NonNull Context context){
+		return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
+	}
+
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+	public static boolean isBluetoothLeSupported(@NonNull Context context){
+		return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+	}
+
+	public static boolean isBluetoothSupported2(@NonNull Context context){
+		BluetoothAdapter bluetoothAdapter = getBluetoothAdapter(context);
+		return bluetoothAdapter != null;
+	}
+
 	/**
 	 * android.permission.BLUETOOTH<br>
 	 */
@@ -465,15 +479,6 @@ public class NetworkUtils {
 		BluetoothAdapter bluetoothAdapter = getBluetoothAdapter(context);
 		// <uses-permission android:name="android.permission.BLUETOOTH"/>
 		return bluetoothAdapter != null && bluetoothAdapter.isEnabled();
-	}
-
-	public static boolean isBluetoothSupport(Context context){
-		return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
-	}
-
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-	public static boolean isBluetoothLeSupport(Context context){
-		return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
 	}
 
 	/**
@@ -1033,7 +1038,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(android.Manifest.permission.ACCESS_WIFI_STATE)
 	public static InetAddress getBroadcastAddressFromWifiMask(@NonNull Context context, Handler handlerNoPermissions){
-		WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		if(!wifiManager.isWifiEnabled()){
 			return null;
 		}
