@@ -1,13 +1,12 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.6
+ * @version 3.5.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.graphics;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -35,7 +34,12 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
 import android.support.annotation.FloatRange;
+import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 
 import java.io.ByteArrayInputStream;
@@ -1115,7 +1119,6 @@ public class ImageProcessor {
 		return getImageAsyncRemoteOnly(context, streamURL, specifiedSize, null, onLoadImageListener);
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public static Bitmap getAgileBitmap(InputStream is, int inSampleSize){
 		// 圖片設定
 		BitmapFactory.Options options = new BitmapFactory.Options();
@@ -1229,7 +1232,7 @@ public class ImageProcessor {
 					 * Bitmap.createBitmap(display, colors, width, height, config)
 					 * Bitmap.createBitmap(colors, width, height, config)
 					 * 3.
-					 * Bitmap.createBitmap(source, x, y, width, height, m, filter);
+					 * Bitmap.createBitmap(source, x, y, width, height, matrix, filter);
 					 * Bitmap.createBitmap(source, x, y, width, height)
 					 * Bitmap.createBitmap(src)
 					 */
@@ -1262,9 +1265,19 @@ public class ImageProcessor {
 		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
 	}
 
+	public static Bitmap convertMappedBitmapUseInsidePrivate(Context context, Bitmap bitmap, int newWidth, int newHeight, Bitmap.Config config){
+		File tempFile = new File(context.getFilesDir().toString() + File.separator + "temp.tmp");
+		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
+	}
+
 	public static Bitmap convertMappedBitmapUseInsidePrivate(Context context, Bitmap bitmap, int newWidth, int newHeight){
 		Bitmap.Config config = bitmap.getConfig();
 		File tempFile = new File(context.getFilesDir().toString() + File.separator + "temp.tmp");
+		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
+	}
+
+	public static Bitmap convertMappedBitmapUseExternalStorage(Bitmap bitmap, int newWidth, int newHeight, Bitmap.Config config){
+		File tempFile = new File(Environment.getExternalStorageDirectory().toString() + File.separator + "temp.tmp");
 		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
 	}
 
@@ -1277,14 +1290,14 @@ public class ImageProcessor {
 	public static Canvas getCanvas(Bitmap bitmap){
 		Canvas canvas = new Canvas(bitmap);
 		// 設定抗鋸齒、濾波處理、抖動處理
-		PaintFlagsDrawFilter paintFlagsDrawFilter = new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
+		PaintFlagsDrawFilter paintFlagsDrawFilter = new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
 		canvas.setDrawFilter(paintFlagsDrawFilter);
 		return canvas;
 	}
 
 	public static Paint getPaint(float strokeWidth){
 		// 設定抗鋸齒、濾波處理、抖動處理
-		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
+		Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
 		paint.setStrokeWidth(strokeWidth);
 		// 設定Paint抗鋸齒
 //		paint.setAntiAlias(true);
@@ -1302,7 +1315,7 @@ public class ImageProcessor {
 	}
 
 	public static Paint getClearPaint(int strokeWidth){
-		Paint clearPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG|Paint.DITHER_FLAG);
+		Paint clearPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
 		clearPaint.setAntiAlias(true);
 		clearPaint.setStrokeWidth(strokeWidth);
 		clearPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
@@ -1543,6 +1556,31 @@ public class ImageProcessor {
 		BlurMaskFilter blur = new BlurMaskFilter(radius, style);
 		paint.setMaskFilter(blur);
 		canvas.drawBitmap(bitmap, 0, 0, paint);
+		return bitmap;
+	}
+
+	/**
+	 * 設定圖片高斯模糊效果
+	 * @param radius max 25.0f
+	 */
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+	public static Bitmap drawBitmapGaussianBlur(Context context, Bitmap bitmap, float radius){
+		RenderScript renderScript = RenderScript.create(context);
+		Allocation allocationInput = Allocation.createFromBitmap(renderScript, bitmap);
+		Allocation allocationOutput = Allocation.createTyped(renderScript, allocationInput.getType());
+
+		ScriptIntrinsicBlur scriptIntrinsicBlur = ScriptIntrinsicBlur.create(renderScript, Element.U8_4(renderScript));
+		// max 25.0f
+		scriptIntrinsicBlur.setRadius(radius);
+		scriptIntrinsicBlur.setInput(allocationInput);
+		scriptIntrinsicBlur.forEach(allocationOutput);
+
+		allocationOutput.copyTo(bitmap);
+
+		scriptIntrinsicBlur.destroy();
+		allocationOutput.destroy();
+		allocationInput.destroy();
+		renderScript.destroy();
 		return bitmap;
 	}
 
