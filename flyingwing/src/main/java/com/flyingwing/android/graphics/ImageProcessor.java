@@ -1561,10 +1561,10 @@ public class ImageProcessor {
 
 	/**
 	 * 設定圖片高斯模糊效果
-	 * @param radius max 25.0f
+	 * @param radius from=0.0, to=25.0
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
-	public static Bitmap drawBitmapGaussianBlur(Context context, Bitmap bitmap, float radius){
+	public static Bitmap drawBitmapGaussianBlur(Context context, Bitmap bitmap, @FloatRange(from = 0.0, to = 25.0) float radius){
 		RenderScript renderScript = RenderScript.create(context);
 		Allocation allocationInput = Allocation.createFromBitmap(renderScript, bitmap);
 		Allocation allocationOutput = Allocation.createTyped(renderScript, allocationInput.getType());

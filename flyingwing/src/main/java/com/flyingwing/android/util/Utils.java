@@ -1212,9 +1212,9 @@ public class Utils {
 	}
 
 	/**
-	 * @param roundRadiusRatio from=0f, to=90f
+	 * @param roundRadiusRatio from=0.0, to=100.0
 	 */
-	public static float getCornerRadiusFromRatio(int width, int height, @FloatRange(from=0f, to=100f) float roundRadiusRatio){
+	public static float getCornerRadiusFromRatio(int width, int height, @FloatRange(from=0.0, to=100.0) float roundRadiusRatio){
 		float radiusMax = Math.max(width, height) * 0.5f;
 		if(roundRadiusRatio == 100f){
 			return radiusMax;
