@@ -516,7 +516,7 @@ public class SubWindow {
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
 		alertDialogBuilder.setView(linearLayout);
-		alertDialogBuilder.setPositiveButton(res.getString(R.string.submit), null); // disable click button auto dismiss
+		alertDialogBuilder.setPositiveButton(res.getString(R.string.submit), null);// disable click button auto dismiss
 		alertDialogBuilder.setNegativeButton(res.getString(R.string.cancel), null);
 		final AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
