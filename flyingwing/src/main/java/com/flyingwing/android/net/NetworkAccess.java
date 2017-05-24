@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.10
+ * @version 3.5.11
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -47,7 +47,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "WeakerAccess", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock"})
+@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach"})
 public class NetworkAccess {
 
 	public static final int CONNECTION_NO_NETWORK = 100;
@@ -305,6 +305,12 @@ public class NetworkAccess {
 		return connectionResult;
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		HttpURLConnection httpURLConnection = null;
@@ -351,43 +357,93 @@ public class NetworkAccess {
 		return httpURLConnection;
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_GET, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_POST, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
 			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_HEAD, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttps(@NonNull String httpMethod, String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(httpMethod, strUrl, headerArrays, contentArrays, null, null);
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_GET, strUrl, headerArrays, contentArrays, null, null);
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_POST, strUrl, headerArrays, contentArrays, null, null);
 	}
 
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
 		return openHttpURLConnectionWithHttps(HTTP_METHOD_HEAD, strUrl, headerArrays, contentArrays, null, null);
 	}
 
 	/**
 	 * @param contentList <br>
-	 * String key : map.get("0");<br>
-	 * String value : map.get("1");<br>
-	 * String MIME Type : map.get("2");<br>
-	 * InputStream stream : map.get("3");
+	 * contentList get map size 2 = <br>
+	 *                       map.get("0") : String key<br>
+	 *                       , map.get("1") : String value<br><br>
+	 * contentList get map size 3 = <br>
+	 *                       map.get("0") : String key<br>
+	 *                       , map.get("1") : String contentType(MIME Type)<br>
+	 *                       , map.get("2") : Object object<br><br>
+	 * contentList get map size 4 = <br>
+	 *                       map.get("0") : String key<br>
+	 *                       , map.get("1") : String fileName<br>
+	 *                       , map.get("2") : String contentType(MIME Type)<br>
+	 *                       , map.get("3") : Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, List<String[]> headerList
 			, List<Map<String, Object>> contentList, SSLContext sslContext, HostnameVerifier hostnameVerifier){
@@ -419,10 +475,18 @@ public class NetworkAccess {
 
 	/**
 	 * @param contentList <br>
-	 * String key : map.get("0");<br>
-	 * String value : map.get("1");<br>
-	 * String MIME Type : map.get("2");<br>
-	 * InputStream stream : map.get("3");
+	 * contentList get map size 2 = <br>
+	 *                       map.get("0") : String key<br>
+	 *                       , map.get("1") : String value<br><br>
+	 * contentList get map size 3 = <br>
+	 *                       map.get("0") : String key<br>
+	 *                       , map.get("1") : String contentType(MIME Type)<br>
+	 *                       , map.get("2") : Object object<br><br>
+	 * contentList get map size 4 = <br>
+	 *                       map.get("0") : String key<br>
+	 *                       , map.get("1") : String fileName<br>
+	 *                       , map.get("2") : String contentType(MIME Type)<br>
+	 *                       , map.get("3") : Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, List<String[]> headerList
 			, List<Map<String, Object>> contentList){
@@ -574,11 +638,19 @@ public class NetworkAccess {
 			if(contentArrays == null || contentArrays.length == 0 || contentArrays[0].length < 2){
 				return true;
 			}
+			Object[] contentArray;
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
 			Charset charset = Charset.forName("UTF-8");
 			String line;
-			for(Object[] contentArray : contentArrays){
+			for(int i=0; i<contentArrays.length; i++){
+				contentArray = contentArrays[i];
 				if(contentArray.length == 2 && (contentArray[0] == null || contentArray[1] == null)){
+					continue;
+				}
+				if(contentArray.length == 3 && ((contentArray[0] == null || (contentArray[1] == null) && contentArray[2] == null))){
+					continue;
+				}
+				if(contentArray.length == 4 && ((contentArray[0] == null || (contentArray[1] == null) && contentArray[2] == null && contentArray[3] == null))){
 					continue;
 				}
 				line = hyphens + boundary +
@@ -595,8 +667,11 @@ public class NetworkAccess {
 					if(NETWORKSETTING.mIsPrintConnectionRequest){
 						printInfo(line);
 					}
-
-					line = (String) contentArray[1];
+				}else if (contentArray.length == 3){
+					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"" +
+							breakLine +
+							"Content-Type: " + contentArray[1] +
+							breakLine + breakLine;
 					dataOutputStream.write(line.getBytes(charset));
 					if(NETWORKSETTING.mIsPrintConnectionRequest){
 						printInfo(line);
@@ -610,9 +685,13 @@ public class NetworkAccess {
 					if(NETWORKSETTING.mIsPrintConnectionRequest){
 						printInfo(line);
 					}
-
-					if(contentArray[3] != null && contentArray[3] instanceof InputStream){
-						InputStream inputStream = (InputStream) contentArray[3];
+				}
+				if(contentArray[contentArray.length - 1] != null){
+					if(contentArray[contentArray.length - 1] instanceof String){
+						line = (String) contentArray[contentArray.length - 1];
+						dataOutputStream.write(line.getBytes(charset));
+					}else if(contentArray[contentArray.length - 1] instanceof InputStream){
+						InputStream inputStream = (InputStream) contentArray[contentArray.length - 1];
 						int progress;
 						byte[] buffer = new byte[NETWORKSETTING.mBufferSize];
 						while ((progress = inputStream.read(buffer)) != -1) {
@@ -621,16 +700,16 @@ public class NetworkAccess {
 						dataOutputStream.flush();
 						inputStream.close();
 						line = "write stream";
-					}else if(contentArray[3] != null && contentArray[3] instanceof byte[]){
-						dataOutputStream.write((byte[]) contentArray[3]);
+					}else if(contentArray[contentArray.length - 1] instanceof byte[]){
+						dataOutputStream.write((byte[]) contentArray[contentArray.length - 1]);
 						dataOutputStream.flush();
-						line = "write bytes, length " + ((byte[]) contentArray[3]).length;
-					}else{
-						line = "";
+						line = "write bytes, length " + ((byte[]) contentArray[contentArray.length - 1]).length;
 					}
-					if(NETWORKSETTING.mIsPrintConnectionRequest){
-						printInfo(line);
-					}
+				}else{
+					line = "";
+				}
+				if(NETWORKSETTING.mIsPrintConnectionRequest){
+					printInfo(line);
 				}
 
 				dataOutputStream.writeBytes(breakLine);
