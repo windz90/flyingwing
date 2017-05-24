@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.17
+ * @version 3.5.18
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -2121,7 +2121,7 @@ public class Utils {
 		context.startActivity(intent);
 	}
 
-	public static void callMatchAppWaitResult(Object objectThis, Intent intent, String failInfo, int onActivityResultRequestCode){
+	private static void callMatchAppWaitResult(Object objectThis, Intent intent, String failInfo, int onActivityResultRequestCode){
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(intentMatchAppCount(activity, intent) == 0){
@@ -2146,7 +2146,19 @@ public class Utils {
 		}
 	}
 
-	public static void callContentSelectionWaitResult(final Object objectThis, String intentType, boolean allowMultiple, final int onActivityResultRequestCode
+	public static void callMatchAppWaitResult(Activity activity, Intent intent, String failInfo, int onActivityResultRequestCode){
+		callMatchAppWaitResult((Object) activity, intent, failInfo, onActivityResultRequestCode);
+	}
+
+	public static void callMatchAppWaitResult(android.support.v4.app.Fragment fragment, Intent intent, String failInfo, int onActivityResultRequestCode){
+		callMatchAppWaitResult((Object) fragment, intent, failInfo, onActivityResultRequestCode);
+	}
+
+	public static void callMatchAppWaitResult(android.app.Fragment fragment, Intent intent, String failInfo, int onActivityResultRequestCode){
+		callMatchAppWaitResult((Object) fragment, intent, failInfo, onActivityResultRequestCode);
+	}
+
+	private static void callContentSelectionWaitResult(final Object objectThis, String intentType, boolean allowMultiple, final int onActivityResultRequestCode
 			, final String title, final String failInfo){
 		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
 		new Thread(new Runnable() {
@@ -2158,8 +2170,31 @@ public class Utils {
 		}).start();
 	}
 
-	public static void callContentSelectionWaitResult(Object objectThis, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult(objectThis, intentType, allowMultiple, onActivityResultRequestCode, null, "No application");
+	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onActivityResultRequestCode, String title
+			, String failInfo){
+		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, title, failInfo);
+	}
+
+	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode
+			, String title, String failInfo){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title, failInfo);
+	}
+
+	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode
+			, String title, String failInfo){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title, failInfo);
+	}
+
+	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
+		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, null, "No application");
+	}
+
+	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null, "No application");
+	}
+
+	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null, "No application");
 	}
 
 	public static void callAppStore(Context context, String packageName, String failInfo){
@@ -2365,7 +2400,7 @@ public class Utils {
 	}
 
 	@TargetApi(Build.VERSION_CODES.M)
-	public static boolean checkWriteSettingsPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
+	private static boolean checkWriteSettingsPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(!Settings.System.canWrite(activity)){
@@ -2395,7 +2430,22 @@ public class Utils {
 	}
 
 	@TargetApi(Build.VERSION_CODES.M)
-	public static boolean checkSystemAlertOverlayPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
+	public static boolean checkWriteSettingsPermissionWaitResult(Activity activity, int onActivityResultRequestCode){
+		return checkWriteSettingsPermissionWaitResult((Object) activity, onActivityResultRequestCode);
+	}
+
+	@TargetApi(Build.VERSION_CODES.M)
+	public static boolean checkWriteSettingsPermissionWaitResult(android.support.v4.app.Fragment fragment, int onActivityResultRequestCode){
+		return checkWriteSettingsPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	}
+
+	@TargetApi(Build.VERSION_CODES.M)
+	public static boolean checkWriteSettingsPermissionWaitResult(android.app.Fragment fragment, int onActivityResultRequestCode){
+		return checkWriteSettingsPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	}
+
+	@TargetApi(Build.VERSION_CODES.M)
+	private static boolean checkSystemAlertOverlayPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(!Settings.canDrawOverlays(activity)){
@@ -2419,6 +2469,21 @@ public class Utils {
 			}
 		}
 		return true;
+	}
+
+	@TargetApi(Build.VERSION_CODES.M)
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(Activity activity, int onActivityResultRequestCode){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) activity, onActivityResultRequestCode);
+	}
+
+	@TargetApi(Build.VERSION_CODES.M)
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.support.v4.app.Fragment fragment, int onActivityResultRequestCode){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	}
+
+	@TargetApi(Build.VERSION_CODES.M)
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.app.Fragment fragment, int onActivityResultRequestCode){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
 	}
 
 	// 控制鍵盤開關
