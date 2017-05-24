@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.6
+ * @version 3.4.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -8,32 +8,22 @@
 package com.flyingwing.android.net;
 
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnCancelListener;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 
-import com.flyingwing.android.widget.CustomProgressDialog;
-
 import java.util.concurrent.ExecutorService;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class ConnectManager {
 
-	public static final int CONNECTION_TYPE_ALWAYS_QUIET = 0;
-	public static final int CONNECTION_TYPE_ALLOW_QUIET = 1;
-	public static final int CONNECTION_TYPE_ALLOW_CANCEL = 2;
-
 	public static class ConnectSetting {
 
 		private static boolean sSyncConnectRunning;
 
-		private boolean mIsUseThread, mIsUseHandler, mIsDialogShow, mIsDialogDismiss, mIsSyncLock;
-		private int mConnectionType;
-		private String mLabelText;
+		private boolean mIsUseThread, mIsUseHandler, mIsSyncLock;
 		private ExecutorService mExecutorService;
 
 		public static void setSyncConnectRunning(boolean isSyncConnectRunning){
@@ -46,49 +36,25 @@ public class ConnectManager {
 
 		public ConnectSetting(){}
 
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText
-				, boolean isSyncLock, ExecutorService executorService){
+		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isSyncLock, ExecutorService executorService){
 			mIsUseThread = isUseThread;
 			mIsUseHandler = isUseHandler;
-			mIsDialogShow = isDialogShow;
-			mIsDialogDismiss = isDialogDismiss;
 			mIsSyncLock = isSyncLock;
-			mConnectionType = connectionType;
-			mLabelText = labelText;
 			mExecutorService = executorService;
 		}
 
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText
-				, boolean isSyncLock){
-			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, connectionType, labelText, isSyncLock, null);
+		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isSyncLock){
+			this(isUseThread, isUseHandler, isSyncLock, null);
 		}
 
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText
-				, ExecutorService executorService){
-			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, connectionType, labelText, false, executorService);
+		public ConnectSetting(boolean isUseThread, boolean isUseHandler, ExecutorService executorService){
+			this(isUseThread, isUseHandler, false, executorService);
 		}
 
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType, boolean isSyncLock
-				, ExecutorService executorService){
-			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, connectionType, null, isSyncLock, executorService);
+		public ConnectSetting(boolean isUseThread, boolean isUseHandler){
+			this(isUseThread, isUseHandler, false, null);
 		}
 
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText){
-			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, connectionType, labelText, false, null);
-		}
-
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType
-				, ExecutorService executorService){
-			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, connectionType, null, false, executorService);
-		}
-
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType, boolean isSyncLock){
-			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, connectionType, null, isSyncLock, null);
-		}
-
-		public ConnectSetting(boolean isUseThread, boolean isUseHandler, boolean isDialogShow, boolean isDialogDismiss, int connectionType){
-			this(isUseThread, isUseHandler, isDialogShow, isDialogDismiss, connectionType, null, false, null);
-		}
 
 		public void setUseThread(boolean isUseThread){
 			mIsUseThread = isUseThread;
@@ -106,44 +72,12 @@ public class ConnectManager {
 			return mIsUseHandler;
 		}
 
-		public void setDialogShow(boolean isDialogShow){
-			mIsDialogShow = isDialogShow;
-		}
-
-		public boolean isDialogShow(){
-			return mIsDialogShow;
-		}
-
-		public void setDialogDismiss(boolean isDialogDismiss){
-			mIsDialogDismiss = isDialogDismiss;
-		}
-
-		public boolean isDialogDismiss(){
-			return mIsDialogDismiss;
-		}
-
 		public void setSyncLock(boolean isSyncLock){
 			mIsSyncLock = isSyncLock;
 		}
 
 		public boolean isSyncLock(){
 			return mIsSyncLock;
-		}
-
-		public void setConnectionType(int runMode){
-			mConnectionType = runMode;
-		}
-
-		public int getConnectionType(){
-			return mConnectionType;
-		}
-
-		public void setLabelText(String labelText){
-			this.mLabelText = labelText;
-		}
-
-		public String getLabelText(){
-			return mLabelText;
 		}
 
 		public void setExecutorService(ExecutorService executorService){
@@ -156,167 +90,66 @@ public class ConnectManager {
 	}
 
 	public static class ConnectSettingSync extends ConnectSetting {
-		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText){
+		public ConnectSettingSync(){
 			setUseThread(false);
 			setUseHandler(false);
-			setDialogShow(isDialogShow);
-			setDialogDismiss(isDialogDismiss);
 			setSyncLock(false);
-			setConnectionType(connectionType);
-			setLabelText(labelText);
 			setExecutorService(null);
-		}
-		public ConnectSettingSync(int connectionType, String labelText){
-			this(true, true, connectionType, labelText);
-		}
-		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, String labelText){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, labelText);
-		}
-		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
-			this(isDialogShow, isDialogDismiss, connectionType, null);
-		}
-		public ConnectSettingSync(String labelText){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, labelText);
-		}
-		public ConnectSettingSync(int connectionType){
-			this(true, true, connectionType, null);
-		}
-		public ConnectSettingSync(boolean isDialogShow, boolean isDialogDismiss){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
-		}
-		public ConnectSettingSync(){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, null);
 		}
 	}
 
 	public static class ConnectSettingSyncBegin extends ConnectSetting {
-		public ConnectSettingSyncBegin(boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText){
+		public ConnectSettingSyncBegin(){
 			setUseThread(false);
 			setUseHandler(true);
-			setDialogShow(isDialogShow);
-			setDialogDismiss(isDialogDismiss);
 			setSyncLock(false);
-			setConnectionType(connectionType);
-			setLabelText(labelText);
 			setExecutorService(null);
-		}
-		public ConnectSettingSyncBegin(int connectionType, String labelText){
-			this(true, true, connectionType, labelText);
-		}
-		public ConnectSettingSyncBegin(boolean isDialogShow, boolean isDialogDismiss, String labelText){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, labelText);
-		}
-		public ConnectSettingSyncBegin(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
-			this(isDialogShow, isDialogDismiss, connectionType, null);
-		}
-		public ConnectSettingSyncBegin(String labelText){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, labelText);
-		}
-		public ConnectSettingSyncBegin(int connectionType){
-			this(true, true, connectionType, null);
-		}
-		public ConnectSettingSyncBegin(boolean isDialogShow, boolean isDialogDismiss){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
-		}
-		public ConnectSettingSyncBegin(){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, null);
 		}
 	}
 
 	public static class ConnectSettingSyncEnd extends ConnectSetting {
-		public ConnectSettingSyncEnd(boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText){
+		public ConnectSettingSyncEnd(){
 			setUseThread(true);
 			setUseHandler(false);
-			setDialogShow(isDialogShow);
-			setDialogDismiss(isDialogDismiss);
 			setSyncLock(false);
-			setConnectionType(connectionType);
-			setLabelText(labelText);
 			setExecutorService(null);
-		}
-		public ConnectSettingSyncEnd(int connectionType, String labelText){
-			this(true, true, connectionType, labelText);
-		}
-		public ConnectSettingSyncEnd(boolean isDialogShow, boolean isDialogDismiss, String labelText){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, labelText);
-		}
-		public ConnectSettingSyncEnd(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
-			this(isDialogShow, isDialogDismiss, connectionType, null);
-		}
-		public ConnectSettingSyncEnd(String labelText){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, labelText);
-		}
-		public ConnectSettingSyncEnd(int connectionType){
-			this(true, true, connectionType, null);
-		}
-		public ConnectSettingSyncEnd(boolean isDialogShow, boolean isDialogDismiss){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
-		}
-		public ConnectSettingSyncEnd(){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, null);
 		}
 	}
 
 	public static class ConnectSettingAsync extends ConnectSetting {
-		public ConnectSettingAsync(boolean isDialogShow, boolean isDialogDismiss, int connectionType, String labelText){
+		public ConnectSettingAsync(){
 			setUseThread(true);
 			setUseHandler(true);
-			setDialogShow(isDialogShow);
-			setDialogDismiss(isDialogDismiss);
 			setSyncLock(false);
-			setConnectionType(connectionType);
-			setLabelText(labelText);
 			setExecutorService(null);
-		}
-		public ConnectSettingAsync(int connectionType, String labelText){
-			this(true, true, connectionType, null);
-		}
-		public ConnectSettingAsync(boolean isDialogShow, boolean isDialogDismiss, String labelText){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
-		}
-		public ConnectSettingAsync(boolean isDialogShow, boolean isDialogDismiss, int connectionType){
-			this(isDialogShow, isDialogDismiss, connectionType, null);
-		}
-		public ConnectSettingAsync(String labelText){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, labelText);
-		}
-		public ConnectSettingAsync(int connectionType){
-			this(true, true, connectionType, null);
-		}
-		public ConnectSettingAsync(boolean isDialogShow, boolean isDialogDismiss){
-			this(isDialogShow, isDialogDismiss, CONNECTION_TYPE_ALLOW_QUIET, null);
-		}
-		public ConnectSettingAsync(){
-			this(true, true, CONNECTION_TYPE_ALLOW_QUIET, null);
 		}
 	}
 
 	public static abstract class ConnectListener {
+
+		public static final int CONNECTION_TYPE_ALLOW_QUIET = 0;
+		public static final int CONNECTION_TYPE_ALWAYS_QUIET = 1;
+		public static final int CONNECTION_TYPE_ALLOW_CANCEL = 2;
+
+		private int mConnectionType;
+
 		/**
 		 * Return a {@link Message} for {@link ConnectListener#onConnectionResponse(Message)}<br>
 		 */
 		public abstract Message onConnectionRequest();
 		public abstract void onConnectionResponse(Message msg);
-		public void onCancelForegroundWait(DialogInterface dialog){}
+
+		public void setConnectionType(int connectionType){
+			mConnectionType = connectionType;
+		}
+
+		public int getConnectionType(){
+			return mConnectionType;
+		}
 	}
 
 	public static void connection(@NonNull final Context context, final Looper looper, @NonNull final ConnectSetting connectSetting
 			, @NonNull final ConnectListener connectListener){
-		if((connectSetting.mConnectionType == CONNECTION_TYPE_ALLOW_CANCEL || connectSetting.mConnectionType == CONNECTION_TYPE_ALLOW_QUIET) &&
-				connectSetting.mIsDialogShow){
-			CustomProgressDialog.getInstance(context, connectSetting.mLabelText).show();
-			CustomProgressDialog.getInstanceDialog().setOnCancelListener(new OnCancelListener() {
-
-				@Override
-				public void onCancel(DialogInterface dialog) {
-					CustomProgressDialog.clearInstance();
-					connectListener.onCancelForegroundWait(dialog);
-				}
-			});
-		}else if(connectSetting.mLabelText != null){
-			CustomProgressDialog.setInstanceMessage(connectSetting.mLabelText);
-		}
-
 		Runnable runnable = new Runnable() {
 
 			@Override
@@ -329,12 +162,22 @@ public class ConnectManager {
 				}else{
 					msg = connectListener.onConnectionRequest();
 				}
-				if(msg != null){
-					if(connectSetting.mIsUseHandler){
-						getHandler(context, looper, connectSetting, connectListener).sendMessage(msg);
-					}else{
-						responseManage(msg, connectSetting, connectListener);
-					}
+				if(msg == null){
+					return;
+				}
+				if(connectSetting.mIsUseHandler){
+					new Handler(looper == null ? context.getMainLooper() : looper, new Callback() {
+						@Override
+						public boolean handleMessage(Message msg) {
+							if(msg.obj == null){
+								return false;
+							}
+							connectListener.onConnectionResponse(msg);
+							return false;
+						}
+					}).sendMessage(msg);
+				}else{
+					connectListener.onConnectionResponse(msg);
 				}
 			}
 		};
@@ -353,39 +196,7 @@ public class ConnectManager {
 		connection(context, null, connectSetting, connectListener);
 	}
 
-	public static Handler getHandler(@NonNull Context context, Looper looper, @NonNull final ConnectSetting connectSetting
-			, @NonNull final ConnectListener connectListener){
-		Callback callback = new Callback() {
-
-			@Override
-			public boolean handleMessage(Message msg) {
-				if(msg.obj == null){
-					return false;
-				}
-				responseManage(msg, connectSetting, connectListener);
-				return false;
-			}
-		};
-		if(looper == null){
-			return new Handler(context.getMainLooper(), callback);
-		}else{
-			return new Handler(looper, callback);
-		}
-	}
-
 	private static synchronized Message requestSynchronized(@NonNull ConnectListener connectListener){
 		return connectListener.onConnectionRequest();
-	}
-
-	private static void responseManage(@NonNull Message msg, @NonNull ConnectSetting connectSetting, @NonNull ConnectListener connectListener){
-		// RUN_FOREGROUND若Tag被使用者取消，後續不進行任何處理
-		if(connectSetting.mConnectionType == CONNECTION_TYPE_ALLOW_CANCEL && !CustomProgressDialog.isInstanceShowing()){
-			return;
-		}
-		if((connectSetting.mConnectionType == CONNECTION_TYPE_ALLOW_CANCEL || connectSetting.mConnectionType == CONNECTION_TYPE_ALLOW_QUIET) &&
-				CustomProgressDialog.isInstanceShowing() && connectSetting.mIsDialogDismiss){
-			CustomProgressDialog.clearInstance();
-		}
-		connectListener.onConnectionResponse(msg);
 	}
 }
