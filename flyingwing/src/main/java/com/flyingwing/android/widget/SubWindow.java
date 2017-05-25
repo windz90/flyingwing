@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.8
+ * @version 2.4.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -14,7 +14,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -68,12 +67,14 @@ public class SubWindow {
 		void action(View v, int which, Bundle bundle);
 	}
 
-	public static void alertBuilderMessage(Context context, String title, String message, final DialogInterface.OnClickListener click) {
+	public static void alertBuilderMessage(Context context, String title, String message, boolean isOutsideCancel, final DialogInterface.OnClickListener click) {
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
 		alertDialogBuilder.setPositiveButton(context.getString(R.string.close), click);
-		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
+		AlertDialog alertDialog = alertDialogBuilder.create();
+		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
+		alertDialog.setOnCancelListener(new OnCancelListener() {
 
 			@Override
 			public void onCancel(DialogInterface dialog) {
@@ -85,19 +86,19 @@ public class SubWindow {
 		if(context instanceof Activity && ((Activity)context).isFinishing()){
 			return;
 		}
-		alertDialogBuilder.show();
+		alertDialog.show();
 	}
 
-	public static void alertBuilderMessage(Context context, String message, DialogInterface.OnClickListener click) {
-		alertBuilderMessage(context, null, message, click);
+	public static void alertBuilderMessage(Context context, String message, boolean isOutsideCancel, DialogInterface.OnClickListener click) {
+		alertBuilderMessage(context, null, message, isOutsideCancel, click);
 	}
 
-	public static void alertBuilderMessage(Context context, String title, String message) {
-		alertBuilderMessage(context, title, message, null);
+	public static void alertBuilderMessage(Context context, String title, String message, boolean isOutsideCancel) {
+		alertBuilderMessage(context, title, message, isOutsideCancel, null);
 	}
 
-	public static void alertBuilderMessage(Context context, String message) {
-		alertBuilderMessage(context, null, message, null);
+	public static void alertBuilderMessage(Context context, String message, boolean isOutsideCancel) {
+		alertBuilderMessage(context, null, message, isOutsideCancel, null);
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -349,7 +350,8 @@ public class SubWindow {
 		alertBuilderConfirm(context, null, message, context.getString(R.string.ok), context.getString(R.string.cancel), clickAction);
 	}
 
-	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitClass){
+	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitClass, String title, String message, String textPositive
+			, String textNegative){
 		final DialogInterface.OnClickListener click = new DialogInterface.OnClickListener() {
 
 			@Override
@@ -364,10 +366,10 @@ public class SubWindow {
 			}
 		};
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity);
-		alertDialogBuilder.setTitle(activity.getString(R.string.quit));
-		alertDialogBuilder.setMessage(activity.getString(R.string.confirm_ask));
-		alertDialogBuilder.setPositiveButton(activity.getString(R.string.ok), click);
-		alertDialogBuilder.setNegativeButton(activity.getString(R.string.cancel), click);
+		alertDialogBuilder.setTitle(title);
+		alertDialogBuilder.setMessage(message);
+		alertDialogBuilder.setPositiveButton(textPositive, click);
+		alertDialogBuilder.setNegativeButton(textNegative, click);
 		alertDialogBuilder.setOnCancelListener(new OnCancelListener() {
 
 			@Override
@@ -378,6 +380,14 @@ public class SubWindow {
 		if(!activity.isFinishing()){
 			alertDialogBuilder.show();
 		}
+	}
+
+	public static void alertBuilderQuit(Activity activity, Class<? extends Activity> quitClass, String title, String message){
+		alertBuilderQuit(activity, quitClass, title, message, activity.getString(R.string.ok), activity.getString(R.string.cancel));
+	}
+
+	public static void alertBuilderQuit(Activity activity, Class<? extends Activity> quitClass, String message){
+		alertBuilderQuit(activity, quitClass, null, message, activity.getString(R.string.ok), activity.getString(R.string.cancel));
 	}
 
 	public static void popupWindow(Context context, View contentView, final View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity
@@ -520,6 +530,7 @@ public class SubWindow {
 		alertDialogBuilder.setNegativeButton(res.getString(R.string.cancel), null);
 		final AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
+
 		alertDialog.setOnShowListener(new DialogInterface.OnShowListener() {
 			@Override
 			public void onShow(DialogInterface dialog) {
@@ -539,6 +550,16 @@ public class SubWindow {
 			}
 		});
 
+		alertDialog.setOnCancelListener(new OnCancelListener() {
+
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				if(clickAction != null){
+					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
+				}
+			}
+		});
+
 		Window window = alertDialog.getWindow();
 		if(window != null){
 			WindowManager.LayoutParams windowManagerLayoutParams = window.getAttributes();
@@ -547,16 +568,6 @@ public class SubWindow {
 			windowManagerLayoutParams.width = contentView.getLayoutParams().width;
 			window.setAttributes(windowManagerLayoutParams);
 		}
-
-		alertDialog.setOnDismissListener(new OnDismissListener() {
-
-			@Override
-			public void onDismiss(DialogInterface dialog) {
-				if(clickAction != null){
-					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
-				}
-			}
-		});
 
 		editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
 
@@ -724,6 +735,16 @@ public class SubWindow {
 		alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, context.getString(R.string.cancel), onClick);
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
 
+		alertDialog.setOnCancelListener(new OnCancelListener() {
+
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				if(clickAction != null){
+					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
+				}
+			}
+		});
+
 		Window window = alertDialog.getWindow();
 		if(window != null){
 			WindowManager.LayoutParams windowLayPar = window.getAttributes();
@@ -734,16 +755,6 @@ public class SubWindow {
 			window.setBackgroundDrawableResource(android.R.color.transparent);
 			window.setAttributes(windowLayPar);
 		}
-
-		alertDialog.setOnDismissListener(new OnDismissListener() {
-
-			@Override
-			public void onDismiss(DialogInterface dialog) {
-				if(clickAction != null){
-					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
-				}
-			}
-		});
 
 		for(int i=0; i<buttons.length; i++){
 			final int count = i;
@@ -1011,6 +1022,16 @@ public class SubWindow {
 		dialog.setContentView(linLay);
 		dialog.setCanceledOnTouchOutside(isOutsideCancel);
 
+		dialog.setOnCancelListener(new OnCancelListener() {
+
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				if(clickAction != null){
+					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
+				}
+			}
+		});
+
 		Window window = dialog.getWindow();
 		if(window != null){
 			WindowManager.LayoutParams windowLayPar = window.getAttributes();
@@ -1021,16 +1042,6 @@ public class SubWindow {
 			window.setBackgroundDrawableResource(android.R.color.transparent);
 			window.setAttributes(windowLayPar);
 		}
-
-		dialog.setOnDismissListener(new OnDismissListener() {
-
-			@Override
-			public void onDismiss(DialogInterface dialog) {
-				if(clickAction != null){
-					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
-				}
-			}
-		});
 
 		for(int i=0; i<buttons.length; i++){
 			final int count = i;
@@ -1184,6 +1195,16 @@ public class SubWindow {
 		dialog.setContentView(linLay);
 		dialog.setCanceledOnTouchOutside(isOutsideCancel);
 
+		dialog.setOnCancelListener(new OnCancelListener() {
+
+			@Override
+			public void onCancel(DialogInterface dialog) {
+				if(clickAction != null){
+					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
+				}
+			}
+		});
+
 		Window window = dialog.getWindow();
 		if(window != null){
 			WindowManager.LayoutParams windowLayPar = window.getAttributes();
@@ -1195,22 +1216,12 @@ public class SubWindow {
 			window.setAttributes(windowLayPar);
 		}
 
-		dialog.setOnDismissListener(new OnDismissListener() {
-
-			@Override
-			public void onDismiss(DialogInterface dialog) {
-				if(clickAction != null){
-					clickAction.action(null, DialogInterface.BUTTON_NEGATIVE, null);
-				}
-			}
-		});
-
 		if(topBar.findViewById(R.id.topLayoutLeftView) != null){
 			topBar.findViewById(R.id.topLayoutLeftView).setOnClickListener(new OnClickListener() {
 
 				@Override
 				public void onClick(View v) {
-					dialog.dismiss();
+					dialog.cancel();
 				}
 			});
 		}
