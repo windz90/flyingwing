@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.9
+ * @version 2.4.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -99,6 +99,14 @@ public class SubWindow {
 
 	public static void alertBuilderMessage(Context context, String message, boolean isOutsideCancel) {
 		alertBuilderMessage(context, null, message, isOutsideCancel, null);
+	}
+
+	public static void alertBuilderMessage(Context context, String title, String message) {
+		alertBuilderMessage(context, title, message, true, null);
+	}
+
+	public static void alertBuilderMessage(Context context, String message) {
+		alertBuilderMessage(context, null, message, true, null);
 	}
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
