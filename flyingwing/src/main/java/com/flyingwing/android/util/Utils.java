@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.18
+ * @version 3.5.19
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -61,6 +61,7 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.support.annotation.FloatRange;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
@@ -1447,7 +1448,7 @@ public class Utils {
 
 	public static int getUsableHeightSP(Context context, String spName){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
+		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return getUsableHeightSP(context, displayMetrics, spName);
 	}
@@ -1478,7 +1479,7 @@ public class Utils {
 
 	public static void setTextSizeFix(Context context, TextView textView, int unit, float textSize){
 		DisplayMetrics displayMetricsFromWindowManager = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)context.getSystemService(Context.WINDOW_SERVICE);
+		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetricsFromWindowManager);
 		DisplayMetrics displayMetricsFromResources = context.getResources().getDisplayMetrics();
 		if(displayMetricsFromWindowManager.scaledDensity == displayMetricsFromResources.scaledDensity){
@@ -2488,7 +2489,7 @@ public class Utils {
 
 	// 控制鍵盤開關
 	public static void softInputSwitch(Context context, View view, boolean isShow){
-		InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
 		if(view != null){
 			if(isShow){
 				imm.showSoftInput(view, 0);
@@ -2510,7 +2511,7 @@ public class Utils {
 
 	// 自動切換鍵盤開關
 	public static void softInputToggle(Context context, View view){
-		InputMethodManager imm = (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
 		if(view != null){
 			imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
 			imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
@@ -2573,7 +2574,7 @@ public class Utils {
 	}
 
 	public static void sendNotification(Context context, String tag, int id, Notification notification, boolean isCancelExisted){
-		NotificationManager notificationManager = (NotificationManager)context.getSystemService(Service.NOTIFICATION_SERVICE);
+		NotificationManager notificationManager = (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
 		if(isCancelExisted){
 			notificationManager.cancel(tag, id);
 		}
@@ -2690,41 +2691,52 @@ public class Utils {
 		}
 	}
 
-	public static boolean isScreenOn(Context context, boolean isCheckDisplayState, boolean isCheckInteractive, boolean isMustDisplayStateOn){
-		PowerManager powerManager = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+	@RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
+	public static boolean isScreenOn(Context context, boolean isOnlyAllowDisplayStateOn){
+		DisplayManager displayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+		for(Display display : displayManager.getDisplays()){
+			if(display.getDisplayId() == Display.INVALID_DISPLAY){
+				continue;
+			}
+			if(isOnlyAllowDisplayStateOn){
+				if(display.getState() == Display.STATE_ON){
+					return true;
+				}
+			}else{
+				if(display.getState() != Display.STATE_OFF){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean isDeviceInteractive(Context context){
+		PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH){
-			if(!isCheckDisplayState && isCheckInteractive){
-				return powerManager.isInteractive();
-			}
-			DisplayManager displayManager = (DisplayManager)context.getSystemService(Context.DISPLAY_SERVICE);
-			for(Display display : displayManager.getDisplays()){
-				if(display.getDisplayId() == Display.INVALID_DISPLAY){
-					continue;
-				}
-				if(isMustDisplayStateOn){
-					if(isCheckDisplayState && !isCheckInteractive && display.getState() == Display.STATE_ON){
-						return true;
-					}
-					if(isCheckDisplayState && isCheckInteractive && display.getState() == Display.STATE_ON && powerManager.isInteractive()){
-						return true;
-					}
-				}else{
-					if(isCheckDisplayState && !isCheckInteractive && display.getState() != Display.STATE_OFF){
-						return true;
-					}
-					if(isCheckDisplayState && isCheckInteractive && display.getState() != Display.STATE_OFF && powerManager.isInteractive()){
-						return true;
-					}
-				}
-			}
-			return false;
+			return powerManager.isInteractive();
 		}
 		//noinspection deprecation
 		return powerManager.isScreenOn();
 	}
 
-	public static boolean isScreenOn(Context context, boolean isMustDisplayStateOn){
-		return isScreenOn(context, true, true, isMustDisplayStateOn);
+	@RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
+	public static boolean isScreenOnAndInteractive(Context context, boolean isOnlyAllowDisplayStateOn){
+		PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+		DisplayManager displayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+		for(Display display : displayManager.getDisplays()){
+			if(display.getDisplayId() == Display.INVALID_DISPLAY){
+				continue;
+			}
+			if(powerManager.isInteractive()){
+				if(isOnlyAllowDisplayStateOn){
+					return display.getState() == Display.STATE_ON;
+				}else{
+					return display.getState() != Display.STATE_OFF;
+				}
+			}
+		}
+		return false;
 	}
 
 	// 判斷此Activity是否正在前端執行
@@ -2736,14 +2748,14 @@ public class Utils {
 		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.GET_TASKS) == PackageManager.PERMISSION_DENIED){
 			return false;
 		}
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		List<ActivityManager.RunningTaskInfo> list = activityManager.getRunningTasks(1);
 		String runningClassName = list.get(0).topActivity.getClassName();
 		return context.getClass().getName().equals(runningClassName);
 	}
 
 	public static boolean isRunningApp(Context context, String packageName){
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(packageName.equals(runningAppProcessInfo.processName)){
 				return true;
@@ -2758,7 +2770,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningAppOnState(Context context, String packageName, int importance/* RunningAppProcessInfo.importance */){
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(packageName.equals(runningAppProcessInfo.processName) && runningAppProcessInfo.importance == importance){
 				return true;
@@ -2788,7 +2800,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningAppProcess(Context context, int processId){
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(processId == runningAppProcessInfo.pid){
 				return true;
@@ -2798,7 +2810,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningAppProcess(Context context, String processName){
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(processName.equals(runningAppProcessInfo.processName)){
 				return true;
@@ -2808,7 +2820,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningService(Context context, Class<?> serviceClass){
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningServiceInfo runningServiceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)){
 			if(serviceClass.getName().equals(runningServiceInfo.service.getClassName())){
 				return true;
@@ -2819,7 +2831,7 @@ public class Utils {
 
 	// 列印所有執行中的AppProcess系統資訊
 	public static void logRunningAppProcessInfo(Context context){
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		List<RunningAppProcessInfo> runningAppProcessInfoList = activityManager.getRunningAppProcesses();
 		int size = runningAppProcessInfoList.size();
 		int[] pids = new int[size];
@@ -2847,7 +2859,7 @@ public class Utils {
 		// ActivityManager.RunningAppProcessInfo：正在執行的程式資訊
 		// ActivityManager.RunningServiceInfo：正在執行的服務資訊
 		// ActivityManager.RunningTaskInfo：正在執行的任務資訊
-		ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
 		ActivityManager.MemoryInfo activityMemoryInfo = new ActivityManager.MemoryInfo();
 		activityManager.getMemoryInfo(activityMemoryInfo);
 
@@ -3124,7 +3136,7 @@ public class Utils {
 			return null;
 		}
 
-		TelephonyManager telephonyManager = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
 
 		Map<String, String> hashMap = new HashMap<String, String>();
 
