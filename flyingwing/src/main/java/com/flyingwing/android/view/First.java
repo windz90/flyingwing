@@ -40,8 +40,8 @@ public class First extends Activity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.layout_relative);
 
-		NetworkAccess.setPrintConnectionUrl(BuildConfig.DEBUG_LOG);
-		NetworkAccess.setPrintConnectException(BuildConfig.DEBUG_LOG);
+		NetworkAccess.setPrintConnectionUrl(BuildConfig.DEBUG);
+		NetworkAccess.setPrintConnectException(BuildConfig.DEBUG);
 		ImageProcessor.setPrintLoadStreamException(false);
 
 		DisplayUtils.measureUsableHeightWaitOnDraw(this, new MeasureCallback() {

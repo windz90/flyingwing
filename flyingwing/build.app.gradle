@@ -1,0 +1,73 @@
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion 25
+	buildToolsVersion "25.0.3"
+	signingConfigs {
+		release {
+			System.println("\n＊＊　　　　　～喝杯水休息一下～　　　　　＊＊")
+			System.println("＊＊　正在強迫懶惰的Ｇｒａｄｌｅ市民工作　＊＊\n")
+			storeFile file("path/release.keystore")
+		}
+	}
+
+	defaultConfig {
+		applicationId "com.flyingwing.android"
+		manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/icon"]
+		minSdkVersion 9 // Android Support Library 24.2.0 removes support for Android 2.2 (API level 8) and lower.
+		targetSdkVersion 25
+		versionCode 1
+		versionName "1.0"
+		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+	}
+
+	buildTypes {
+		debug {
+			versionNameSuffix ".debug"
+			buildConfigField "boolean", "DEBUG_LOG", "true"
+			zipAlignEnabled false
+			minifyEnabled false
+			shrinkResources false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+		alpha {
+			buildConfigField "boolean", "DEBUG_LOG", "true"
+			zipAlignEnabled true
+			minifyEnabled true
+			shrinkResources true
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
+		}
+		release {
+			buildConfigField "boolean", "DEBUG_LOG", "false"
+			zipAlignEnabled true
+			minifyEnabled true
+			shrinkResources true
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
+		}
+	}
+
+//	lintOptions {
+//		abortOnError false
+//		checkReleaseBuilds false
+//	}
+}
+
+def runTasks = gradle.startParameter.taskNames
+if ('assemble' in runTasks || 'assembleRelease' in runTasks) {
+	android.signingConfigs.release.storePassword = System.console().readLine('\nKeyStore Password: ')
+	android.signingConfigs.release.keyAlias = System.console().readLine('Alias Name: ')
+	android.signingConfigs.release.keyPassword = System.console().readLine('Alias Password: ')
+}
+
+dependencies {
+	compile fileTree(dir: 'libs', include: ['*.jar'])
+	androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+		exclude group: 'com.android.support', module: 'support-annotations'
+	})
+	compile 'com.android.support:appcompat-v7:25.3.1'
+	testCompile 'junit:junit:4.12'
+}
+
+apply plugin: 'com.google.gms.google-services'
