@@ -1,6 +1,6 @@
 /*
  * Copyright 2017 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.3
  */
@@ -78,8 +78,8 @@ public class BluetoothLE {
 	private ArrayMap<String, ArrayMap<String, List<BLEGattCallback>>> mArrayMap2ListGattCallback;
 	private List<BLEGattCallback> mListBLEGattCallback;
 	private BluetoothGattCallback mBluetoothGattCallbackInternal;
-	private int mReconnectCount = 1;
-	private int mReconnectCountFullRetrySeconds = 300;
+	private int mReconnectCountMax = 2;
+	private int mRetryPeriodSeconds = 300;
 
 	public static BluetoothLE getInstance(){
 		return BluetoothLE.StaticNestedClass.INSTANCE;
@@ -90,7 +90,7 @@ public class BluetoothLE {
 	@Nullable
 	public BluetoothAdapter getBluetoothAdapter(Context context){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
-			BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+			BluetoothManager bluetoothManager = (BluetoothManager) context.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
 			return bluetoothManager.getAdapter();
 		}else{
 			return BluetoothAdapter.getDefaultAdapter();
@@ -122,28 +122,31 @@ public class BluetoothLE {
 			bleConnection.arrayMap = new ArrayMap<>();
 		}
 		BluetoothAdapter bluetoothAdapter = getBluetoothAdapter(context);
-		if(bluetoothAdapter == null || context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
+		if(bluetoothAdapter == null || !context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
 			bleConnection.arrayMap.put("state", Integer.toString(STATE_NOT_SUPPORTED));
-			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+					, -1, STATE_NOT_SUPPORTED);
 			return;
 		}
 		if(!bluetoothAdapter.isEnabled()){
 			bleConnection.arrayMap.put("state", Integer.toString(STATE_NOT_ENABLED));
-			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+					, -1, STATE_NOT_ENABLED);
 
-			if(!"1".equals(bleConnection.arrayMap.get("isSetRetry"))){
-				bleConnection.arrayMap.put("isSetRetry", "1");
+			if("0".equals(bleConnection.arrayMap.get("retryStatus"))){
+				bleConnection.arrayMap.put("retryStatus", "1");
+				final ArrayMap<String, String> arrayMapCopy = bleConnection.arrayMap;
 				new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 					@RequiresPermission(android.Manifest.permission.BLUETOOTH)
 					@Override
 					public void run() {
-						ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
-						if(arrayMap != null){
-							arrayMap.put("isSetRetry", "0");
+						if("1".equals(arrayMapCopy.get("retryStatus"))){
+							arrayMapCopy.put("retryStatus", "2");
+							arrayMapCopy.put("retryStatus", "0");
+							connect(context, address, connectionTag, false, false);
 						}
-						connect(context, address, connectionTag, false, false);
 					}
-				}, mReconnectCountFullRetrySeconds * 1000L);
+				}, mRetryPeriodSeconds * 1000L);
 			}
 			return;
 		}
@@ -157,18 +160,21 @@ public class BluetoothLE {
 				bleConnection.bluetoothGatt = bluetoothDevice.connectGatt(context, false, mBluetoothGattCallbackInternal);
 				if(bleConnection.bluetoothGatt == null){
 					bleConnection.arrayMap.put("state", Integer.toString(STATE_NOT_SUPPORTED));
-					sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+					sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+							, -1, STATE_NOT_SUPPORTED);
 					return;
 				}
 			}
 			bleConnection.arrayMap.put("state", Integer.toString(STATE_CONNECTING));
-			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+					, -1, STATE_CONNECTING);
 			if(isResetReconnectCount){
 				bleConnection.arrayMap.put("reconnectCount", "0");
 			}
 			if(!bleConnection.bluetoothGatt.connect()){
 				bleConnection.arrayMap.put("state", Integer.toString(STATE_DISCONNECTED));
-				sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+				sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+						, -1, STATE_DISCONNECTED);
 			}
 		}else if(Integer.parseInt(state) >= STATE_CONNECTING && isForceReconnect){
 			if(bleConnection.bluetoothGatt == null){
@@ -176,7 +182,8 @@ public class BluetoothLE {
 				bleConnection.bluetoothGatt = bluetoothDevice.connectGatt(context, false, mBluetoothGattCallbackInternal);
 				if(bleConnection.bluetoothGatt == null){
 					bleConnection.arrayMap.put("state", Integer.toString(STATE_NOT_SUPPORTED));
-					sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+					sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+							, -1, STATE_NOT_SUPPORTED);
 					return;
 				}
 			}
@@ -184,7 +191,8 @@ public class BluetoothLE {
 			if(isResetReconnectCount){
 				bleConnection.arrayMap.put("reconnectCount", "0");
 			}
-			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+					, -1, STATE_DISCONNECTING);
 			bleConnection.bluetoothGatt.disconnect();
 		}
 	}
@@ -236,14 +244,16 @@ public class BluetoothLE {
 			bleConnection.arrayMap = new ArrayMap<>();
 		}
 		BluetoothAdapter bluetoothAdapter = getBluetoothAdapter(context);
-		if(bluetoothAdapter == null || context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
+		if(bluetoothAdapter == null || !context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)){
 			bleConnection.arrayMap.put("state", Integer.toString(STATE_NOT_SUPPORTED));
-			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+					, -1, STATE_NOT_SUPPORTED);
 			return;
 		}
 		if(!bluetoothAdapter.isEnabled()){
 			bleConnection.arrayMap.put("state", Integer.toString(STATE_NOT_ENABLED));
-			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+					, -1, STATE_NOT_ENABLED);
 			return;
 		}
 		if(isDisconnected){
@@ -251,9 +261,9 @@ public class BluetoothLE {
 			bleConnection.bluetoothGatt = null;
 		}else{
 			bleConnection.arrayMap.put("state", Integer.toString(STATE_DISCONNECTING));
-			bleConnection.arrayMap.put("reconnectCount", Integer.toString(mReconnectCount));
-			bleConnection.arrayMap.put("isSetRetry", "1");
-			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt, -1, -1);
+			bleConnection.arrayMap.put("reconnectCount", Integer.toString(mReconnectCountMax));
+			sendGattCallbackOnConnectionStateChange(address, connectionTag, bleConnection.arrayMap.get("state"), bleConnection.bluetoothGatt
+					, -1, STATE_DISCONNECTING);
 			bleConnection.bluetoothGatt.disconnect();
 		}
 	}
@@ -283,11 +293,11 @@ public class BluetoothLE {
 				final String address = gatt.getDevice().getAddress();
 				final String connectionTag = findConnectionTag(address, gatt);
 
-				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
+				final ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
 					switch (gattState) {
 						case BluetoothGatt.STATE_DISCONNECTED:
-							if(Integer.toString(mReconnectCount).equals(arrayMap.get("state"))){
+							if(Integer.toString(mReconnectCountMax).equals(arrayMap.get("reconnectCount"))){
 								disconnect(context, address, connectionTag, true);
 							}
 							arrayMap.put("state", Integer.toString(STATE_DISCONNECTED));
@@ -301,6 +311,7 @@ public class BluetoothLE {
 						case BluetoothGatt.STATE_CONNECTED:
 							arrayMap.put("state", Integer.toString(STATE_CONNECTED));
 							arrayMap.put("reconnectCount", "0");
+							arrayMap.put("retryStatus", "0");
 							break;
 					}
 				}
@@ -310,24 +321,33 @@ public class BluetoothLE {
 					if(arrayMap == null){
 						return;
 					}
-					int reconnectCount = TextUtils.isEmpty(arrayMap.get("reconnectCount")) ? 0 : Integer.parseInt(arrayMap.get("reconnectCount"));
-					arrayMap.put("reconnectCount", Integer.toString(reconnectCount < mReconnectCount ? reconnectCount + 1 : 0));
-					Runnable runnable = new Runnable() {
+					final int reconnectCount = TextUtils.isEmpty(arrayMap.get("reconnectCount")) ? 0 : Integer.parseInt(arrayMap.get("reconnectCount"));
+					final Runnable runnable = new Runnable() {
 						@RequiresPermission(android.Manifest.permission.BLUETOOTH)
 						@Override
 						public void run() {
-							ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
-							if(arrayMap != null){
-								arrayMap.put("isSetRetry", "0");
+							String reconnectCountUpdate = Integer.toString(reconnectCount < mReconnectCountMax ? reconnectCount + 1 : 0);
+							if("2".equals(arrayMap.get("retryStatus"))){
+								arrayMap.put("retryStatus", "0");
 							}
+							arrayMap.put("reconnectCount", reconnectCountUpdate);
 							connect(context, address, connectionTag, false, false);
 						}
 					};
-					if(reconnectCount < mReconnectCount && mReconnectCount != -1){
+					if(reconnectCount < mReconnectCountMax && mReconnectCountMax > -1){
 						new Handler(Looper.getMainLooper()).postDelayed(runnable, 500);
-					}else if(!"1".equals(arrayMap.get("isSetRetry")) && mReconnectCountFullRetrySeconds != -1){
-						arrayMap.put("isSetRetry", "1");
-						new Handler(Looper.getMainLooper()).postDelayed(runnable, mReconnectCountFullRetrySeconds * 1000L);
+					}else if("0".equals(arrayMap.get("retryStatus")) && mRetryPeriodSeconds > -1){
+						arrayMap.put("retryStatus", "1");
+						new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+							@RequiresPermission(android.Manifest.permission.BLUETOOTH)
+							@Override
+							public void run() {
+								if("1".equals(arrayMap.get("retryStatus"))){
+									arrayMap.put("retryStatus", "2");
+									runnable.run();
+								}
+							}
+						}, mRetryPeriodSeconds * 1000L);
 					}
 				}
 			}
@@ -661,6 +681,10 @@ public class BluetoothLE {
 		return bluetoothGattCallback != null && syncGattCallback(1, address, connectionTag, bluetoothGattCallback, filters);
 	}
 
+	public boolean addGattCallback(String address, String connectionTag, BluetoothGattCallback bluetoothGattCallback){
+		return bluetoothGattCallback != null && syncGattCallback(1, address, connectionTag, bluetoothGattCallback);
+	}
+
 	/**
 	 * @param filters Filter specific conditions.<br>
 	 *                   filters[0] : key<br>
@@ -679,6 +703,10 @@ public class BluetoothLE {
 	 */
 	public boolean putGattCallback(String address, BluetoothGattCallback bluetoothGattCallback, @Size(3) String[]... filters){
 		return bluetoothGattCallback != null && syncGattCallback(1, address, CONNECTION_TAG_DEFAULT, bluetoothGattCallback, filters);
+	}
+
+	public boolean putGattCallback(String address, BluetoothGattCallback bluetoothGattCallback){
+		return bluetoothGattCallback != null && syncGattCallback(1, address, CONNECTION_TAG_DEFAULT, bluetoothGattCallback);
 	}
 
 	private List<BLEGattCallback> getGattCallback(String address, String connectionTag){
@@ -946,28 +974,36 @@ public class BluetoothLE {
 		return isMatch;
 	}
 
-	public void setReconnectCount(int reconnectCount){
-		mReconnectCount = reconnectCount;
+	public void setReconnectCountMax(int reconnectCountMax){
+		mReconnectCountMax = reconnectCountMax;
+	}
+
+	public int getReconnectCountMax(){
+		return mReconnectCountMax;
+	}
+
+	public void enableReconnect(){
+		mReconnectCountMax = 2;
 	}
 
 	public void disableReconnect(){
-		mReconnectCount = -1;
+		mReconnectCountMax = -1;
 	}
 
-	public int getReconnectCount(){
-		return mReconnectCount;
+	public void setRetryPeriodSecondsForReconnectCountReset(int retryPeriodSeconds){
+		mRetryPeriodSeconds = retryPeriodSeconds;
 	}
 
-	public void setReconnectCountFullRetrySeconds(int retrySeconds){
-		mReconnectCountFullRetrySeconds = retrySeconds;
+	public int getRetryPeriodSecondsForReconnectCountReset(){
+		return mRetryPeriodSeconds;
 	}
 
-	public void disableReconnectCountFullRetry(){
-		mReconnectCountFullRetrySeconds = -1;
+	public void enableReconnectCountMaxReset(){
+		mRetryPeriodSeconds = 300;
 	}
 
-	public int getReconnectCountFullRetrySeconds(){
-		return mReconnectCountFullRetrySeconds;
+	public void disableReconnectCountMaxReset(){
+		mRetryPeriodSeconds = -1;
 	}
 
 	private class BLEConnection {
