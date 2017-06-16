@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.11
+ * @version 3.5.12
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -291,7 +291,7 @@ public class NetworkAccess {
 	}
 
 	public static boolean isAvailable(@NonNull Context context) {
-		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
@@ -647,10 +647,10 @@ public class NetworkAccess {
 				if(contentArray.length == 2 && (contentArray[0] == null || contentArray[1] == null)){
 					continue;
 				}
-				if(contentArray.length == 3 && ((contentArray[0] == null || (contentArray[1] == null) && contentArray[2] == null))){
+				if(contentArray.length == 3 && (contentArray[0] == null || contentArray[1] == null ||  contentArray[2] == null)){
 					continue;
 				}
-				if(contentArray.length == 4 && ((contentArray[0] == null || (contentArray[1] == null) && contentArray[2] == null && contentArray[3] == null))){
+				if(contentArray.length == 4 && (contentArray[0] == null || contentArray[1] == null || contentArray[3] == null)){
 					continue;
 				}
 				line = hyphens + boundary +
@@ -668,9 +668,9 @@ public class NetworkAccess {
 						printInfo(line);
 					}
 				}else if (contentArray.length == 3){
-					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"" +
+					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"; filename=\"" + contentArray[1] + "\"" +
 							breakLine +
-							"Content-Type: " + contentArray[1] +
+							"Content-Type: application/x-object" +
 							breakLine + breakLine;
 					dataOutputStream.write(line.getBytes(charset));
 					if(NETWORKSETTING.mIsPrintConnectionRequest){
