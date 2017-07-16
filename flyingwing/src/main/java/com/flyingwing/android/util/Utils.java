@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.19
+ * @version 3.5.20
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -465,7 +465,7 @@ public class Utils {
 		if(!sdCardExist){
 			return false;
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -513,7 +513,7 @@ public class Utils {
 			return null;
 		}
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN &&
-				ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE};
@@ -1143,12 +1143,25 @@ public class Utils {
 		return null;
 	}
 
-	public static Object reflectionField(Object objectClass, String fieldName){
+	public static void setReflectionField(Object objectInstance, String fieldName, Object value){
 		// Reflection反射調用屬性
 		try {
-			Field field = objectClass.getClass().getDeclaredField(fieldName);
+			Field field = objectInstance.getClass().getDeclaredField(fieldName);
 			field.setAccessible(true);
-			Object objectField = field.get(objectClass);
+			field.set(objectInstance, value);
+			field.setAccessible(false);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static Object swapReflectionField(Object objectInstance, String fieldName, Object value){
+		// Reflection反射調用屬性
+		try {
+			Field field = objectInstance.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			Object objectField = field.get(objectInstance);
+			field.set(objectInstance, value);
 			field.setAccessible(false);
 			return objectField;
 		} catch (Exception e) {
@@ -1157,74 +1170,30 @@ public class Utils {
 		return null;
 	}
 
-	// 計算兩點距離API版
-	public static double getDistance1(double lat1, double lon1, double lat2, double lon2) {
-		float[] results=new float[1];
-		Location.distanceBetween(lat1, lon1, lat2, lon2, results);
-		return results[0];
-	}
-
-	// 計算兩點距離簡算版
-	public static double getDistance2(double lat1, double lon1, double lat2, double lon2) {
-		double theta = lon1 - lon2;
-		double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2))
-				+ Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-				* Math.cos(Math.toRadians(theta));
-		dist = Math.acos(dist);
-		dist = Math.toDegrees(dist);
-		return dist * 60 * 1.1515;
-	}
-
-	public static float getSpacing(MotionEvent event) {
-		float x = event.getX(0) - event.getX(1);
-		float y = event.getY(0) - event.getY(1);
-		return (float)Math.sqrt(x * x + y * y);
-	}
-
-	public static float getRotate(MotionEvent event){
-		double x = event.getX(0) - event.getX(1);
-		double y = event.getY(0) - event.getY(1);
-		double radians = Math.atan2(y, x);
-		return (float)Math.toDegrees(radians);
-	}
-
-	public static void setMidPoint(PointF point, MotionEvent event) {
-		float x = event.getX(0) + event.getX(1);
-		float y = event.getY(0) + event.getY(1);
-		point.set(x / 2, y / 2);
-	}
-
-	public static float getRoundAngle(float centerX, float centerY, float pointX, float pointY, float angleOffset) {
-		// half round 180 angle, left to positive, right to negative
-		float angle = (float) Math.toDegrees(Math.atan2(centerX - pointX, centerY - pointY));
-		// full round angle, left increment
-		if(angle < 0){
-			angle += 360;
+	public static Object getReflectionField(Object objectInstance, String fieldName){
+		// Reflection反射調用屬性
+		try {
+			Field field = objectInstance.getClass().getDeclaredField(fieldName);
+			field.setAccessible(true);
+			Object objectField = field.get(objectInstance);
+			field.setAccessible(false);
+			return objectField;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		// change round angle, right increment
-		angle = 360 - angle;
-
-		// offset angle
-		angle += 360 - angleOffset;
-		if(angle >= 360){
-			angle -= 360;
-		}
-		return angle;
+		return null;
 	}
 
-	/**
-	 * @param roundRadiusRatio from=0.0, to=100.0
-	 */
-	public static float getCornerRadiusFromRatio(int width, int height, @FloatRange(from=0.0, to=100.0) float roundRadiusRatio){
-		float radiusMax = Math.max(width, height) * 0.5f;
-		if(roundRadiusRatio == 100f){
-			return radiusMax;
+	public static void invokeReflectionMethod(Object objectInstance, String methodName, Class<?>[] parameterTypes, Object... args){
+		// Reflection反射調用private方法
+		try {
+			Method method = objectInstance.getClass().getDeclaredMethod(methodName, parameterTypes);
+			method.setAccessible(true);
+			method.invoke(objectInstance, args);
+			method.setAccessible(false);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		float radiusMin = radiusMax / 100f;
-		if(roundRadiusRatio == 1f){
-			return radiusMin;
-		}
-		return radiusMin * roundRadiusRatio;
 	}
 
 	/**
@@ -1315,6 +1284,76 @@ public class Utils {
 		}
 	}
 
+	// 計算兩點距離API版
+	public static double getDistance1(double lat1, double lon1, double lat2, double lon2) {
+		float[] results=new float[1];
+		Location.distanceBetween(lat1, lon1, lat2, lon2, results);
+		return results[0];
+	}
+
+	// 計算兩點距離簡算版
+	public static double getDistance2(double lat1, double lon1, double lat2, double lon2) {
+		double theta = lon1 - lon2;
+		double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2))
+				+ Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+				* Math.cos(Math.toRadians(theta));
+		dist = Math.acos(dist);
+		dist = Math.toDegrees(dist);
+		return dist * 60 * 1.1515;
+	}
+
+	public static float getSpacing(MotionEvent event) {
+		float x = event.getX(0) - event.getX(1);
+		float y = event.getY(0) - event.getY(1);
+		return (float)Math.sqrt(x * x + y * y);
+	}
+
+	public static float getRotate(MotionEvent event){
+		double x = event.getX(0) - event.getX(1);
+		double y = event.getY(0) - event.getY(1);
+		double radians = Math.atan2(y, x);
+		return (float)Math.toDegrees(radians);
+	}
+
+	public static void setMidPoint(PointF point, MotionEvent event) {
+		float x = event.getX(0) + event.getX(1);
+		float y = event.getY(0) + event.getY(1);
+		point.set(x / 2, y / 2);
+	}
+
+	public static float getRoundAngle(float centerX, float centerY, float pointX, float pointY, float angleOffset) {
+		// half round 180 angle, left to positive, right to negative
+		float angle = (float) Math.toDegrees(Math.atan2(centerX - pointX, centerY - pointY));
+		// full round angle, left increment
+		if(angle < 0){
+			angle += 360;
+		}
+		// change round angle, right increment
+		angle = 360 - angle;
+
+		// offset angle
+		angle += 360 - angleOffset;
+		if(angle >= 360){
+			angle -= 360;
+		}
+		return angle;
+	}
+
+	/**
+	 * @param roundRadiusRatio from=0.0, to=100.0
+	 */
+	public static float getCornerRadiusFromRatio(int width, int height, @FloatRange(from=0.0, to=100.0) float roundRadiusRatio){
+		float radiusMax = Math.max(width, height) * 0.5f;
+		if(roundRadiusRatio == 100f){
+			return radiusMax;
+		}
+		float radiusMin = radiusMax / 100f;
+		if(roundRadiusRatio == 1f){
+			return radiusMin;
+		}
+		return radiusMin * roundRadiusRatio;
+	}
+
 	public static void executeCommand(boolean isPrintResult, String...command){
 		ProcessBuilder processBuilder = new ProcessBuilder(command);
 		try {
@@ -1398,7 +1437,7 @@ public class Utils {
 		 */
 //		String uuid = UUID.randomUUID().toString();
 
-		return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+		return Settings.Secure.getString(context.getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 	}
 
 	public static String getAssetsPathForWebViewOnly(String filePath){
@@ -1406,7 +1445,7 @@ public class Utils {
 	}
 
 	public static String getRawPath(Context context, int rawResourceId){
-		return "android.resource://" + context.getPackageName() + "/" + rawResourceId;
+		return "android.resource://" + context.getApplicationContext().getPackageName() + "/" + rawResourceId;
 	}
 
 	public static TypedValue getAttribute(Context context, int attrResource){
@@ -1448,13 +1487,13 @@ public class Utils {
 
 	public static int getUsableHeightSP(Context context, String spName){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return getUsableHeightSP(context, displayMetrics, spName);
 	}
 
 	public static int getStatusBarHeightSP(Context context, String spName){
-		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
 		return sp.getInt(SP_KEY_STATUS_BAR_HEIGHT, 0);
 	}
 
@@ -1479,7 +1518,7 @@ public class Utils {
 
 	public static void setTextSizeFix(Context context, TextView textView, int unit, float textSize){
 		DisplayMetrics displayMetricsFromWindowManager = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetricsFromWindowManager);
 		DisplayMetrics displayMetricsFromResources = context.getResources().getDisplayMetrics();
 		if(displayMetricsFromWindowManager.scaledDensity == displayMetricsFromResources.scaledDensity){
@@ -1617,7 +1656,7 @@ public class Utils {
 	}
 
 	public static void setToast(Context context, CharSequence text, int duration){
-		Toast toast = Toast.makeText(context, text, duration);
+		Toast toast = Toast.makeText(context.getApplicationContext(), text, duration);
 		toast.show();
 	}
 
@@ -1626,7 +1665,7 @@ public class Utils {
 	}
 
 	public static synchronized boolean putSharedPreferences(Context context, String spName, String key, Object value, boolean toggleMode) {
-		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
 		SharedPreferences.Editor spEdit = sp.edit();
 		if(toggleMode && sp.contains(key)){
 			spEdit.remove(key);
@@ -1689,7 +1728,7 @@ public class Utils {
 
 	public static void putSharedPreferencesMap(final Context context, final String spName, final String mapSaveKey
 			, final Map<String, String> map, final boolean toggleMode, final Handler handler){
-		final SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		final SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final SharedPreferences.Editor spEdit = sp.edit();
 
 		Thread thread = new Thread(new Runnable() {
@@ -1759,7 +1798,7 @@ public class Utils {
 	}
 
 	public static void removeSharedPreferencesMap(Context context, String spName, final String mapSaveKey, final Handler handler){
-		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final SharedPreferences.Editor spEdit = sp.edit();
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
@@ -1791,7 +1830,7 @@ public class Utils {
 	}
 
 	public static Map<String, String> getSharedPreferencesMap(Context context, String spName, String mapSaveKey){
-		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -1813,7 +1852,7 @@ public class Utils {
 	}
 
 	public static String getSharedPreferencesMapInItem(Context context, String spName, String mapSaveKey, int location){
-		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -1826,7 +1865,7 @@ public class Utils {
 	}
 
 	public static String getSharedPreferencesMapInItem(Context context, String spName, String mapSaveKey, String mapSaveItemKey){
-		SharedPreferences sp = context.getSharedPreferences(spName, Context.MODE_PRIVATE);
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -1876,11 +1915,11 @@ public class Utils {
 
 	public static Intent getActionSendIntentForAPP(Context context, String packageName, String className, String intentType, String subject
 			, String text, Uri streamUri){
-		PackageManager packageManager = context.getPackageManager();
+		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo == null || listResolveInfo.size() == 0){
-			setToast(context, packageName + " Not installed");
+			setToast(context.getApplicationContext(), packageName + " Not installed");
 			Uri uri = Uri.parse("market://details?id=" + packageName);
 			intent = new Intent(Intent.ACTION_VIEW, uri);
 			return intent;
@@ -2107,16 +2146,16 @@ public class Utils {
 	}
 
 	public static int intentMatchAppCount(Context context, Intent intent){
-		PackageManager packageManager = context.getPackageManager();
+		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		return listResolveInfo == null ? 0 : listResolveInfo.size();
 	}
 
 	public static void callMatchApp(Context context, Intent intent, String failInfo){
-		PackageManager packageManager = context.getPackageManager();
+		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo == null || listResolveInfo.size() == 0){
-			setToast(context, failInfo);
+			setToast(context.getApplicationContext(), failInfo);
 			return;
 		}
 		context.startActivity(intent);
@@ -2126,21 +2165,21 @@ public class Utils {
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(intentMatchAppCount(activity, intent) == 0){
-				setToast(activity, failInfo);
+				setToast(activity.getApplicationContext(), failInfo);
 				return;
 			}
 			activity.startActivityForResult(intent, onActivityResultRequestCode);
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			if(intentMatchAppCount(fragment.getActivity(), intent) == 0){
-				setToast(fragment.getActivity(), failInfo);
+				setToast(fragment.getActivity().getApplicationContext(), failInfo);
 				return;
 			}
 			fragment.startActivityForResult(intent, onActivityResultRequestCode);
 		}else if(objectThis instanceof android.app.Fragment && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			if(intentMatchAppCount(fragment.getActivity(), intent) == 0){
-				setToast(fragment.getActivity(), failInfo);
+				setToast(fragment.getActivity().getApplicationContext(), failInfo);
 				return;
 			}
 			fragment.startActivityForResult(intent, onActivityResultRequestCode);
@@ -2214,7 +2253,7 @@ public class Utils {
 
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public static void callAppSettings(Context context){
-		Uri packageUri = Uri.fromParts("package", context.getPackageName(), null);
+		Uri packageUri = Uri.fromParts("package", context.getApplicationContext().getPackageName(), null);
 		/*
 		 * Mobile網路設定頁
 		 * Settings.ACTION_WIRELESS_SETTINGS
@@ -2230,7 +2269,7 @@ public class Utils {
 		Cursor cursor = null;
 		try {
 			String[] projection = new String[]{MediaStore.MediaColumns.DATA};
-			cursor = context.getContentResolver().query(uri, projection, null, null, null);
+			cursor = context.getApplicationContext().getContentResolver().query(uri, projection, null, null, null);
 			if(cursor != null && cursor.moveToFirst()){
 				int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
 				path = cursor.getString(columnIndex);
@@ -2303,7 +2342,7 @@ public class Utils {
 		for(int i=0; i<uris.length; i++){
 			if(DocumentsContract.isDocumentUri(context, uris[i])){
 				int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-				context.getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
+				context.getApplicationContext().getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
 			}
 		}
 		return uris;
@@ -2332,7 +2371,7 @@ public class Utils {
 	 */
 	public static void setScreenBrightnessMode(Context context, int screenBrightnessMode){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
+		Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
 	}
 
 	// 取得螢幕亮度模式
@@ -2342,7 +2381,7 @@ public class Utils {
 	 */
 	public static int getScreenBrightnessMode(Context context){
 		try {
-			return Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE);
+			return Settings.System.getInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE);
 		} catch (SettingNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -2356,12 +2395,12 @@ public class Utils {
 	 */
 	public static void setScreenBrightnessForSystem(Context context, int screenBrightness){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		Settings.System.putInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
+		Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
 	}
 
 	// 取得系統亮度
 	public static int getScreenBrightnessForSystem(Context context){
-		return Settings.System.getInt(context.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
+		return Settings.System.getInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
 	}
 
 	// 設定目前亮度
@@ -2388,12 +2427,12 @@ public class Utils {
 	 */
 	public static void setTouchPointState(Context context, boolean isShow){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		Settings.System.putInt(context.getContentResolver(), "show_touches", isShow ? 1 : 0);
+		Settings.System.putInt(context.getApplicationContext().getContentResolver(), "show_touches", isShow ? 1 : 0);
 	}
 
 	public static int getTouchPointState(Context context){
 		try {
-			return Settings.System.getInt(context.getContentResolver(), "show_touches");
+			return Settings.System.getInt(context.getApplicationContext().getContentResolver(), "show_touches");
 		} catch (SettingNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -2405,7 +2444,7 @@ public class Utils {
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(!Settings.System.canWrite(activity)){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getPackageName()));
+				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				activity.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
@@ -2413,7 +2452,7 @@ public class Utils {
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			if(!Settings.System.canWrite(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragment.getActivity().getPackageName()));
+				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
@@ -2421,7 +2460,7 @@ public class Utils {
 		}else if(objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			if(!Settings.System.canWrite(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragment.getActivity().getPackageName()));
+				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
@@ -2450,21 +2489,21 @@ public class Utils {
 		if(objectThis instanceof Activity){
 			Activity activity = (Activity) objectThis;
 			if(!Settings.canDrawOverlays(activity)){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getPackageName()));
+				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				activity.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			if(!Settings.canDrawOverlays(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragment.getActivity().getPackageName()));
+				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
 			}
 		}else if(objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			if(!Settings.canDrawOverlays(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragment.getActivity().getPackageName()));
+				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
 			}
@@ -2489,7 +2528,7 @@ public class Utils {
 
 	// 控制鍵盤開關
 	public static void softInputSwitch(Context context, View view, boolean isShow){
-		InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) context.getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 		if(view != null){
 			if(isShow){
 				imm.showSoftInput(view, 0);
@@ -2511,7 +2550,7 @@ public class Utils {
 
 	// 自動切換鍵盤開關
 	public static void softInputToggle(Context context, View view){
-		InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) context.getApplicationContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 		if(view != null){
 			imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
 			imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
@@ -2574,7 +2613,7 @@ public class Utils {
 	}
 
 	public static void sendNotification(Context context, String tag, int id, Notification notification, boolean isCancelExisted){
-		NotificationManager notificationManager = (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
 		if(isCancelExisted){
 			notificationManager.cancel(tag, id);
 		}
@@ -2584,7 +2623,7 @@ public class Utils {
 	public static String[] checkNeedRequestPermissions(Context context, String...permissions){
 		StringBuilder stringBuilder = new StringBuilder();
 		for(int i=0; i<permissions.length; i++){
-			if(ContextCompat.checkSelfPermission(context, permissions[i]) == PackageManager.PERMISSION_DENIED){
+			if(ContextCompat.checkSelfPermission(context.getApplicationContext(), permissions[i]) == PackageManager.PERMISSION_DENIED){
 				if(stringBuilder.length() > 0){
 					stringBuilder.append("\n");
 				}
@@ -2597,7 +2636,7 @@ public class Utils {
 	public static String[] checkNeedRationaleRequestPermissions(Activity activity, String...permissions){
 		StringBuilder stringBuilder = new StringBuilder();
 		for(int i=0; i<permissions.length; i++){
-			if(ContextCompat.checkSelfPermission(activity, permissions[i]) == PackageManager.PERMISSION_DENIED){
+			if(ContextCompat.checkSelfPermission(activity.getApplicationContext(), permissions[i]) == PackageManager.PERMISSION_DENIED){
 				if(ActivityCompat.shouldShowRequestPermissionRationale(activity, permissions[i])){
 					if(stringBuilder.length() > 0){
 						stringBuilder.append("\n");
@@ -2693,7 +2732,7 @@ public class Utils {
 
 	@RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
 	public static boolean isScreenOn(Context context, boolean isOnlyAllowDisplayStateOn){
-		DisplayManager displayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+		DisplayManager displayManager = (DisplayManager) context.getApplicationContext().getSystemService(Context.DISPLAY_SERVICE);
 		for(Display display : displayManager.getDisplays()){
 			if(display.getDisplayId() == Display.INVALID_DISPLAY){
 				continue;
@@ -2712,7 +2751,7 @@ public class Utils {
 	}
 
 	public static boolean isDeviceInteractive(Context context){
-		PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+		PowerManager powerManager = (PowerManager) context.getApplicationContext().getSystemService(Context.POWER_SERVICE);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH){
 			return powerManager.isInteractive();
 		}
@@ -2722,8 +2761,8 @@ public class Utils {
 
 	@RequiresApi(api = Build.VERSION_CODES.KITKAT_WATCH)
 	public static boolean isScreenOnAndInteractive(Context context, boolean isOnlyAllowDisplayStateOn){
-		PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-		DisplayManager displayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+		PowerManager powerManager = (PowerManager) context.getApplicationContext().getSystemService(Context.POWER_SERVICE);
+		DisplayManager displayManager = (DisplayManager) context.getApplicationContext().getSystemService(Context.DISPLAY_SERVICE);
 		for(Display display : displayManager.getDisplays()){
 			if(display.getDisplayId() == Display.INVALID_DISPLAY){
 				continue;
@@ -2745,17 +2784,17 @@ public class Utils {
 	@RequiresPermission(android.Manifest.permission.GET_TASKS)
 	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.GET_TASKS) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.GET_TASKS) == PackageManager.PERMISSION_DENIED){
 			return false;
 		}
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		List<ActivityManager.RunningTaskInfo> list = activityManager.getRunningTasks(1);
 		String runningClassName = list.get(0).topActivity.getClassName();
 		return context.getClass().getName().equals(runningClassName);
 	}
 
 	public static boolean isRunningApp(Context context, String packageName){
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(packageName.equals(runningAppProcessInfo.processName)){
 				return true;
@@ -2770,7 +2809,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningAppOnState(Context context, String packageName, int importance/* RunningAppProcessInfo.importance */){
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(packageName.equals(runningAppProcessInfo.processName) && runningAppProcessInfo.importance == importance){
 				return true;
@@ -2800,7 +2839,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningAppProcess(Context context, int processId){
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(processId == runningAppProcessInfo.pid){
 				return true;
@@ -2810,7 +2849,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningAppProcess(Context context, String processName){
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningAppProcessInfo runningAppProcessInfo : activityManager.getRunningAppProcesses()){
 			if(processName.equals(runningAppProcessInfo.processName)){
 				return true;
@@ -2820,7 +2859,7 @@ public class Utils {
 	}
 
 	public static boolean isRunningService(Context context, Class<?> serviceClass){
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		for(RunningServiceInfo runningServiceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)){
 			if(serviceClass.getName().equals(runningServiceInfo.service.getClassName())){
 				return true;
@@ -2831,7 +2870,7 @@ public class Utils {
 
 	// 列印所有執行中的AppProcess系統資訊
 	public static void logRunningAppProcessInfo(Context context){
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		List<RunningAppProcessInfo> runningAppProcessInfoList = activityManager.getRunningAppProcesses();
 		int size = runningAppProcessInfoList.size();
 		int[] pids = new int[size];
@@ -2859,7 +2898,7 @@ public class Utils {
 		// ActivityManager.RunningAppProcessInfo：正在執行的程式資訊
 		// ActivityManager.RunningServiceInfo：正在執行的服務資訊
 		// ActivityManager.RunningTaskInfo：正在執行的任務資訊
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context.getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 		ActivityManager.MemoryInfo activityMemoryInfo = new ActivityManager.MemoryInfo();
 		activityManager.getMemoryInfo(activityMemoryInfo);
 
@@ -2924,13 +2963,13 @@ public class Utils {
 	// 取得軟體資訊
 	public static PackageInfo getPackageInfo(Context context, String packageName, int flags){
 		try {
-			return context.getPackageManager().getPackageInfo(packageName, flags);
+			return context.getApplicationContext().getPackageManager().getPackageInfo(packageName, flags);
 		} catch (NameNotFoundException ignored) {}
 		return null;
 	}
 
 	public static PackageInfo getPackageInfo(Context context, int flags){
-		return getPackageInfo(context, context.getPackageName(), flags);
+		return getPackageInfo(context, context.getApplicationContext().getPackageName(), flags);
 	}
 
 	public static int getVersionCode(Context context){
@@ -2964,7 +3003,7 @@ public class Utils {
 
 	// 取得已安裝的軟體資訊
 	public static List<PackageInfo> getInstallPackageInfo(Context context, boolean isContainSystemDefaultInstall){
-		PackageManager packageManager = context.getPackageManager();
+		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(0);
 		if(!isContainSystemDefaultInstall){
 			List<PackageInfo> linkedList = new LinkedList<PackageInfo>(packageInfoList);
@@ -3033,7 +3072,7 @@ public class Utils {
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_CONTACTS)
 	public static boolean writeContactsFromContentResolver(Context context, String[] infoArray, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_CONTACTS) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.WRITE_CONTACTS};
@@ -3113,7 +3152,7 @@ public class Utils {
 					.withValue(Phone.LABEL, "Home Tel")
 					.build());
 
-			context.getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentList);
+			context.getApplicationContext().getContentResolver().applyBatch(ContactsContract.AUTHORITY, contentList);
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3127,7 +3166,7 @@ public class Utils {
 	 */
 	@RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
 	public static Map<String, String> getPhoneInfo(Context context, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.READ_PHONE_STATE};
@@ -3136,7 +3175,7 @@ public class Utils {
 			return null;
 		}
 
-		TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+		TelephonyManager telephonyManager = (TelephonyManager) context.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
 
 		Map<String, String> hashMap = new HashMap<String, String>();
 
