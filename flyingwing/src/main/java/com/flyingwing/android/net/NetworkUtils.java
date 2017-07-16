@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.3
+ * @version 1.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -58,19 +58,19 @@ import java.util.UUID;
 public class NetworkUtils {
 
 	public static boolean isAvailable(@NonNull Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
 
 	public static boolean isConnected(@NonNull Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected();
 	}
 
 	public static boolean isAnyAvailable(@NonNull Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
 			Network[] networks = connectivityManager.getAllNetworks();
 			NetworkInfo networkInfo;
@@ -95,7 +95,7 @@ public class NetworkUtils {
 	}
 
 	public static boolean isConnectedSelectedType(@NonNull Context context, int connectivityManagerType) {
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && networkInfo.getType() == connectivityManagerType;
 	}
@@ -109,7 +109,7 @@ public class NetworkUtils {
 	}
 
 	public static boolean isConnectedFast(Context context){
-		ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && isConnectedFast(networkInfo.getType(), networkInfo.getSubtype());
 	}
@@ -170,7 +170,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(android.Manifest.permission.ACCESS_WIFI_STATE)
 	public static WifiInfo getWifiConnectionInfo(@NonNull Context context, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.ACCESS_WIFI_STATE};
@@ -214,7 +214,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(android.Manifest.permission.ACCESS_WIFI_STATE)
 	public static DhcpInfo getWifiDHCPInfo(@NonNull Context context, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.ACCESS_WIFI_STATE};
@@ -253,7 +253,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(android.Manifest.permission.CHANGE_WIFI_STATE)
 	public static void setWifiEnabled(@NonNull Context context, final boolean isEnable, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.CHANGE_WIFI_STATE};
@@ -268,13 +268,13 @@ public class NetworkUtils {
 			public void onReceive(Context context, Intent intent) {
 				int extra = intent.getIntExtra(WifiManager.EXTRA_WIFI_STATE, 0);
 				if((isEnable && extra == WifiManager.WIFI_STATE_ENABLED) || (!isEnable && extra == WifiManager.WIFI_STATE_DISABLED)){
-					context.unregisterReceiver(this);
+					context.getApplicationContext().unregisterReceiver(this);
 				}
 			}
 		};
 		*/
 		if(broadcastReceiver != null){
-			context.registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
+			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
 		}
 		final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 		new Thread(new Runnable() {
@@ -300,17 +300,17 @@ public class NetworkUtils {
 			return;
 		}
 		List<String> list = new ArrayList<String>(4);
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.ACCESS_WIFI_STATE);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.CHANGE_WIFI_STATE);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED && 
-				ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
-			if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED &&
+				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
+			if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED){
 				list.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
-			}else if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
+			}else if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
 				list.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
 			}
 		}
@@ -327,7 +327,7 @@ public class NetworkUtils {
 		new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				context.unregisterReceiver(this);
+				context.getApplicationContext().unregisterReceiver(this);
 				// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 				// <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> or 
 				// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -336,7 +336,7 @@ public class NetworkUtils {
 		};
 		*/
 		if(broadcastReceiver != null){
-			context.registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		}
 		// <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
 		wifiManager.startScan();
@@ -356,10 +356,10 @@ public class NetworkUtils {
 			return false;
 		}
 		List<String> list = new ArrayList<String>(2);
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.ACCESS_WIFI_STATE);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.CHANGE_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.CHANGE_WIFI_STATE);
 		}
 		if(list.size() > 0){
@@ -377,13 +377,13 @@ public class NetworkUtils {
 			public void onReceive(Context context, Intent intent) {
 				NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
 				if (networkInfo.isConnected()) {
-					context.unregisterReceiver(this);
+					context.getApplicationContext().unregisterReceiver(this);
 				}
 			}
 		};
 		*/
 		if(broadcastReceiver != null){
-			context.registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));// ConnectivityManager.CONNECTIVITY_ACTION
+			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION));// ConnectivityManager.CONNECTIVITY_ACTION
 		}
 
 		if(ssId.charAt(0) != '"'){
@@ -437,7 +437,7 @@ public class NetworkUtils {
 	@Nullable
 	public static BluetoothAdapter getBluetoothAdapter(Context context){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
-			BluetoothManager bluetoothManager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
+			BluetoothManager bluetoothManager = (BluetoothManager) context.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
 			return bluetoothManager.getAdapter();
 		}else{
 			return BluetoothAdapter.getDefaultAdapter();
@@ -445,16 +445,16 @@ public class NetworkUtils {
 	}
 
 	public static String getBluetoothMAC(@NonNull Context context){
-		return Settings.Secure.getString(context.getContentResolver(), "bluetooth_address");
+		return Settings.Secure.getString(context.getApplicationContext().getContentResolver(), "bluetooth_address");
 	}
 
 	public static boolean isBluetoothSupported(@NonNull Context context){
-		return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
+		return context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
 	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	public static boolean isBluetoothLeSupported(@NonNull Context context){
-		return context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
+		return context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
 	}
 
 	public static boolean isBluetoothSupported2(@NonNull Context context){
@@ -467,7 +467,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(android.Manifest.permission.BLUETOOTH)
 	public static boolean isBluetoothEnabled(@NonNull Context context, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.BLUETOOTH};
@@ -491,7 +491,7 @@ public class NetworkUtils {
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static void setBluetoothEnabled(@NonNull Context context, boolean isEnable, Integer requestCode, BroadcastReceiver broadcastReceiver
 			, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.BLUETOOTH};
@@ -512,13 +512,13 @@ public class NetworkUtils {
 				// BluetoothAdapter.EXTRA_PREVIOUS_STATE
 				int extra = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
 				if((isEnable && extra == BluetoothAdapter.STATE_ON) || (!isEnable && extra == BluetoothAdapter.STATE_OFF)){
-					context.unregisterReceiver(this);
+					context.getApplicationContext().unregisterReceiver(this);
 				}
 			}
 		};
 		*/
 		if(broadcastReceiver != null){
-			context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 		}
 		if(isEnable){
 			Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -570,7 +570,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static void setBluetoothEnabledForQuiet(Context context, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.BLUETOOTH};
@@ -591,13 +591,13 @@ public class NetworkUtils {
 				// BluetoothAdapter.EXTRA_PREVIOUS_STATE
 				int extra = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
 				if((isEnable && extra == BluetoothAdapter.STATE_ON) || (!isEnable && extra == BluetoothAdapter.STATE_OFF)){
-					context.unregisterReceiver(this);
+					context.getApplicationContext().unregisterReceiver(this);
 				}
 			}
 		};
 		*/
 		if(broadcastReceiver != null){
-			context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 		}
 		new Thread(new Runnable() {
 			@RequiresPermission(android.Manifest.permission.BLUETOOTH_ADMIN)
@@ -621,17 +621,17 @@ public class NetworkUtils {
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static void bluetoothLeScan(@NonNull Context context, boolean isStartScan, ScanCallback scanCallback, Handler handlerNoPermissions){
 		List<String> list = new ArrayList<String>(4);
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.BLUETOOTH);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.BLUETOOTH_ADMIN);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED && 
-				ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
-			if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED &&
+				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
+			if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED){
 				list.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
-			}else if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
+			}else if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_DENIED){
 				list.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
 			}
 		}
@@ -701,10 +701,10 @@ public class NetworkUtils {
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static boolean bluetoothLeScan(@NonNull Context context, boolean isStartScan, BluetoothAdapter.LeScanCallback leScanCallback, Handler handlerNoPermissions){
 		List<String> list = new ArrayList<String>(2);
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.BLUETOOTH);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.BLUETOOTH_ADMIN);
 		}
 		if(list.size() > 0){
@@ -732,7 +732,7 @@ public class NetworkUtils {
 			//noinspection deprecation
 			bluetoothAdapter.stopLeScan(leScanCallback);
 			//noinspection deprecation
-			return !isStartScan || bluetoothAdapter.startLeScan(leScanCallback);
+			return isStartScan && bluetoothAdapter.startLeScan(leScanCallback);
 		}
 		return false;
 	}
@@ -806,13 +806,13 @@ public class NetworkUtils {
 			, android.Manifest.permission.ACCESS_COARSE_LOCATION})
 	public static void bluetoothDiscovery(@NonNull Context context, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
 		List<String> list = new ArrayList<String>(3);
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.BLUETOOTH);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.BLUETOOTH_ADMIN);
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_DENIED){
 			list.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
 		}
 		if(list.size() > 0){
@@ -836,13 +836,13 @@ public class NetworkUtils {
 				BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				// <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 				bluetoothAdapter.cancelDiscovery();
-				context.unregisterReceiver(this);
+				context.getApplicationContext().unregisterReceiver(this);
 			}
 		};
 		*/
 		if(broadcastReceiver != null){
 			// <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-			context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
 		}
 		// <uses-permission android:name="android.permission.BLUETOOTH"/>
 		if(bluetoothAdapter.isDiscovering()){
@@ -865,7 +865,7 @@ public class NetworkUtils {
 	@RequiresPermission(android.Manifest.permission.BLUETOOTH)
 	public static void setBluetoothDiscoverability(@NonNull Context context, @IntRange(from=0, to=3600) int seconds, BroadcastReceiver broadcastReceiver
 			, int activityForResultRequestCode, boolean isActivityForResult, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.BLUETOOTH};
@@ -885,7 +885,7 @@ public class NetworkUtils {
 			public void onReceive(Context context, Intent intent) {
 				// BluetoothAdapter.EXTRA_PREVIOUS_SCAN_MODE
 				if(intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, 0) == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE){
-					context.unregisterReceiver(this);
+					context.getApplicationContext().unregisterReceiver(this);
 				}
 			}
 		};
@@ -896,7 +896,7 @@ public class NetworkUtils {
 			((Activity)context).startActivityForResult(intent, activityForResultRequestCode);
 		}else{
 			if(broadcastReceiver != null){
-				context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED));
+				context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED));
 			}
 			context.startActivity(intent);
 		}
@@ -935,7 +935,7 @@ public class NetworkUtils {
 	 */
 	@RequiresPermission(android.Manifest.permission.BLUETOOTH_ADMIN)
 	public static boolean bluetoothPairCreate(@NonNull Context context, BluetoothDevice bluetoothDevice, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.BLUETOOTH_ADMIN) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.BLUETOOTH_ADMIN};
@@ -949,14 +949,14 @@ public class NetworkUtils {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				if(intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, 0) == BluetoothDevice.BOND_BONDED){
-					context.unregisterReceiver(this);
+					context.getApplicationContext().unregisterReceiver(this);
 				}
 				BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 			}
 		};
 		*/
 		if(broadcastReceiver != null){
-			context.registerReceiver(broadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
+			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED));
 		}
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 			// <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -1042,7 +1042,7 @@ public class NetworkUtils {
 		if(!wifiManager.isWifiEnabled()){
 			return null;
 		}
-		if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
+		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.ACCESS_WIFI_STATE};
