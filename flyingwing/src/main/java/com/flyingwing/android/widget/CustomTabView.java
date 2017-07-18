@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Andy Lin. All rights reserved.
- * @version 1.0.5
+ * @version 1.0.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -80,10 +80,10 @@ public class CustomTabView extends LinearLayout {
 	
 	public CustomTabView(Context context){
 		super(context);
-		mRes = context.getResources();
+		mRes = getResources();
 		
 		mDisplayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
 		
 		LinearLayout relLayHorizontalScrollLinLay;

@@ -1,6 +1,6 @@
 /*
  * Copyright 2017 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -40,7 +40,7 @@ public class SnackbarHelper {
 	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static void pendingMakeWindowSnackbar(final Context context, final int gravity, @NonNull final CharSequence text, @Duration final int duration
 			, final PendingMakeWindowSnackbarCallback pendingMakeWindowSnackbarCallback){
-		final WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		final WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 
 		WindowManager.LayoutParams windowManagerLayoutParams = new WindowManager.LayoutParams();
 		windowManagerLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;

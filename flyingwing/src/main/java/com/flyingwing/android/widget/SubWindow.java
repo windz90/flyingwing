@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.10
+ * @version 2.4.11
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -473,7 +473,7 @@ public class SubWindow {
 		final Resources res = context.getResources();
 
 		DisplayMetrics dm = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH_480);
 
@@ -600,7 +600,7 @@ public class SubWindow {
 		Resources res = context.getResources();
 
 		DisplayMetrics dm = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(dm);
 		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH_480);
 

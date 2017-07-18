@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.0
+ * @version 3.4.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -166,7 +166,7 @@ public class ConnectManager {
 					return;
 				}
 				if(connectSetting.mIsUseHandler){
-					new Handler(looper == null ? context.getMainLooper() : looper, new Callback() {
+					new Handler(looper == null ? context.getApplicationContext().getMainLooper() : looper, new Callback() {
 						@Override
 						public boolean handleMessage(Message msg) {
 							if(msg.obj == null){

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.7
+ * @version 3.5.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -199,7 +199,7 @@ public class ImageProcessor {
 				return bitmap;
 			}
 		}
-		AssetManager assetManager = context.getAssets();
+		AssetManager assetManager = context.getApplicationContext().getAssets();
 		try {
 			InputStream is = assetManager.open(imageName);
 			try {
@@ -227,7 +227,7 @@ public class ImageProcessor {
 	}
 
 	public static Bitmap readAssetsBitmap(Context context, String imageName, float specifiedSize, boolean isUseBuffer){
-		AssetManager assetManager = context.getAssets();
+		AssetManager assetManager = context.getApplicationContext().getAssets();
 		int scale = 1;
 		try {
 			InputStream is = assetManager.open(imageName);
@@ -251,7 +251,7 @@ public class ImageProcessor {
 		// 使用context.open處理具私有權限保護的/data/data/packageName/檔案
 		imageName = imageName.replace(File.separator, "_");
 		try {
-			FileOutputStream fileOutStream = context.openFileOutput(imageName, Context.MODE_PRIVATE);
+			FileOutputStream fileOutStream = context.getApplicationContext().openFileOutput(imageName, Context.MODE_PRIVATE);
 			try {
 				bitmap.compress(Bitmap.CompressFormat.PNG, quality, fileOutStream);
 				fileOutStream.flush();
@@ -275,7 +275,7 @@ public class ImageProcessor {
 			}
 		}
 		try {
-			InputStream is = context.openFileInput(imageName);
+			InputStream is = context.getApplicationContext().openFileInput(imageName);
 			try {
 				bitmap = getAgileBitmap(is, inSampleSize);
 			} finally {
@@ -299,7 +299,7 @@ public class ImageProcessor {
 		imageName = imageName.replace(File.separator, "_");
 		int scale = 1;
 		try {
-			InputStream is = context.openFileInput(imageName);
+			InputStream is = context.getApplicationContext().openFileInput(imageName);
 			try {
 				scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
 			} finally {
@@ -320,12 +320,12 @@ public class ImageProcessor {
 		// 使用context.deleteFile處理具私有權限保護的/data/data/packageName/檔案
 		imageName = imageName.replace(File.separator, "_");
 		deleteBufferBitmap(imageName, SAMPLE_WORD);
-		return context.deleteFile(imageName);
+		return context.getApplicationContext().deleteFile(imageName);
 	}
 
 	public static void writeInsideImageFile(Context context, int mode, Bitmap bitmap, int quality, String rootFolderName, String path, String imageName){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		String insidePath = context.getApplicationContext().getDir(rootFolderName, mode).getPath() + File.separator;
 		File file = new File(insidePath + path);
 		if(!file.exists() && !file.mkdirs()){
 			System.out.println("directory cannot create");
@@ -349,7 +349,7 @@ public class ImageProcessor {
 	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, int inSampleSize
 			, boolean isUseBuffer){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		String insidePath = context.getApplicationContext().getDir(rootFolderName, mode).getPath() + File.separator;
 		Bitmap bitmap;
 		if(isUseBuffer){
 			bitmap = getBufferBitmap(insidePath + path + imageName, SAMPLE_WORD, inSampleSize);
@@ -390,7 +390,7 @@ public class ImageProcessor {
 	public static Bitmap readInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName, float specifiedSize
 			, boolean isUseBuffer){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		String insidePath = context.getApplicationContext().getDir(rootFolderName, mode).getPath() + File.separator;
 		File file = new File(insidePath + path + imageName);
 		if(!file.isFile()){
 			return null;
@@ -445,7 +445,7 @@ public class ImageProcessor {
 
 	public static boolean deleteInsideImageFile(Context context, int mode, String rootFolderName, String path, String imageName){
 		// 取得app路徑/data/data/packageName
-		String insidePath = context.getDir(rootFolderName, mode).getPath() + File.separator;
+		String insidePath = context.getApplicationContext().getDir(rootFolderName, mode).getPath() + File.separator;
 		deleteBufferBitmap(insidePath + path + imageName, SAMPLE_WORD);
 		File file = new File(insidePath + path + imageName);
 		return file.delete();
@@ -734,7 +734,7 @@ public class ImageProcessor {
 	}
 
 	public static boolean isAvailable(Context context) {
-		ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
@@ -998,7 +998,7 @@ public class ImageProcessor {
 				Bitmap bitmap = null;
 				// 使用context.open處理具私有權限保護的/data/data/packageName/檔案
 				try{
-					InputStream is = context.openFileInput(imageNameCopy);
+					InputStream is = context.getApplicationContext().openFileInput(imageNameCopy);
 					int scale;
 					try {
 						scale = getImageSpecifiedSizeNarrowScale(is, specifiedSize);
@@ -1006,7 +1006,7 @@ public class ImageProcessor {
 						is.close();
 						is = null;
 					}
-					is = context.openFileInput(imageNameCopy);
+					is = context.getApplicationContext().openFileInput(imageNameCopy);
 					try {
 						bitmap = getAgileBitmap(is, scale);
 					} finally {
@@ -1266,13 +1266,13 @@ public class ImageProcessor {
 	}
 
 	public static Bitmap convertMappedBitmapUseInsidePrivate(Context context, Bitmap bitmap, int newWidth, int newHeight, Bitmap.Config config){
-		File tempFile = new File(context.getFilesDir().toString() + File.separator + "temp.tmp");
+		File tempFile = new File(context.getApplicationContext().getFilesDir().toString() + File.separator + "temp.tmp");
 		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
 	}
 
 	public static Bitmap convertMappedBitmapUseInsidePrivate(Context context, Bitmap bitmap, int newWidth, int newHeight){
 		Bitmap.Config config = bitmap.getConfig();
-		File tempFile = new File(context.getFilesDir().toString() + File.separator + "temp.tmp");
+		File tempFile = new File(context.getApplicationContext().getFilesDir().toString() + File.separator + "temp.tmp");
 		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
 	}
 

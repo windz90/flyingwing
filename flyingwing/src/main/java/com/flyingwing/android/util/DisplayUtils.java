@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.6
+ * @version 3.3.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -56,7 +56,7 @@ public class DisplayUtils {
 	}
 
 	public static Display getDisplayFromContext(Context context){
-		WindowManager windowManager = (WindowManager) (context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		Display display = windowManager.getDefaultDisplay();
 		return display;
 	}
@@ -77,7 +77,7 @@ public class DisplayUtils {
 
 	public static DisplayMetrics getDisplayMetricsFromWindowManager(Context context){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager) (context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return displayMetrics;
 	}
@@ -91,7 +91,7 @@ public class DisplayUtils {
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public static DisplayMetrics getRealDisplayMetricsFromWindowManager(Context context){
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager) (context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
 		return displayMetrics;
 	}

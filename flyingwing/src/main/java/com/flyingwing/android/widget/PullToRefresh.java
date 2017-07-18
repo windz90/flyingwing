@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Andy Lin. All rights reserved.
- * @version 1.0.2
+ * @version 1.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.0
  */
@@ -111,16 +111,16 @@ public class PullToRefresh {
 		
 		mProgressBar = new ProgressBar(mContext, progressBarAttrs, progressBarStyleResourceId);
 		// android.R.drawable.progress_horizontal
-//		mProgressBar.setProgressDrawable(activity.getResources().getDrawable(android.R.drawable.progress_horizontal));
+//		mProgressBar.setProgressDrawable(ContextCompat.getDrawable(mContext, android.R.drawable.progress_horizontal));
 		// android.R.drawable.progress_indeterminate_horizontal
-//		mProgressBar.setIndeterminateDrawable(activity.getResources().getDrawable(android.R.drawable.progress_indeterminate_horizontal));
+//		mProgressBar.setIndeterminateDrawable(ContextCompat.getDrawable(mContext, android.R.drawable.progress_indeterminate_horizontal));
 		if(progressBarDrawableColor != -1){
 			mProgressBar.getProgressDrawable().setColorFilter(progressBarDrawableColor, PorterDuff.Mode.SRC_IN);
 			mProgressBar.getIndeterminateDrawable().setColorFilter(progressBarDrawableColor, PorterDuff.Mode.SRC_IN);
 		}
 		
 		mDisplayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) mContext.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
 	}
 	

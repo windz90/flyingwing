@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.8
+ * @version 2.3.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -44,7 +44,7 @@ public class CustomProgressDialog {
 		RelativeLayout.LayoutParams relativeLayoutParams;
 
 		DisplayMetrics dm = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager)(context.getSystemService(Context.WINDOW_SERVICE));
+		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		windowManager.getDefaultDisplay().getMetrics(dm);
 
 		itemWi = (int)(dm.widthPixels * 0.8f);
