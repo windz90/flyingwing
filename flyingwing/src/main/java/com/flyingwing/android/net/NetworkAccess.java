@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.12
+ * @version 3.5.13
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -62,11 +62,11 @@ public class NetworkAccess {
 	public static final String[] ONLY_READ_HEADER = new String[]{"Range", "bytes=0-0"};
 	private static final String HTTP_METHOD_GET = "GET";
 	private static final String HTTP_METHOD_POST = "POST";
-	private static final String HTTP_METHOD_HEAD = "HEAD";
 	private static final String HTTP_METHOD_PUT = "PUT";
 	private static final String HTTP_METHOD_DELETE = "DELETE";
-	private static final String HTTP_METHOD_TRACE = "TRACE";
+	private static final String HTTP_METHOD_HEAD = "HEAD";
 	private static final String HTTP_METHOD_OPTIONS = "OPTIONS";
+	private static final String HTTP_METHOD_TRACE = "TRACE";
 	private static final NetworkSetting NETWORKSETTING = new NetworkSetting();
 
 	public static class NetworkSetting {
@@ -308,7 +308,7 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
@@ -360,7 +360,7 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
@@ -371,7 +371,7 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
@@ -382,7 +382,18 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static HttpURLConnection openHttpURLConnectionWithHttpsDelete(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
+			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttps(HTTP_METHOD_DELETE, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
@@ -393,7 +404,7 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttps(@NonNull String httpMethod, String strUrl, String[][] headerArrays, Object[][] contentArrays){
@@ -403,7 +414,7 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
@@ -413,7 +424,7 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
@@ -423,7 +434,17 @@ public class NetworkAccess {
 	/**
 	 * @param contentArrays <br>
 	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String contentType(MIME Type), Object object<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static HttpURLConnection openHttpURLConnectionWithHttpsDelete(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttps(HTTP_METHOD_DELETE, strUrl, headerArrays, contentArrays, null, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
 	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
@@ -437,7 +458,7 @@ public class NetworkAccess {
 	 *                       , map.get("1") : String value<br><br>
 	 * contentList get map size 3 = <br>
 	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String contentType(MIME Type)<br>
+	 *                       , map.get("1") : String fileName<br>
 	 *                       , map.get("2") : Object object<br><br>
 	 * contentList get map size 4 = <br>
 	 *                       map.get("0") : String key<br>
@@ -480,7 +501,7 @@ public class NetworkAccess {
 	 *                       , map.get("1") : String value<br><br>
 	 * contentList get map size 3 = <br>
 	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String contentType(MIME Type)<br>
+	 *                       , map.get("1") : String fileName<br>
 	 *                       , map.get("2") : Object object<br><br>
 	 * contentList get map size 4 = <br>
 	 *                       map.get("0") : String key<br>
@@ -614,15 +635,15 @@ public class NetworkAccess {
 			System.setProperty("http.keepAlive", "true");
 			httpURLConnection.setRequestMethod(httpMethod);
 			httpURLConnection.setDoInput(true);
-			httpURLConnection.setDoOutput(!httpMethod.equals(HTTP_METHOD_GET));
+			httpURLConnection.setDoOutput(!(httpMethod.equals(HTTP_METHOD_GET) || (httpMethod.equals(HTTP_METHOD_DELETE) && contentArrays == null)));
 			httpURLConnection.setUseCaches(false);
 			httpURLConnection.setConnectTimeout(NETWORKSETTING.mConnectTimeout);
 			httpURLConnection.setReadTimeout(NETWORKSETTING.mReadTimeout);
 			httpURLConnection.setChunkedStreamingMode(NETWORKSETTING.mBufferSize);
 			httpURLConnection.setRequestProperty("Charset", "UTF-8");
 			/*
-			 * HTTP/1.0 預設不保持連線，Header add Connection: Keep-Alive field 表示保持連線
-			 * HTTP/1.1 預設保持連線，Header add Connection: Close field 表示不保持連線
+			 * HTTP/1.0 預設不保持連線，Header set key: "Connection" value: "Keep-Alive" 表示保持連線
+			 * HTTP/1.1 預設保持連線，Header set key: "Connection" value: "Close" 表示不保持連線
 			 */
 			httpURLConnection.setRequestProperty("Connection", "Keep-Alive");
 			httpURLConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
@@ -647,7 +668,7 @@ public class NetworkAccess {
 				if(contentArray.length == 2 && (contentArray[0] == null || contentArray[1] == null)){
 					continue;
 				}
-				if(contentArray.length == 3 && (contentArray[0] == null || contentArray[1] == null ||  contentArray[2] == null)){
+				if(contentArray.length == 3 && (contentArray[0] == null || contentArray[1] == null || contentArray[2] == null)){
 					continue;
 				}
 				if(contentArray.length == 4 && (contentArray[0] == null || contentArray[1] == null || contentArray[3] == null)){
