@@ -1,13 +1,12 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.1
+ * @version 3.4.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.net;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Looper;
@@ -148,8 +147,7 @@ public class ConnectManager {
 		}
 	}
 
-	public static void connection(@NonNull final Context context, final Looper looper, @NonNull final ConnectSetting connectSetting
-			, @NonNull final ConnectListener connectListener){
+	public static void connection(final Looper looper, @NonNull final ConnectSetting connectSetting, @NonNull final ConnectListener connectListener){
 		Runnable runnable = new Runnable() {
 
 			@Override
@@ -166,7 +164,7 @@ public class ConnectManager {
 					return;
 				}
 				if(connectSetting.mIsUseHandler){
-					new Handler(looper == null ? context.getApplicationContext().getMainLooper() : looper, new Callback() {
+					new Handler(looper == null ? Looper.getMainLooper() : looper, new Callback() {
 						@Override
 						public boolean handleMessage(Message msg) {
 							if(msg.obj == null){
@@ -192,8 +190,8 @@ public class ConnectManager {
 		}
 	}
 
-	public static void connection(@NonNull Context context, @NonNull ConnectSetting connectSetting, @NonNull ConnectListener connectListener){
-		connection(context, null, connectSetting, connectListener);
+	public static void connection(@NonNull ConnectSetting connectSetting, @NonNull ConnectListener connectListener){
+		connection(null, connectSetting, connectListener);
 	}
 
 	private static synchronized Message requestSynchronized(@NonNull ConnectListener connectListener){
