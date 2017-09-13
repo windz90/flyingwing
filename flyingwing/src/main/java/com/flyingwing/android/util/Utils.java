@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.20
+ * @version 3.5.21
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -80,6 +80,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -1019,130 +1020,6 @@ public class Utils {
 		}
 	}
 
-	public static JSONArray newJSONArray(String data){
-		try {
-			return new JSONArray(data);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new JSONArray();
-		}
-	}
-
-	public static JSONArray getJSONArrayInJA(JSONArray jsonArray, int index){
-		JSONArray jsonArraySub = jsonArray.optJSONArray(index);
-		if(jsonArraySub == null){
-			jsonArraySub = new JSONArray();
-		}
-		return jsonArraySub;
-	}
-
-	public static JSONObject getJSONObjectInJA(JSONArray jsonArray, int index){
-		JSONObject jsonObjectSub = jsonArray.optJSONObject(index);
-		if(jsonObjectSub == null){
-			jsonObjectSub = new JSONObject();
-		}
-		return jsonObjectSub;
-	}
-
-	public static List<String> getJSONArrayToList(JSONArray jsonArray){
-		List<String> list = new ArrayList<String>();
-		for(int i=0; i<jsonArray.length(); i++){
-			list.add(jsonArray.optString(i));
-		}
-		return list;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static List<Object> reflectionJSONArrayToList(JSONArray jsonArray){
-		// Reflection反射調用private屬性
-		try {
-			Field field = jsonArray.getClass().getDeclaredField("values");
-			field.setAccessible(true);
-			List<Object> list = (List<Object>)field.get(jsonArray);
-			field.setAccessible(false);
-			return list;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public static Object removeJSONArrayItem(JSONArray jsonArray, int index){
-		if(jsonArray != null && jsonArray.length() > index){
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
-				return jsonArray.remove(index);
-			}
-			List list = reflectionJSONArrayToList(jsonArray);
-			if(list != null && list.size() > index){
-				return list.remove(index);
-			}
-		}
-		return null;
-	}
-
-	public static JSONObject newJSONObject(String data){
-		try {
-			return new JSONObject(data);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new JSONObject();
-		}
-	}
-
-	public static JSONArray getJSONArrayInJO(JSONObject jsonObject, String key){
-		JSONArray jsonArraySub = jsonObject.optJSONArray(key);
-		if(jsonArraySub == null){
-			jsonArraySub = new JSONArray();
-		}
-		return jsonArraySub;
-	}
-
-	public static JSONObject getJSONObjectInJO(JSONObject jsonObject, String key){
-		JSONObject jsonObjectSub = jsonObject.optJSONObject(key);
-		if(jsonObjectSub == null){
-			jsonObjectSub = new JSONObject();
-		}
-		return jsonObjectSub;
-	}
-
-	public static String[][] getJSONObjectToArray(JSONObject jsonObject){
-		String key;
-		JSONArray jsonArrayKey = jsonObject.names();
-		String[][] element = new String[jsonArrayKey.length()][2];
-		for(int i=0; i<jsonArrayKey.length(); i++){
-			key = jsonArrayKey.optString(i);
-			element[i][0] = key;
-			element[i][1] = jsonObject.optString(key);
-		}
-		return element;
-	}
-
-	public static Map<String, String> getJSONObjectToMap(JSONObject jsonObject){
-		String key;
-		JSONArray jsonArrayKey = jsonObject.names();
-		Map<String, String> map = new HashMap<String, String>(jsonArrayKey.length());
-		for(int i=0; i<jsonArrayKey.length(); i++){
-			key = jsonArrayKey.optString(i);
-			map.put(key, jsonObject.optString(key));
-		}
-		return map;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static Map<String, Object> reflectionJSONObjectToMap(JSONObject jsonObject){
-		// Reflection反射調用private屬性
-		try {
-			Field field = jsonObject.getClass().getDeclaredField("nameValuePairs");
-			field.setAccessible(true);
-			Map<String, Object> map = (Map<String, Object>)field.get(jsonObject);
-			field.setAccessible(false);
-			return map;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
 	public static void setReflectionField(Object objectInstance, String fieldName, Object value){
 		// Reflection反射調用屬性
 		try {
@@ -1418,6 +1295,297 @@ public class Utils {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	public static JSONArray newJSONArray(String data){
+		try {
+			return new JSONArray(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new JSONArray();
+		}
+	}
+
+	public static JSONArray getJSONArrayInJA(JSONArray jsonArray, int index){
+		JSONArray jsonArraySub = jsonArray.optJSONArray(index);
+		if(jsonArraySub == null){
+			jsonArraySub = new JSONArray();
+		}
+		return jsonArraySub;
+	}
+
+	public static JSONObject getJSONObjectInJA(JSONArray jsonArray, int index){
+		JSONObject jsonObjectSub = jsonArray.optJSONObject(index);
+		if(jsonObjectSub == null){
+			jsonObjectSub = new JSONObject();
+		}
+		return jsonObjectSub;
+	}
+
+	public static List<String> getJSONArrayToList(JSONArray jsonArray){
+		List<String> list = new ArrayList<String>();
+		for(int i=0; i<jsonArray.length(); i++){
+			list.add(jsonArray.optString(i));
+		}
+		return list;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static List<Object> reflectionJSONArrayToList(JSONArray jsonArray){
+		// Reflection反射調用private屬性
+		try {
+			Field field = jsonArray.getClass().getDeclaredField("values");
+			field.setAccessible(true);
+			List<Object> list = (List<Object>)field.get(jsonArray);
+			field.setAccessible(false);
+			return list;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static Object removeJSONArrayItem(JSONArray jsonArray, int index){
+		if(jsonArray != null && jsonArray.length() > index){
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+				return jsonArray.remove(index);
+			}
+			List list = reflectionJSONArrayToList(jsonArray);
+			if(list != null && list.size() > index){
+				return list.remove(index);
+			}
+		}
+		return null;
+	}
+
+	public static JSONObject newJSONObject(String data){
+		try {
+			return new JSONObject(data);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new JSONObject();
+		}
+	}
+
+	public static JSONArray getJSONArrayInJO(JSONObject jsonObject, String key){
+		JSONArray jsonArraySub = jsonObject.optJSONArray(key);
+		if(jsonArraySub == null){
+			jsonArraySub = new JSONArray();
+		}
+		return jsonArraySub;
+	}
+
+	public static JSONObject getJSONObjectInJO(JSONObject jsonObject, String key){
+		JSONObject jsonObjectSub = jsonObject.optJSONObject(key);
+		if(jsonObjectSub == null){
+			jsonObjectSub = new JSONObject();
+		}
+		return jsonObjectSub;
+	}
+
+	public static String[][] getJSONObjectToArray(JSONObject jsonObject){
+		String key;
+		JSONArray jsonArrayKey = jsonObject.names();
+		String[][] element = new String[jsonArrayKey.length()][2];
+		for(int i=0; i<jsonArrayKey.length(); i++){
+			key = jsonArrayKey.optString(i);
+			element[i][0] = key;
+			element[i][1] = jsonObject.optString(key);
+		}
+		return element;
+	}
+
+	public static Map<String, String> getJSONObjectToMap(JSONObject jsonObject){
+		String key;
+		JSONArray jsonArrayKey = jsonObject.names();
+		Map<String, String> map = new HashMap<String, String>(jsonArrayKey.length());
+		for(int i=0; i<jsonArrayKey.length(); i++){
+			key = jsonArrayKey.optString(i);
+			map.put(key, jsonObject.optString(key));
+		}
+		return map;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> reflectionJSONObjectToMap(JSONObject jsonObject){
+		// Reflection反射調用private屬性
+		try {
+			Field field = jsonObject.getClass().getDeclaredField("nameValuePairs");
+			field.setAccessible(true);
+			Map<String, Object> map = (Map<String, Object>)field.get(jsonObject);
+			field.setAccessible(false);
+			return map;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static final String JSON_ARRAY = "jsonArray";
+	public static final String JSON_OBJECT = "jsonObject";
+	public static final String JSON_BOOLEAN = "jsonBoolean";
+	public static final String JSON_INT = "jsonInt";
+	public static final String JSON_LONG = "jsonLong";
+	public static final String JSON_DOUBLE = "jsonDouble";
+	public static final String JSON_STRING = "jsonString";
+
+	/**
+	 * @param pairs <br>
+	 * pairs[][3] = String key(null), Object value, String jsonType<br>
+	 */
+	public static int findJsonArrayItem(JSONArray jsonArray, Object[]...pairs){
+		if(jsonArray == null || jsonArray.length() == 0){
+			return -1;
+		}
+		int length = jsonArray.length();
+		for(int i=0; i<pairs.length; i++){
+			if(pairs[i].length < 3){
+				continue;
+			}
+			for(int j=0; j<length; j++){
+				if(pairs[i][2].equals(JSON_ARRAY)){
+					JSONArray jsonArrayItem = jsonArray.optJSONArray(j);
+					if(jsonArrayItem == null || (!TextUtils.isEmpty((String) pairs[i][1]) && !jsonArrayItem.toString().equals(pairs[i][1]))){
+						if(j == length - 1){
+							return -1;
+						}else{
+							continue;
+						}
+					}
+					if(i == pairs.length - 1){
+						return j;
+					}
+					int lengthNew = pairs.length - i - 1;
+					Object[][] pairsNew = new Object[lengthNew][];
+					System.arraycopy(pairs, i + 1, pairsNew, 0, lengthNew);
+					int position = findJsonArrayItem(jsonArrayItem, pairsNew);
+					if(position > -1){
+						return position;
+					}
+					if(j == length - 1){
+						return -1;
+					}
+				}else if(pairs[i][2].equals(JSON_OBJECT)){
+					JSONObject jsonObjectItem = jsonArray.optJSONObject(j);
+					if(jsonObjectItem == null || (!TextUtils.isEmpty((String) pairs[i][1]) && !jsonObjectItem.toString().equals(pairs[i][1]))){
+						if(j == length - 1){
+							return -1;
+						}else{
+							continue;
+						}
+					}
+					if(i == pairs.length - 1){
+						return j;
+					}
+					int lengthNew = pairs.length - i - 1;
+					Object[][] pairsNew = new Object[lengthNew][];
+					System.arraycopy(pairs, i + 1, pairsNew, 0, lengthNew);
+					if(findJsonObjectItem(jsonObjectItem, pairsNew)){
+						return j;
+					}
+					if(j == length - 1){
+						return -1;
+					}
+				}else if(pairs[i][2].equals(JSON_BOOLEAN)){
+					if(jsonArray.optBoolean(j) == (boolean) pairs[i][1]){
+						return j;
+					}
+				}else if(pairs[i][2].equals(JSON_INT)){
+					if(jsonArray.optInt(j) == (int) pairs[i][1]){
+						return j;
+					}
+				}else if(pairs[i][2].equals(JSON_LONG)){
+					if(jsonArray.optLong(j) == (long) pairs[i][1]){
+						return j;
+					}
+				}else if(pairs[i][2].equals(JSON_DOUBLE)){
+					if(jsonArray.optDouble(j) == (double) pairs[i][1]){
+						return j;
+					}
+				}else if(pairs[i][2].equals(JSON_STRING)){
+					if(jsonArray.optString(j).equals(pairs[i][1])){
+						return j;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * @param pairs <br>
+	 * pairs[][2] = String key, String value<br>
+	 * pairs[][3] = String key, Object value, String jsonType<br>
+	 */
+	public static boolean findJsonObjectItem(JSONObject jsonObject, Object[]...pairs){
+		if(jsonObject == null || jsonObject.length() == 0){
+			return false;
+		}
+		for(int i=0; i<pairs.length; i++){
+			if(pairs[i].length == 2 || pairs[i][2].equals(JSON_STRING)){
+				if(!jsonObject.optString((String) pairs[i][0]).equals(pairs[i][1])){
+					return false;
+				}
+				if(i == pairs.length - 1){
+					return true;
+				}
+			}else if(pairs[i][2].equals(JSON_ARRAY)){
+				JSONArray jsonArrayItem = jsonObject.optJSONArray((String) pairs[i][0]);
+				if(i == pairs.length - 1){
+					if(TextUtils.isEmpty((String) pairs[i][1])){
+						return jsonArrayItem != null;
+					}else{
+						return jsonArrayItem.toString().equals(pairs[i][1]);
+					}
+				}
+				int lengthNew = pairs.length - i - 1;
+				Object[][] pairsNew = new Object[lengthNew][];
+				System.arraycopy(pairs, i + 1, pairsNew, 0, lengthNew);
+				return findJsonArrayItem(jsonArrayItem, pairsNew) > -1;
+			}else if(pairs[i][2].equals(JSON_OBJECT)){
+				JSONObject jsonObjectItem = jsonObject.optJSONObject((String) pairs[i][0]);
+				if(i == pairs.length - 1){
+					if(TextUtils.isEmpty((String) pairs[i][1])){
+						return jsonObjectItem != null;
+					}else{
+						return jsonObjectItem.toString().equals(pairs[i][1]);
+					}
+				}
+				int lengthNew = pairs.length - i - 1;
+				Object[][] pairsNew = new Object[lengthNew][];
+				System.arraycopy(pairs, i + 1, pairsNew, 0, lengthNew);
+				return findJsonObjectItem(jsonObjectItem, pairsNew);
+			}else if(pairs[i][2].equals(JSON_BOOLEAN)){
+				if(jsonObject.optBoolean((String) pairs[i][0]) != (boolean) pairs[i][1]){
+					return false;
+				}
+				if(i == pairs.length - 1){
+					return true;
+				}
+			}else if(pairs[i][2].equals(JSON_INT)){
+				if(jsonObject.optInt((String) pairs[i][0]) != (int) pairs[i][1]){
+					return false;
+				}
+				if(i == pairs.length - 1){
+					return true;
+				}
+			}else if(pairs[i][2].equals(JSON_LONG)){
+				if(jsonObject.optLong((String) pairs[i][0]) != (long) pairs[i][1]){
+					return false;
+				}
+				if(i == pairs.length - 1){
+					return true;
+				}
+			}else if(pairs[i][2].equals(JSON_DOUBLE)){
+				if(jsonObject.optDouble((String) pairs[i][0]) != (double) pairs[i][1]){
+					return false;
+				}
+				if(i == pairs.length - 1){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -3326,6 +3494,12 @@ public class Utils {
 		AnimatedStateListDrawable, AnimationDrawable, LevelListDrawable, PaintDrawable, RippleDrawable, StateListDrawable, TransitionDrawable
 		*/
 		if(foreground){
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+				clearDrawable(view.getForeground());
+			}else if(view instanceof FrameLayout){
+				//noinspection RedundantCast
+				clearDrawable(((FrameLayout) view).getForeground());
+			}
 			if(view instanceof ImageView){
 				clearDrawable(((ImageView)view).getDrawable());
 				((ImageView)view).setImageDrawable(null);
@@ -3354,15 +3528,16 @@ public class Utils {
 	}
 
 	public static void clearDrawable(Drawable drawable){
+		if(drawable == null){
+			return;
+		}
 		BitmapDrawable bd;
-		if(drawable != null){
-			if(drawable instanceof BitmapDrawable){
-				bd = (BitmapDrawable)drawable;
-				bd.setCallback(null);
-				recycleBitmap(bd.getBitmap(), false);
-			}else{
-				drawable.setCallback(null);
-			}
+		if(drawable instanceof BitmapDrawable){
+			bd = (BitmapDrawable)drawable;
+			bd.setCallback(null);
+			recycleBitmap(bd.getBitmap(), false);
+		}else{
+			drawable.setCallback(null);
 		}
 	}
 
@@ -3370,11 +3545,12 @@ public class Utils {
 	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
 	 */
 	public static void recycleBitmap(Bitmap bitmap, boolean isIndicatesGC){
-		if(bitmap != null){
-			bitmap.recycle();
-			if(isIndicatesGC){
-				System.gc();
-			}
+		if(bitmap == null){
+			return;
+		}
+		bitmap.recycle();
+		if(isIndicatesGC){
+			System.gc();
 		}
 	}
 }
