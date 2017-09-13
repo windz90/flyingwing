@@ -1,6 +1,6 @@
 /*
  * Copyright 2017 Andy Lin. All rights reserved.
- * @version 1.0.1
+ * @version 1.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.3
  */
@@ -46,15 +46,15 @@ public class BluetoothLE {
 	public static final int STATE_CONNECTED = 5100;
 
 	public static final int STATE_BUSY = 5200;
-	public static final int STATE_UNABLE_CONN = 5300;
+	public static final int STATE_FAILED = 5300;
 	public static final int STATE_IDLE = 5400;
 
 	public static final int KEY_ADDRESS = 1;
 	public static final int KEY_ADDRESS_NOT = 2;
 	public static final int KEY_BLE_STATE = 3;
 	public static final int KEY_BLE_STATE_NOT = 4;
-	public static final int KEY_GATT_STATUS = 5;
-	public static final int KEY_GATT_STATUS_NOT = 6;
+	public static final int KEY_GATT_CALLBACK = 5;
+	public static final int KEY_GATT_CALLBACK_NOT = 6;
 	public static final int KEY_UUID = 7;
 	public static final int KEY_UUID_NOT = 8;
 
@@ -359,7 +359,7 @@ public class BluetoothLE {
 				String connectionTag = findConnectionTag(address, gatt);
 				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
-					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 				}
 				sendGattCallbackOnServicesDiscovered(address, connectionTag, gatt, gattStatus);
 			}
@@ -371,7 +371,7 @@ public class BluetoothLE {
 				String connectionTag = findConnectionTag(address, gatt);
 				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
-					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 				}
 				sendGattCallbackOnCharacteristicRead(address, connectionTag, gatt, characteristic, gattStatus);
 			}
@@ -383,7 +383,7 @@ public class BluetoothLE {
 				String connectionTag = findConnectionTag(address, gatt);
 				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
-					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 				}
 				sendGattCallbackOnCharacteristicWrite(address, connectionTag, gatt, characteristic, gattStatus);
 			}
@@ -407,7 +407,7 @@ public class BluetoothLE {
 				String connectionTag = findConnectionTag(address, gatt);
 				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
-					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 				}
 				sendGattCallbackOnDescriptorRead(address, connectionTag, gatt, descriptor, gattStatus);
 			}
@@ -419,7 +419,7 @@ public class BluetoothLE {
 				String connectionTag = findConnectionTag(address, gatt);
 				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
-					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 				}
 				sendGattCallbackOnDescriptorWrite(address, connectionTag, gatt, descriptor, gattStatus);
 			}
@@ -431,7 +431,7 @@ public class BluetoothLE {
 				String connectionTag = findConnectionTag(address, gatt);
 				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
-					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 				}
 				sendGattCallbackOnReliableWriteCompleted(address, connectionTag, gatt, gattStatus);
 			}
@@ -443,7 +443,7 @@ public class BluetoothLE {
 				String connectionTag = findConnectionTag(address, gatt);
 				ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 				if(arrayMap != null){
-					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+					arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 				}
 				sendGattCallbackOnReadRemoteRssi(address, connectionTag, gatt, rssi, gattStatus);
 			}
@@ -456,7 +456,7 @@ public class BluetoothLE {
 					String connectionTag = findConnectionTag(address, gatt);
 					ArrayMap<String, String> arrayMap = getInfoMap(address, connectionTag);
 					if(arrayMap != null){
-						arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_UNABLE_CONN));
+						arrayMap.put("state", Integer.toString(gattStatus == BluetoothGatt.GATT_SUCCESS ? STATE_IDLE : STATE_FAILED));
 					}
 					sendGattCallbackOnMtuChanged(address, connectionTag, gatt, mtu, gattStatus);
 				}
@@ -576,8 +576,8 @@ public class BluetoothLE {
 	 *                   {@link BluetoothLE#KEY_ADDRESS_NOT} or <br>
 	 *                   {@link BluetoothLE#KEY_BLE_STATE} or <br>
 	 *                   {@link BluetoothLE#KEY_BLE_STATE_NOT} or <br>
-	 *                   {@link BluetoothLE#KEY_GATT_STATUS} or <br>
-	 *                   {@link BluetoothLE#KEY_GATT_STATUS_NOT} or <br>
+	 *                   {@link BluetoothLE#KEY_GATT_CALLBACK} or <br>
+	 *                   {@link BluetoothLE#KEY_GATT_CALLBACK_NOT} or <br>
 	 *                   {@link BluetoothLE#KEY_UUID} or <br>
 	 *                   {@link BluetoothLE#KEY_UUID_NOT}<br>
 	 *                   filters[1] : value<br>
@@ -668,8 +668,8 @@ public class BluetoothLE {
 	 *                   {@link BluetoothLE#KEY_ADDRESS_NOT} or <br>
 	 *                   {@link BluetoothLE#KEY_BLE_STATE} or <br>
 	 *                   {@link BluetoothLE#KEY_BLE_STATE_NOT} or <br>
-	 *                   {@link BluetoothLE#KEY_GATT_STATUS} or <br>
-	 *                   {@link BluetoothLE#KEY_GATT_STATUS_NOT} or <br>
+	 *                   {@link BluetoothLE#KEY_GATT_CALLBACK} or <br>
+	 *                   {@link BluetoothLE#KEY_GATT_CALLBACK_NOT} or <br>
 	 *                   {@link BluetoothLE#KEY_UUID} or <br>
 	 *                   {@link BluetoothLE#KEY_UUID_NOT}<br>
 	 *                   filters[1] : value<br>
@@ -692,8 +692,8 @@ public class BluetoothLE {
 	 *                   {@link BluetoothLE#KEY_ADDRESS_NOT} or <br>
 	 *                   {@link BluetoothLE#KEY_BLE_STATE} or <br>
 	 *                   {@link BluetoothLE#KEY_BLE_STATE_NOT} or <br>
-	 *                   {@link BluetoothLE#KEY_GATT_STATUS} or <br>
-	 *                   {@link BluetoothLE#KEY_GATT_STATUS_NOT} or <br>
+	 *                   {@link BluetoothLE#KEY_GATT_CALLBACK} or <br>
+	 *                   {@link BluetoothLE#KEY_GATT_CALLBACK_NOT} or <br>
 	 *                   {@link BluetoothLE#KEY_UUID} or <br>
 	 *                   {@link BluetoothLE#KEY_UUID_NOT}<br>
 	 *                   filters[1] : value<br>
@@ -928,7 +928,7 @@ public class BluetoothLE {
 							}
 						}
 						break;
-					case KEY_GATT_STATUS:
+					case KEY_GATT_CALLBACK:
 						if(!gattStatus.equals(listFilter.get(j)[2])){
 							if(listFilter.get(j)[1].equals(ATTRIBUTE_MUST)){
 								return false;
@@ -937,7 +937,7 @@ public class BluetoothLE {
 							}
 						}
 						break;
-					case KEY_GATT_STATUS_NOT:
+					case KEY_GATT_CALLBACK_NOT:
 						if(gattStatus.equals(listFilter.get(j)[2])){
 							if(listFilter.get(j)[1].equals(ATTRIBUTE_MUST)){
 								return false;
@@ -1031,8 +1031,8 @@ public class BluetoothLE {
 		 *                   {@link BluetoothLE#KEY_ADDRESS_NOT} or <br>
 		 *                   {@link BluetoothLE#KEY_BLE_STATE} or <br>
 		 *                   {@link BluetoothLE#KEY_BLE_STATE_NOT} or <br>
-		 *                   {@link BluetoothLE#KEY_GATT_STATUS} or <br>
-		 *                   {@link BluetoothLE#KEY_GATT_STATUS_NOT} or <br>
+		 *                   {@link BluetoothLE#KEY_GATT_CALLBACK} or <br>
+		 *                   {@link BluetoothLE#KEY_GATT_CALLBACK_NOT} or <br>
 		 *                   {@link BluetoothLE#KEY_UUID} or <br>
 		 *                   {@link BluetoothLE#KEY_UUID_NOT}<br>
 		 *                   filters[1] : value<br>
