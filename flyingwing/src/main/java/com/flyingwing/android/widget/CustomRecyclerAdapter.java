@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.14
+ * @version 1.0.15
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -28,14 +28,14 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond"})
-public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 	protected OnItemClickListener mOnItemClickListener;
 	protected OnItemLongClickListener mOnItemLongClickListener;
 	protected Handler mHandler;
 	protected String[][] m2DArray;
-	protected List<? super Object> mList;
-	protected List<Map<String, ? super Object>> mComplexList;
+	protected List<T> mList;
+	protected List<Map<String, T>> mComplexList;
 	protected JSONArray mJsonArray;
 	protected int mSelectorBgRes;
 	protected int mItemWidth, mItemHeight;
@@ -100,108 +100,108 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		}
 	}
 
-	public void set2DArray(String[][] array){
-		m2DArray = array;
+	public void set2DArray(String[][] arrays){
+		m2DArray = arrays;
 	}
 
 	public String[][] get2DArray(){
 		return m2DArray;
 	}
 
-	public void addRangeItemIn2DArray(String[][] stringArray, int positionStart){
-		if(stringArray == null || stringArray.length == 0){
+	public void addRangeItemIn2DArray(String[][] arrays, int positionStart){
+		if(arrays == null || arrays.length == 0){
 			return;
 		}
 		if(m2DArray == null){
 			m2DArray = new String[0][0];
 		}
-		int count = (m2DArray.length > positionStart ? m2DArray.length : positionStart) + stringArray.length;
-		String[][] dataArrayNew = new String[count][];
+		int count = (m2DArray.length > positionStart ? m2DArray.length : positionStart) + arrays.length;
+		String[][] arraysNew = new String[count][];
 		if(m2DArray.length == positionStart){
 			if(m2DArray.length > 0){
-				System.arraycopy(m2DArray, 0, dataArrayNew, 0, m2DArray.length);
+				System.arraycopy(m2DArray, 0, arraysNew, 0, m2DArray.length);
 			}
-			System.arraycopy(stringArray, 0, dataArrayNew, positionStart, stringArray.length);
+			System.arraycopy(arrays, 0, arraysNew, positionStart, arrays.length);
 		}else{
-			for(int i=0; i<dataArrayNew.length; i++){
+			for(int i=0; i<arraysNew.length; i++){
 				if(i < positionStart){
 					if(i < m2DArray.length){
-						dataArrayNew[i] = m2DArray[i];
+						arraysNew[i] = m2DArray[i];
 					}
-				}else if(i >= positionStart + stringArray.length){
-					dataArrayNew[i] = m2DArray[i - stringArray.length];
+				}else if(i >= positionStart + arrays.length){
+					arraysNew[i] = m2DArray[i - arrays.length];
 				}else{
-					dataArrayNew[i] = stringArray[i - positionStart];
+					arraysNew[i] = arrays[i - positionStart];
 				}
 			}
 		}
-		m2DArray = dataArrayNew;
-		notifyItemRangeInserted(positionStart, stringArray.length);
-		notifyItemRangeChanged(positionStart, stringArray.length);
+		m2DArray = arraysNew;
+		notifyItemRangeInserted(positionStart, arrays.length);
+		notifyItemRangeChanged(positionStart, arrays.length);
 	}
 
-	public void addItemIn2DArray(String[] stringItem, int index){
-		addRangeItemIn2DArray(new String[][]{stringItem}, index);
+	public void addItemIn2DArray(String[] arrayItem, int index){
+		addRangeItemIn2DArray(new String[][]{arrayItem}, index);
 	}
 
-	public void updateRangeItemForm2DArray(String[][] stringArray, int positionStart){
-		if(stringArray == null || stringArray.length == 0){
+	public void updateRangeItemForm2DArray(String[][] arrays, int positionStart){
+		if(arrays == null || arrays.length == 0){
 			return;
 		}
 		if(m2DArray == null){
 			m2DArray = new String[0][0];
 		}
-		if(m2DArray.length >= positionStart + stringArray.length){
-			System.arraycopy(stringArray, 0, m2DArray, positionStart, stringArray.length);
+		if(m2DArray.length >= positionStart + arrays.length){
+			System.arraycopy(arrays, 0, m2DArray, positionStart, arrays.length);
 		}else{
-			String[][] dataArrayNew = new String[positionStart + stringArray.length][];
-			for(int i=0; i<dataArrayNew.length; i++){
+			String[][] arraysNew = new String[positionStart + arrays.length][];
+			for(int i=0; i<arraysNew.length; i++){
 				if(i < positionStart){
 					if(i < m2DArray.length){
-						dataArrayNew[i] = m2DArray[i];
+						arraysNew[i] = m2DArray[i];
 					}
 				}else{
-					dataArrayNew[i] = stringArray[i - positionStart];
+					arraysNew[i] = arrays[i - positionStart];
 				}
 			}
-			m2DArray = dataArrayNew;
+			m2DArray = arraysNew;
 		}
-		notifyItemRangeChanged(positionStart, stringArray.length);
+		notifyItemRangeChanged(positionStart, arrays.length);
 	}
 
-	public void updateItemForm2DArray(String[] stringItem, int index){
+	public void updateItemForm2DArray(String[] arrayItem, int index){
 		if(m2DArray == null){
 			m2DArray = new String[0][0];
 		}
 		if(m2DArray.length > index){
-			m2DArray[index] = stringItem;
+			m2DArray[index] = arrayItem;
 		}else{
-			String[][] dataArrayNew = new String[index + 1][];
-			for(int i=0; i<dataArrayNew.length; i++){
+			String[][] arraysNew = new String[index + 1][];
+			for(int i=0; i<arraysNew.length; i++){
 				if(i < index){
 					if(i < m2DArray.length){
-						dataArrayNew[i] = m2DArray[i];
+						arraysNew[i] = m2DArray[i];
 					}
 				}else{
-					dataArrayNew[i] = stringItem;
+					arraysNew[i] = arrayItem;
 				}
 			}
-			m2DArray = dataArrayNew;
+			m2DArray = arraysNew;
 		}
 		notifyItemRangeChanged(index, 1);
 	}
 
 	public void removeRangeItemFrom2DArray(int positionStart, int itemCount){
 		if(m2DArray != null && m2DArray.length >= positionStart + itemCount){
-			String[][] dataArrayNew = new String[m2DArray.length - itemCount][];
+			String[][] arraysNew = new String[m2DArray.length - itemCount][];
 			for(int i=0; i< m2DArray.length; i++){
 				if(i < positionStart){
-					dataArrayNew[i] = m2DArray[i];
+					arraysNew[i] = m2DArray[i];
 				}else if(i >= positionStart + itemCount){
-					dataArrayNew[i - itemCount] = m2DArray[i];
+					arraysNew[i - itemCount] = m2DArray[i];
 				}
 			}
-			m2DArray = dataArrayNew;
+			m2DArray = arraysNew;
 			notifyItemRangeRemoved(positionStart, itemCount);
 			notifyItemRangeChanged(positionStart, itemCount);
 		}
@@ -211,20 +211,120 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		removeRangeItemFrom2DArray(index, 1);
 	}
 
-	public void setComplexList(List<Map<String, ? super Object>> list){
+	public void setList(List<T> list){
+		mList = list;
+	}
+
+	public List<T> getList(){
+		return mList;
+	}
+
+	public void addRangeItemInList(List<T> list, int positionStart){
+		if(list == null || list.size() == 0){
+			return;
+		}
+		if(mList == null){
+			mList = new ArrayList<T>();
+		}
+		if(positionStart > mList.size()){
+			for(int i=mList.size(); i<positionStart; i++){
+				mList.add(null);
+			}
+		}
+		int size = list.size();
+		for(int i=0; i<size; i++){
+			mList.add(positionStart + i, list.get(i));
+		}
+		notifyItemRangeInserted(positionStart, size);
+		notifyItemRangeChanged(positionStart, size);
+	}
+
+	public void addItemInList(T t, int index){
+		if(mList == null){
+			mList = new ArrayList<T>();
+		}
+		if(index > mList.size()){
+			for(int i=mList.size(); i<index; i++){
+				mList.add(null);
+			}
+		}
+		mList.add(index, t);
+		notifyItemRangeInserted(index, 1);
+		notifyItemRangeChanged(index, 1);
+	}
+
+	public void updateRangeItemFormList(List<T> list, int positionStart){
+		if(list == null || list.size() == 0){
+			return;
+		}
+		if(mList == null){
+			mList = new ArrayList<T>();
+		}
+		if(positionStart > mList.size()){
+			for(int i=mList.size(); i<positionStart; i++){
+				mList.add(null);
+			}
+		}
+		int size = list.size();
+		for(int i=0; i<size; i++){
+			if(mList.size() > positionStart + i){
+				mList.set(positionStart + i, list.get(i));
+			}else{
+				mList.add(list.get(i));
+			}
+		}
+		notifyItemRangeChanged(positionStart, size);
+	}
+
+	public void updateItemFormComplexList(T t, int index){
+		if(mList == null){
+			mList = new ArrayList<T>();
+		}
+		if(index > mList.size()){
+			for(int i=mList.size(); i<index; i++){
+				mList.add(null);
+			}
+		}
+		if(mList.size() > index){
+			mList.set(index, t);
+		}else{
+			mList.add(t);
+		}
+		notifyItemRangeChanged(index, 1);
+	}
+
+	public void removeRangeItemFromList(int positionStart, int itemCount){
+		if(mList != null && mList.size() >= positionStart + itemCount){
+			int size = itemCount;
+			for(int i=0; i<size; i++){
+				mList.remove(positionStart + i);
+				i--;
+				size--;
+			}
+			notifyItemRangeRemoved(positionStart, itemCount);
+			notifyItemRangeChanged(positionStart, itemCount);
+		}
+	}
+
+	public void removeItemFromList(int index){
+		removeRangeItemFromList(index, 1);
+	}
+
+
+	public void setComplexList(List<Map<String, T>> list){
 		mComplexList = list;
 	}
 
-	public List<Map<String, ? super Object>> getComplexList(){
+	public List<Map<String, T>> getComplexList(){
 		return mComplexList;
 	}
 
-	public void addRangeItemInComplexList(List<Map<String, ? super Object>> list, int positionStart){
+	public void addRangeItemInComplexList(List<Map<String, T>> list, int positionStart){
 		if(list == null || list.size() == 0){
 			return;
 		}
 		if(mComplexList == null){
-			mComplexList = new ArrayList<Map<String, ? super Object>>(list.size());
+			mComplexList = new ArrayList<Map<String, T>>(list.size());
 		}
 		if(positionStart > mComplexList.size()){
 			for(int i=mComplexList.size(); i<positionStart; i++){
@@ -239,9 +339,9 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		notifyItemRangeChanged(positionStart, size);
 	}
 
-	public void addItemInComplexList(Map<String, ? super Object> map, int index){
+	public void addItemInComplexList(Map<String, T> map, int index){
 		if(mComplexList == null){
-			mComplexList = new ArrayList<Map<String, ? super Object>>();
+			mComplexList = new ArrayList<Map<String, T>>();
 		}
 		if(index > mComplexList.size()){
 			for(int i=mComplexList.size(); i<index; i++){
@@ -253,12 +353,12 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		notifyItemRangeChanged(index, 1);
 	}
 
-	public void updateRangeItemFormComplexList(List<Map<String, ? super Object>> list, int positionStart){
+	public void updateRangeItemFormComplexList(List<Map<String, T>> list, int positionStart){
 		if(list == null || list.size() == 0){
 			return;
 		}
 		if(mComplexList == null){
-			mComplexList = new ArrayList<Map<String, ? super Object>>(list.size());
+			mComplexList = new ArrayList<Map<String, T>>(list.size());
 		}
 		if(positionStart > mComplexList.size()){
 			for(int i=mComplexList.size(); i<positionStart; i++){
@@ -276,9 +376,9 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 		notifyItemRangeChanged(positionStart, size);
 	}
 
-	public void updateItemFormComplexList(Map<String, ? super Object> map, int index){
+	public void updateItemFormComplexList(Map<String, T> map, int index){
 		if(mComplexList == null){
-			mComplexList = new ArrayList<Map<String, ? super Object>>();
+			mComplexList = new ArrayList<Map<String, T>>();
 		}
 		if(index > mComplexList.size()){
 			for(int i=mComplexList.size(); i<index; i++){
@@ -307,105 +407,6 @@ public abstract class CustomRecyclerAdapter extends RecyclerView.Adapter<Recycle
 	}
 
 	public void removeItemFromComplexList(int index){
-		removeRangeItemFromComplexList(index, 1);
-	}
-
-	public void setList(List<? super Object> list){
-		mList = list;
-	}
-
-	public List<? super Object> getList(){
-		return mList;
-	}
-
-	public void addRangeItemInList(List<?> list, int positionStart){
-		if(list == null || list.size() == 0){
-			return;
-		}
-		if(mList == null){
-			mList = new ArrayList<Object>();
-		}
-		if(positionStart > mList.size()){
-			for(int i=mList.size(); i<positionStart; i++){
-				mList.add(null);
-			}
-		}
-		int size = list.size();
-		for(int i=0; i<size; i++){
-			mList.add(positionStart + i, list.get(i));
-		}
-		notifyItemRangeInserted(positionStart, size);
-		notifyItemRangeChanged(positionStart, size);
-	}
-
-	public void addItemInList(Object object, int index){
-		if(mList == null){
-			mList = new ArrayList<Object>();
-		}
-		if(index > mList.size()){
-			for(int i=mList.size(); i<index; i++){
-				mList.add(null);
-			}
-		}
-		mList.add(index, object);
-		notifyItemRangeInserted(index, 1);
-		notifyItemRangeChanged(index, 1);
-	}
-
-	public void updateRangeItemFormList(List<?> list, int positionStart){
-		if(list == null || list.size() == 0){
-			return;
-		}
-		if(mList == null){
-			mList = new ArrayList<Object>();
-		}
-		if(positionStart > mList.size()){
-			for(int i=mList.size(); i<positionStart; i++){
-				mList.add(null);
-			}
-		}
-		int size = list.size();
-		for(int i=0; i<size; i++){
-			if(mList.size() > positionStart + i){
-				mList.set(positionStart + i, list.get(i));
-			}else{
-				mList.add(list.get(i));
-			}
-		}
-		notifyItemRangeChanged(positionStart, size);
-	}
-
-	public void updateItemFormComplexList(Object object, int index){
-		if(mList == null){
-			mList = new ArrayList<Object>();
-		}
-		if(index > mList.size()){
-			for(int i=mList.size(); i<index; i++){
-				mList.add(null);
-			}
-		}
-		if(mList.size() > index){
-			mList.set(index, object);
-		}else{
-			mList.add(object);
-		}
-		notifyItemRangeChanged(index, 1);
-	}
-
-	public void removeRangeItemFromList(int positionStart, int itemCount){
-		if(mList != null && mList.size() >= positionStart + itemCount){
-			int size = itemCount;
-			for(int i=0; i<size; i++){
-				mList.remove(positionStart + i);
-				i--;
-				size--;
-			}
-			notifyItemRangeRemoved(positionStart, itemCount);
-			notifyItemRangeChanged(positionStart, itemCount);
-		}
-	}
-
-	public void removeItemFromList(int index){
 		removeRangeItemFromComplexList(index, 1);
 	}
 
