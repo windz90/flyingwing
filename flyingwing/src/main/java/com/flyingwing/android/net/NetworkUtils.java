@@ -7,6 +7,7 @@
 
 package com.flyingwing.android.net;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -54,23 +55,35 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond"})
+@SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond", "UnusedReturnValue"})
 public class NetworkUtils {
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isAvailable(@NonNull Context context){
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(connectivityManager == null){
+			return false;
+		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isConnected(@NonNull Context context){
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(connectivityManager == null){
+			return false;
+		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected();
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isAnyAvailable(@NonNull Context context){
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(connectivityManager == null){
+			return false;
+		}
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
 			Network[] networks = connectivityManager.getAllNetworks();
 			NetworkInfo networkInfo;
@@ -94,22 +107,32 @@ public class NetworkUtils {
 		return false;
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isConnectedSelectedType(@NonNull Context context, int connectivityManagerType) {
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(connectivityManager == null){
+			return false;
+		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && networkInfo.getType() == connectivityManagerType;
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isConnectedMobileNetwork(@NonNull Context context) {
 		return isConnectedSelectedType(context, ConnectivityManager.TYPE_MOBILE);
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isConnectedWifi(@NonNull Context context) {
 		return isConnectedSelectedType(context, ConnectivityManager.TYPE_WIFI);
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isConnectedFast(Context context){
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(connectivityManager == null){
+			return false;
+		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && isConnectedFast(networkInfo.getType(), networkInfo.getSubtype());
 	}
@@ -180,6 +203,9 @@ public class NetworkUtils {
 		}
 
 		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+		if(wifiManager == null){
+			return null;
+		}
 		// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 		return wifiManager.getConnectionInfo();
 	}
@@ -187,6 +213,7 @@ public class NetworkUtils {
 	/**
 	 * android.permission.ACCESS_WIFI_STATE
 	 */
+	@SuppressLint("HardwareIds")
 	@RequiresPermission(android.Manifest.permission.ACCESS_WIFI_STATE)
 	public static String getWifiMAC(@NonNull Context context, Handler handlerNoPermissions){
 		WifiInfo wifiInfo = getWifiConnectionInfo(context, handlerNoPermissions);
@@ -224,6 +251,9 @@ public class NetworkUtils {
 		}
 
 		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+		if(wifiManager == null){
+			return null;
+		}
 		// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 		return wifiManager.getDhcpInfo();
 	}
@@ -241,9 +271,9 @@ public class NetworkUtils {
 		return String.format(Locale.getDefault(), "%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff), (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
 	}
 
-	public static boolean isWifiEnabled(@NonNull Context context){
+	public static boolean isWifiEnabled(@NonNull Context context) {
 		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-		return wifiManager.isWifiEnabled();
+		return wifiManager != null && wifiManager.isWifiEnabled();
 	}
 
 	/**
@@ -277,6 +307,9 @@ public class NetworkUtils {
 			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION));
 		}
 		final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+		if(wifiManager == null){
+			return;
+		}
 		new Thread(new Runnable() {
 			@RequiresPermission(android.Manifest.permission.CHANGE_WIFI_STATE)
 			@Override
@@ -296,7 +329,7 @@ public class NetworkUtils {
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
 	public static void wifiScan(@NonNull final Context context, final BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
 		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-		if(!wifiManager.isWifiEnabled()){
+		if(wifiManager == null || !wifiManager.isWifiEnabled()){
 			return;
 		}
 		List<String> list = new ArrayList<String>(4);
@@ -352,7 +385,7 @@ public class NetworkUtils {
 	public static boolean wifiConnect(@NonNull Context context, @NonNull String ssId, String bssId, String password, boolean isUseExistWifiConfiguration
 			, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
 		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-		if(!wifiManager.isWifiEnabled()){
+		if(wifiManager == null || !wifiManager.isWifiEnabled()){
 			return false;
 		}
 		List<String> list = new ArrayList<String>(2);
@@ -438,6 +471,9 @@ public class NetworkUtils {
 	public static BluetoothAdapter getBluetoothAdapter(Context context){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
 			BluetoothManager bluetoothManager = (BluetoothManager) context.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
+			if(bluetoothManager == null){
+				return null;
+			}
 			return bluetoothManager.getAdapter();
 		}else{
 			return BluetoothAdapter.getDefaultAdapter();
@@ -761,6 +797,7 @@ public class NetworkUtils {
 		}
 	}
 
+	@SuppressLint("PrivateApi")
 	public static boolean bluetoothLeRefresh(@NonNull BluetoothGatt bluetoothGatt){
 		boolean isRefresh = false;
 		// Reflection反射調用hide方法
@@ -1039,7 +1076,7 @@ public class NetworkUtils {
 	@RequiresPermission(android.Manifest.permission.ACCESS_WIFI_STATE)
 	public static InetAddress getBroadcastAddressFromWifiMask(@NonNull Context context, Handler handlerNoPermissions){
 		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-		if(!wifiManager.isWifiEnabled()){
+		if(wifiManager == null || !wifiManager.isWifiEnabled()){
 			return null;
 		}
 		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_DENIED){
