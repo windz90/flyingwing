@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.13
+ * @version 3.6.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -12,7 +12,13 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.RequiresPermission;
 import android.text.TextUtils;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -23,7 +29,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.GeneralSecurityException;
@@ -47,7 +56,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach"})
+@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "SameParameterValue"})
 public class NetworkAccess {
 
 	public static final int CONNECTION_NO_NETWORK = 100;
@@ -60,13 +69,18 @@ public class NetworkAccess {
 	public static final int OUTPUT_TYPE_FILE = 2;
 	public static final int OUTPUT_TYPE_SKIP = 3;
 	public static final String[] ONLY_READ_HEADER = new String[]{"Range", "bytes=0-0"};
-	private static final String HTTP_METHOD_GET = "GET";
-	private static final String HTTP_METHOD_POST = "POST";
-	private static final String HTTP_METHOD_PUT = "PUT";
-	private static final String HTTP_METHOD_DELETE = "DELETE";
-	private static final String HTTP_METHOD_HEAD = "HEAD";
-	private static final String HTTP_METHOD_OPTIONS = "OPTIONS";
-	private static final String HTTP_METHOD_TRACE = "TRACE";
+	public static final String HTTP_METHOD_GET = "GET";
+	public static final String HTTP_METHOD_POST = "POST";
+	public static final String HTTP_METHOD_PUT = "PUT";
+	public static final String HTTP_METHOD_DELETE = "DELETE";
+	public static final String HTTP_METHOD_HEAD = "HEAD";
+	public static final String HTTP_METHOD_OPTIONS = "OPTIONS";
+	public static final String HTTP_METHOD_TRACE = "TRACE";
+	public static final String CONTENT_TYPE_PLAIN = "text/plain";
+	public static final String CONTENT_TYPE_JSON = "application/json";
+	public static final String CONTENT_TYPE_URLENCODED = "application/x-www-form-urlencoded";
+	public static final String CONTENT_TYPE_MULTIPART = "multipart/form-data";
+	private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
 	private static final NetworkSetting NETWORKSETTING = new NetworkSetting();
 
 	public static class NetworkSetting {
@@ -139,163 +153,17 @@ public class NetworkAccess {
 		System.out.println(info);
 	}
 
-	public static ConnectionResult connectUseHttpURLConnectionOutputBytes(@NonNull Context context, HttpURLConnection httpURLConnection){
-		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_BYTES, null, null, connectionResult);
-		}
-		return connectionResult;
-	}
-
-	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection){
-		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, null, null, connectionResult);
-		}
-		return connectionResult;
-	}
-
-	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection, Charset charset){
-		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, charset, null, connectionResult);
-		}
-		return connectionResult;
-	}
-
-	public static ConnectionResult connectUseHttpURLConnectionOutputFile(@NonNull Context context, HttpURLConnection httpURLConnection, File fileOutput){
-		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_FILE, null, fileOutput, connectionResult);
-		}
-		return connectionResult;
-	}
-
-	/**
-	 * 僅完成連線，不自動下載回傳內容，成功後{@link ConnectionResult#getStatusCode()}的狀態為{@link #CONNECTION_CONNECTED}
-	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
-	 */
-	public static ConnectionResult connectUseHttpURLConnectionOutputSkip(@NonNull Context context, HttpURLConnection httpURLConnection){
-		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
-		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, connectionResult);
-		}
-		return connectionResult;
-	}
-
-	/**
-	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
-	 */
-	public static void connectControlHttpURLConnection(@NonNull Context context, HttpURLConnection httpURLConnection){
-		if(isAvailable(context)){
-			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, null);
-		}
-	}
-
-	private static void connectUseHttpURLConnection(HttpURLConnection httpURLConnection, int outputType, Charset charset, File fileOutput
-			, ConnectionResult connectionResult){
-		if(httpURLConnection == null){
-			if(connectionResult != null){
-				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
-				connectionResult.setStatusMessage("Connection open failed");
-			}
-			return;
-		}
-
-		try {
-			httpURLConnection.connect();
-			if(connectionResult != null){
-				connectionResult.setHttpURLConnection(httpURLConnection);
-			}
-
-			InputStream inputStreamError = httpURLConnection.getErrorStream();
-			if(inputStreamError != null){
-				String errorMessage = inputStreamToString(inputStreamError, Charset.forName("UTF-8"), NETWORKSETTING.mBufferSize, connectionResult);
-				if(connectionResult != null){
-					connectionResult.setErrorMessage("Connection received error, message:\n" + errorMessage);
-				}
-			}
-
-			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
-					printInfo("Connection connect OK, ResponseCode " + httpURLConnection.getResponseCode());
-				}
-			}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
-					printInfo("Connection connecting, ResponseCode " + httpURLConnection.getResponseCode());
-				}
-			}else{
-				if(connectionResult != null){
-					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
-					connectionResult.setStatusMessage("Connection connect failed, ResponseCode " + httpURLConnection.getResponseCode());
-				}
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					printInfo("Connection connect failed, ResponseCode " + httpURLConnection.getResponseCode());
-				}
-				return;
-			}
-
-			if(connectionResult != null){
-				try {
-					connectionResult.setContentLength(Long.parseLong(httpURLConnection.getHeaderField("content-length")));
-				} catch (Exception ignored) {}
-				connectionResult.setContentCharset(getCharset(httpURLConnection.getContentType()));
-			}
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
-				printMap(httpURLConnection.getHeaderFields(), "Response");
-			}
-		} catch (Exception e) {
-			if(connectionResult != null){
-				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
-				connectionResult.setStatusMessage("Connection connect failed, exception " + e);
-			}
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-				printInfo("Connection connect failed, exception " + e);
-			}
-			return;
-		}
-		if(outputType == OUTPUT_TYPE_SKIP){
-			if(connectionResult != null){
-				connectionResult.setStatusCode(CONNECTION_CONNECTED);
-				connectionResult.setStatusMessage("Connection connected");
-			}
-			return;
-		}
-		if(connectionResult == null){
-			httpURLConnection.disconnect();
-			return;
-		}
-
-		try {
-			if(outputType == OUTPUT_TYPE_BYTES) {
-				connectionResult.setContentBytes(inputStreamToByteArray(httpURLConnection.getInputStream(), NETWORKSETTING.mBufferSize, connectionResult));
-			}else if(outputType == OUTPUT_TYPE_STRING){
-				connectionResult.setContentString(inputStreamToString(httpURLConnection.getInputStream()
-						, charset == null ? connectionResult.getContentCharset() : charset, NETWORKSETTING.mBufferSize, connectionResult));
-			}else if(outputType == OUTPUT_TYPE_FILE && fileOutput != null){
-				inputStreamWriteOutputStream(httpURLConnection.getInputStream(), new FileOutputStream(fileOutput), NETWORKSETTING.mBufferSize, connectionResult);
-				connectionResult.setContentOutputFile(fileOutput);
-			}
-			if(connectionResult.getStatusCode() != CONNECTION_LOAD_FAIL){
-				connectionResult.setStatusCode(CONNECTION_LOADED);
-				connectionResult.setStatusMessage("Connection loaded");
-			}
-		} catch (Exception e) {
-			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-				printInfo("Connection loading failed, exception " + e);
-			}
-		}
-		httpURLConnection.disconnect();
-	}
-
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isAvailable(@NonNull Context context) {
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(connectivityManager == null){
+			return false;
+		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	private static ConnectionResult getNetworkCheckConnectResult(@NonNull Context context){
 		ConnectionResult connectionResult = new ConnectionResult();
 		if(!isAvailable(context)){
@@ -305,27 +173,9 @@ public class NetworkAccess {
 		return connectionResult;
 	}
 
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
-			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttps(@NonNull String strUrl, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		HttpURLConnection httpURLConnection = null;
 		try {
-			if(TextUtils.isEmpty(httpMethod)){
-				httpMethod = HTTP_METHOD_GET;
-			}
-			if(HTTP_METHOD_GET.equals(httpMethod) && contentArrays != null){
-				boolean isContains = strUrl.contains("?");
-				for(int i=0; i<contentArrays.length; i++){
-					strUrl = strUrl + (i == 0 && !isContains ? "?" : "&") + contentArrays[i][0] + "=" + contentArrays[i][1];
-				}
-				contentArrays = null;
-			}
-
 			URL url = new URL(strUrl);
 			httpURLConnection = (HttpURLConnection) url.openConnection();
 
@@ -341,177 +191,16 @@ public class NetworkAccess {
 					((HttpsURLConnection) httpURLConnection).setHostnameVerifier(hostnameVerifier);
 				}
 			}
-
-			if(!prepareHttpURLConnection(httpURLConnection, httpMethod, headerArrays, contentArrays)){
-				httpURLConnection = null;
-			}
 		} catch (Exception e) {
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-				printInfo("Connection open failed, exception " + e);
-			}
-		}finally{
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionUrl){
-				printInfo(httpMethod + ", " + strUrl);
+				printInfo("Connection open failed, exception " + e + ", " + strUrl);
 			}
 		}
 		return httpURLConnection;
 	}
 
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
-			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_GET, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
-			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_POST, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsDelete(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
-			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_DELETE, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays
-			, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_HEAD, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttps(@NonNull String httpMethod, String strUrl, String[][] headerArrays, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttps(httpMethod, strUrl, headerArrays, contentArrays, null, null);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsGet(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_GET, strUrl, headerArrays, contentArrays, null, null);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsPost(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_POST, strUrl, headerArrays, contentArrays, null, null);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsDelete(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_DELETE, strUrl, headerArrays, contentArrays, null, null);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttpsHead(@NonNull String strUrl, String[][] headerArrays, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttps(HTTP_METHOD_HEAD, strUrl, headerArrays, contentArrays, null, null);
-	}
-
-	/**
-	 * @param contentList <br>
-	 * contentList get map size 2 = <br>
-	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String value<br><br>
-	 * contentList get map size 3 = <br>
-	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String fileName<br>
-	 *                       , map.get("2") : Object object<br><br>
-	 * contentList get map size 4 = <br>
-	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String fileName<br>
-	 *                       , map.get("2") : String contentType(MIME Type)<br>
-	 *                       , map.get("3") : Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, List<String[]> headerList
-			, List<Map<String, Object>> contentList, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		String[][] headerArrays = null;
-		Object[][] contentArrays = null;
-		int size;
-		if(headerList != null && headerList.size() > 0){
-			size = headerList.size();
-			headerArrays = new String[headerList.size()][2];
-			for(int i=0; i<size; i++){
-				headerArrays[i] = headerList.get(i);
-			}
-		}
-
-		if(contentList != null && contentList.size() > 0){
-			size = contentList.size();
-			contentArrays = new Object[contentList.size()][4];
-			Map<String, Object> map;
-			for(int i=0; i<size; i++){
-				map = contentList.get(i);
-				contentArrays[i][0] = map.get("0");
-				contentArrays[i][1] = map.get("1");
-				contentArrays[i][2] = map.get("2");
-				contentArrays[i][3] = map.get("3");
-			}
-		}
-		return openHttpURLConnectionWithHttps(httpMethod, strUrl, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentList <br>
-	 * contentList get map size 2 = <br>
-	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String value<br><br>
-	 * contentList get map size 3 = <br>
-	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String fileName<br>
-	 *                       , map.get("2") : Object object<br><br>
-	 * contentList get map size 4 = <br>
-	 *                       map.get("0") : String key<br>
-	 *                       , map.get("1") : String fileName<br>
-	 *                       , map.get("2") : String contentType(MIME Type)<br>
-	 *                       , map.get("3") : Object object
-	 */
-	public static HttpURLConnection openHttpURLConnectionWithHttps(String httpMethod, @NonNull String strUrl, List<String[]> headerList
-			, List<Map<String, Object>> contentList){
-		return openHttpURLConnectionWithHttps(httpMethod, strUrl, headerList, contentList, null, null);
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttps(@NonNull String strUrl){
+		return openHttpURLConnectionWithHttps(strUrl, null, null);
 	}
 
 	public static SSLContext getSSLContext(InputStream inputStreamServer, String keyStoreTypeServer, String keyStorePasswordServer
@@ -626,45 +315,428 @@ public class NetworkAccess {
 		};
 	}
 
-	public static boolean prepareHttpURLConnection(HttpURLConnection httpURLConnection, String httpMethod, String[][] headerArrays, Object[][] contentArrays){
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && contentArrays != null && contentArrays.length > 0){
+			boolean isContains = strUrl.contains("?");
+			StringBuilder stringBuilder = new StringBuilder();
+			stringBuilder.append(strUrl);
+			for(int i=0; i<contentArrays.length; i++){
+				if(contentArrays[i].length < 2 || contentArrays[i][0] == null || contentArrays[i][1] == null){
+					continue;
+				}
+				stringBuilder.append(i == 0 && !isContains ? "?" : "&").append(contentArrays[i][0]).append("=").append(contentArrays[i][1]);
+			}
+			strUrl = stringBuilder.toString();
+			contentArrays = null;
+		}
+		HttpURLConnection httpURLConnection = openHttpURLConnectionWithHttps(strUrl, sslContext, hostnameVerifier);
+		boolean doOutput = false;
+		String contentType = null;
+		if(contentArrays != null && contentArrays.length > 0){
+			for(int i=0; i<contentArrays.length; i++){
+				if(contentArrays[i].length < 2){
+					continue;
+				}
+				if(contentArrays[i][0] == null || contentArrays[i][contentArrays[i].length - 1] == null){
+					continue;
+				}
+				doOutput = true;
+				if(contentArrays[i][contentArrays[i].length - 1] instanceof InputStream){
+					contentType = CONTENT_TYPE_MULTIPART;
+					break;
+				}
+				contentType = CONTENT_TYPE_URLENCODED;
+			}
+		}
+		if(!setHttpURLConnectionFieldsWithContentArrays(httpURLConnection, httpMethod, true, doOutput, false, true, contentType
+				, headerArrays, contentArrays)){
+			httpURLConnection = null;
+		}
+		return httpURLConnection;
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysGet(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPost(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPut(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysDelete(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysHead(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_HEAD, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, httpMethod, headerArrays, contentArrays, null, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysGet(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, null, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPost(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, null, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPut(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, null, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysDelete(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, null, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysHead(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_HEAD, headerArrays, contentArrays, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && content != null){
+			content = null;
+		}
+		HttpURLConnection httpURLConnection = openHttpURLConnectionWithHttps(strUrl, sslContext, hostnameVerifier);
+		boolean isJson = false;
+		try {
+			JSONTokener jsonTokener = new JSONTokener(content);
+			Object object = jsonTokener.nextValue();
+			if(object instanceof JSONArray || object instanceof JSONObject){
+				isJson = true;
+			}
+		} catch (Exception ignored) {}
+		String contentType = isJson ? CONTENT_TYPE_JSON : CONTENT_TYPE_PLAIN;
+		boolean doOutput = !TextUtils.isEmpty(content);
+		if(!setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(httpURLConnection, httpMethod, true, doOutput, false, true
+				, contentType, headerArrays, content)){
+			httpURLConnection = null;
+		}
+		return httpURLConnection;
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(httpMethod, strUrl, headerArrays, content, null, null);
+	}
+
+	public static boolean setHttpURLConnectionFieldsWithContentArrays(HttpURLConnection httpURLConnection, String httpMethod, boolean doInput, boolean doOutput
+			, boolean useCaches, boolean keepAlive, String contentType, String[][] headerArrays, Object[][] contentArrays){
+		if(httpURLConnection == null){
+			return false;
+		}
 		String hyphens = "--";
 		String boundary = "#!#!#!BOUNDARY!#!#!#";
 		String breakLine = "\r\n";
+
+		if(!TextUtils.isEmpty(contentType) && contentType.contains(CONTENT_TYPE_MULTIPART)){
+			contentType = contentType + "; boundary=" + boundary;
+		}
+		if(setHttpURLConnectionFields(httpURLConnection, httpMethod, doInput, doOutput, useCaches, keepAlive, contentType, headerArrays)){
+			if(!doOutput || contentArrays == null || contentArrays.length == 0){
+				return true;
+			}
+			if(TextUtils.isEmpty(contentType) || contentType.contains(CONTENT_TYPE_URLENCODED)){
+				return setHttpURLConnectionContentForUrlEncodedUseFixedStreaming(httpURLConnection, contentArrays);
+			}else if(contentType.contains(CONTENT_TYPE_MULTIPART)){
+				return setHttpURLConnectionContentForMultiPartUseChunkStreaming(httpURLConnection, 0, hyphens, boundary, breakLine, contentArrays);
+			}
+		}
+		return false;
+	}
+
+	public static boolean setHttpURLConnectionFieldsWithContentArrays(HttpURLConnection httpURLConnection, String httpMethod, String contentType
+			, String[][] headerArrays, Object[][] contentArrays){
+		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && contentArrays != null){
+			contentArrays = null;
+		}
+		boolean doOutput = contentArrays == null || contentArrays.length == 0;
+		return setHttpURLConnectionFieldsWithContentArrays(httpURLConnection, httpMethod, true, doOutput, false, true, contentType
+				, headerArrays, contentArrays);
+	}
+
+	public static boolean setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(HttpURLConnection httpURLConnection, String httpMethod, boolean doInput
+			, boolean doOutput, boolean useCaches, boolean keepAlive, String contentType, String[][] headerArrays, String content){
+		if(setHttpURLConnectionFields(httpURLConnection, httpMethod, doInput, doOutput, useCaches, keepAlive, contentType, headerArrays)){
+			try {
+				if(content != null){
+					httpURLConnection.setFixedLengthStreamingMode(content.length());
+					DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
+					dataOutputStream.write(content.getBytes(DEFAULT_CHARSET));
+					if(NETWORKSETTING.mIsPrintConnectionRequest){
+						printInfo("Request content:\n" + content);
+					}
+					dataOutputStream.flush();
+					dataOutputStream.close();
+				}
+				return true;
+			} catch (Exception e) {
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					printInfo("Connection set content failed, exception " + e + ", " + httpMethod + ", " + httpURLConnection.getURL().toString());
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(HttpURLConnection httpURLConnection, String httpMethod, String contentType
+			, String[][] headerArrays, String content){
+		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && content != null){
+			content = null;
+		}
+		boolean doOutput = !TextUtils.isEmpty(content);
+		return setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(httpURLConnection, httpMethod, true, doOutput, false, true
+				, contentType, headerArrays, content);
+	}
+
+	public static boolean setHttpURLConnectionFields(HttpURLConnection httpURLConnection, String httpMethod, boolean doInput, boolean doOutput, boolean useCaches
+			, boolean keepAlive, String contentType, String[][] headerArrays){
 		try {
 			// System.setProperty() for APP
 			System.setProperty("http.keepAlive", "true");
-			httpURLConnection.setRequestMethod(httpMethod);
-			httpURLConnection.setDoInput(true);
-			httpURLConnection.setDoOutput(!(httpMethod.equals(HTTP_METHOD_GET) || (httpMethod.equals(HTTP_METHOD_DELETE) && contentArrays == null)));
-			httpURLConnection.setUseCaches(false);
+			try {
+				if(TextUtils.isEmpty(httpMethod)){
+					httpMethod = HTTP_METHOD_GET;
+				}
+				httpURLConnection.setRequestMethod(httpMethod);
+			} catch (ProtocolException e) {
+				setRequestMethodReflection(httpURLConnection, httpMethod);
+			}
+			httpURLConnection.setDoInput(doInput);
+			httpURLConnection.setDoOutput(doOutput);
+			httpURLConnection.setUseCaches(useCaches);
 			httpURLConnection.setConnectTimeout(NETWORKSETTING.mConnectTimeout);
 			httpURLConnection.setReadTimeout(NETWORKSETTING.mReadTimeout);
-			httpURLConnection.setChunkedStreamingMode(NETWORKSETTING.mBufferSize);
-			httpURLConnection.setRequestProperty("Charset", "UTF-8");
+			httpURLConnection.setRequestProperty("Charset", DEFAULT_CHARSET.name());
+			httpURLConnection.setRequestProperty("Accept-Charset", DEFAULT_CHARSET.name());
+			if(!useCaches){
+				httpURLConnection.addRequestProperty("Cache-Control", "no-cache");
+			}
 			/*
 			 * HTTP/1.0 預設不保持連線，Header set key: "Connection" value: "Keep-Alive" 表示保持連線
 			 * HTTP/1.1 預設保持連線，Header set key: "Connection" value: "Close" 表示不保持連線
 			 */
-			httpURLConnection.setRequestProperty("Connection", "Keep-Alive");
-			httpURLConnection.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+			httpURLConnection.setRequestProperty("Connection", keepAlive ? "Keep-Alive" : "Close");
+			if(!TextUtils.isEmpty(contentType) && !contentType.contains("charset")){
+				contentType = contentType + "; charset=" + DEFAULT_CHARSET.name();
+			}
+			httpURLConnection.setRequestProperty("Content-Type", contentType);
 			if(headerArrays != null && headerArrays.length > 0){
-				for(String[] headerArray : headerArrays){
-					httpURLConnection.setRequestProperty(headerArray[0], headerArray[1]);
+				for(int i=0; i<headerArrays.length; i++){
+					if(headerArrays[i].length < 2 || headerArrays[i][0] == null || headerArrays[i][1] == null){
+						continue;
+					}
+					httpURLConnection.setRequestProperty(headerArrays[i][0], headerArrays[i][1]);
 				}
 			}
 			if(NETWORKSETTING.mIsPrintConnectionRequest){
 				printMap(httpURLConnection.getRequestProperties(), "Request");
 			}
-
-			if(contentArrays == null || contentArrays.length == 0 || contentArrays[0].length < 2){
-				return true;
+			return true;
+		} catch (Exception e) {
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection set fields failed, exception " + e + ", " + httpMethod + ", " + httpURLConnection.getURL().toString());
 			}
-			Object[] contentArray;
+		}
+		return false;
+	}
+
+	public static void setHttpURLConnectionFields(HttpURLConnection httpURLConnection, String httpMethod, String contentType, String[][] headerArrays)
+			throws ReflectiveOperationException {
+		boolean doOutput = !httpMethod.equals(HTTP_METHOD_GET);
+		setHttpURLConnectionFields(httpURLConnection, httpMethod, true, doOutput, false, true, contentType, headerArrays);
+	}
+
+	public static void setRequestMethodReflection(HttpURLConnection httpURLConnection, String httpMethod) throws ReflectiveOperationException {
+		// Reflection反射調用屬性
+		Field field = httpURLConnection.getClass().getDeclaredField("delegate");
+		field.setAccessible(true);
+		Object objectField = field.get(httpURLConnection);
+		field.setAccessible(false);
+
+		// Reflection反射調用方法
+		Method method = objectField.getClass().getDeclaredMethod("setRequestMethod", java.lang.String.class);
+		method.setAccessible(true);
+		method.invoke(objectField, httpMethod);
+		method.setAccessible(false);
+	}
+
+	public static boolean setHttpURLConnectionContentForUrlEncodedUseFixedStreaming(HttpURLConnection httpURLConnection, Object[][] contentArrays){
+		if(contentArrays == null || contentArrays.length == 0){
+			return false;
+		}
+		try {
+			String pairs = null;
+			for(int i=0; i<contentArrays.length; i++){
+				if(contentArrays[i].length < 2 || contentArrays[i][0] == null || contentArrays[i][1] == null){
+					continue;
+				}
+				pairs = TextUtils.isEmpty(pairs) ? "" : pairs + "&";
+				pairs = pairs + contentArrays[i][0] + "=" + contentArrays[i][1];
+			}
+			if(pairs != null){
+				httpURLConnection.setFixedLengthStreamingMode(pairs.length());
+				DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
+				dataOutputStream.write(pairs.getBytes(DEFAULT_CHARSET));
+				if(NETWORKSETTING.mIsPrintConnectionRequest){
+					printInfo("Request content:\n" + pairs);
+				}
+				dataOutputStream.flush();
+				dataOutputStream.close();
+			}
+			return true;
+		} catch (Exception e) {
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection set content failed, exception " + e + ", " + httpURLConnection.getRequestMethod() + ", " + httpURLConnection.getURL().toString());
+			}
+		}
+		return false;
+	}
+
+	public static boolean setHttpURLConnectionContentForUrlEncodedUseChunkStreaming(HttpURLConnection httpURLConnection, int chunkLength, Object[][] contentArrays){
+		if(contentArrays == null || contentArrays.length == 0){
+			return false;
+		}
+		try {
+			boolean isFirstPair = true;
+			String pairs;
+			httpURLConnection.setChunkedStreamingMode(chunkLength);
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
-			Charset charset = Charset.forName("UTF-8");
+			printInfo("Request content:");
+			for(int i=0; i<contentArrays.length; i++){
+				if(contentArrays[i].length < 2 || contentArrays[i][0] == null || contentArrays[i][1] == null){
+					continue;
+				}
+				if(isFirstPair){
+					isFirstPair = false;
+					pairs = contentArrays[i][0] + "=" + contentArrays[i][1];
+				}else{
+					pairs = "&" + contentArrays[i][0] + "=" + contentArrays[i][1];
+				}
+				dataOutputStream.write(pairs.getBytes(DEFAULT_CHARSET));
+				if(NETWORKSETTING.mIsPrintConnectionRequest){
+					printInfo(pairs);
+				}
+			}
+			dataOutputStream.flush();
+			dataOutputStream.close();
+			return true;
+		} catch (Exception e) {
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection set content failed, exception " + e + ", " + httpURLConnection.getRequestMethod() + ", " + httpURLConnection.getURL().toString());
+			}
+		}
+		return false;
+	}
+
+	public static boolean setHttpURLConnectionContentForMultiPartUseChunkStreaming(HttpURLConnection httpURLConnection, int chunkLength, String hyphens
+			, String boundary, String breakLine, Object[][] contentArrays){
+		if(contentArrays == null || contentArrays.length == 0){
+			return false;
+		}
+		try {
+			Object[] contentArray;
+			Charset charset = DEFAULT_CHARSET;
 			String line;
+			httpURLConnection.setChunkedStreamingMode(chunkLength);
+			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
+			printInfo("Request content:");
 			for(int i=0; i<contentArrays.length; i++){
 				contentArray = contentArrays[i];
+				if(contentArray.length < 2){
+					continue;
+				}
 				if(contentArray.length == 2 && (contentArray[0] == null || contentArray[1] == null)){
 					continue;
 				}
@@ -682,26 +754,26 @@ public class NetworkAccess {
 				}
 
 				if(contentArray.length == 2){
-					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"" +
-							breakLine + breakLine;
+					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\""
+							+ breakLine + breakLine;
 					dataOutputStream.write(line.getBytes(charset));
 					if(NETWORKSETTING.mIsPrintConnectionRequest){
 						printInfo(line);
 					}
 				}else if (contentArray.length == 3){
-					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"; filename=\"" + contentArray[1] + "\"" +
-							breakLine +
-							"Content-Type: application/x-object" +
-							breakLine + breakLine;
+					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"; filename=\"" + contentArray[1] + "\""
+							+ breakLine
+							+ "Content-Type: application/x-object"
+							+ breakLine + breakLine;
 					dataOutputStream.write(line.getBytes(charset));
 					if(NETWORKSETTING.mIsPrintConnectionRequest){
 						printInfo(line);
 					}
 				}else if (contentArray.length == 4){
-					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"; filename=\"" + contentArray[1] + "\"" +
-							breakLine +
-							"Content-Type: " + contentArray[2] +
-							breakLine + breakLine;
+					line = "Content-Disposition: form-data; name=\"" + contentArray[0] + "\"; filename=\"" + contentArray[1] + "\""
+							+ breakLine
+							+ "Content-Type: " + contentArray[2]
+							+ breakLine + breakLine;
 					dataOutputStream.write(line.getBytes(charset));
 					if(NETWORKSETTING.mIsPrintConnectionRequest){
 						printInfo(line);
@@ -745,16 +817,180 @@ public class NetworkAccess {
 			}
 			dataOutputStream.flush();
 			dataOutputStream.close();
+			return true;
 		} catch (Exception e) {
-			httpURLConnection = null;
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-				printInfo("Connection prepare failed, exception " + e);
+				printInfo("Connection set content failed, exception " + e + ", " + httpURLConnection.getRequestMethod() + ", " + httpURLConnection.getURL().toString());
 			}
 		}
-		return httpURLConnection != null;
+		return false;
 	}
 
-	public static Charset getCharset(String contentType){
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
+	public static ConnectionResult connectUseHttpURLConnectionOutputBytes(@NonNull Context context, HttpURLConnection httpURLConnection){
+		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_BYTES, null, null, connectionResult);
+		}
+		return connectionResult;
+	}
+
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
+	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection){
+		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, null, null, connectionResult);
+		}
+		return connectionResult;
+	}
+
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
+	public static ConnectionResult connectUseHttpURLConnectionOutputString(@NonNull Context context, HttpURLConnection httpURLConnection, Charset charset){
+		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_STRING, charset, null, connectionResult);
+		}
+		return connectionResult;
+	}
+
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
+	public static ConnectionResult connectUseHttpURLConnectionOutputFile(@NonNull Context context, HttpURLConnection httpURLConnection, File fileOutput){
+		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_FILE, null, fileOutput, connectionResult);
+		}
+		return connectionResult;
+	}
+
+	/**
+	 * 僅完成連線，不自動下載回傳內容，成功後{@link ConnectionResult#getStatusCode()}的狀態為{@link #CONNECTION_CONNECTED}
+	 * 完成連線後須調用{@link HttpURLConnection#disconnect()}斷開連線
+	 */
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
+	public static ConnectionResult connectUseHttpURLConnectionOutputSkip(@NonNull Context context, HttpURLConnection httpURLConnection){
+		ConnectionResult connectionResult = getNetworkCheckConnectResult(context);
+		if(connectionResult.getStatusCode() != CONNECTION_NO_NETWORK){
+			connectUseHttpURLConnection(httpURLConnection, OUTPUT_TYPE_SKIP, null, null, connectionResult);
+		}
+		return connectionResult;
+	}
+
+	private static void connectUseHttpURLConnection(HttpURLConnection httpURLConnection, int outputType, Charset charset, File fileOutput
+			, ConnectionResult connectionResult){
+		if(httpURLConnection == null){
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
+				connectionResult.setStatusMessage("Connection open failed");
+			}
+			return;
+		}
+
+		String strUrl = httpURLConnection.getURL().toString();
+		printInfo("Connection connect start, " + httpURLConnection.getRequestMethod() + ", " + strUrl);
+		try {
+			httpURLConnection.connect();
+			if(charset == null){
+				charset = getCharsetInContentType(httpURLConnection.getContentType());
+				if(charset == null){
+					charset = DEFAULT_CHARSET;
+				}
+			}
+			if(connectionResult != null){
+				connectionResult.setHttpURLConnection(httpURLConnection);
+				connectionResult.setContentCharset(charset);
+			}
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+				printMap(httpURLConnection.getHeaderFields(), "Response");
+			}
+
+			InputStream inputStreamError = httpURLConnection.getErrorStream();
+			if(inputStreamError != null){
+				String errorMessage = inputStreamToString(inputStreamError, charset, NETWORKSETTING.mBufferSize, connectionResult);
+				if(connectionResult != null){
+					connectionResult.setErrorMessage(errorMessage);
+				}
+			}
+
+			if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+					printInfo("Connection connect OK, ResponseCode " + httpURLConnection.getResponseCode() + ", " + httpURLConnection.getRequestMethod()
+							+ ", " + strUrl);
+				}
+			}else if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_PARTIAL){
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
+					printInfo("Connection connect partial, ResponseCode " + httpURLConnection.getResponseCode() + ", " + httpURLConnection.getRequestMethod()
+							+ ", " + strUrl);
+				}
+			}else{
+				if(connectionResult != null){
+					connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
+					connectionResult.setStatusMessage("Connection connect failed, ResponseCode " + httpURLConnection.getResponseCode());
+				}
+				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+					printInfo("Connection connect failed, ResponseCode " + httpURLConnection.getResponseCode() + ", " + httpURLConnection.getRequestMethod()
+							+ ", " + strUrl);
+				}
+				httpURLConnection.disconnect();
+				return;
+			}
+
+			if(connectionResult != null){
+				try {
+					connectionResult.setContentLength(Long.parseLong(httpURLConnection.getHeaderField("content-length")));
+				} catch (Exception ignored) {}
+			}
+		} catch (Exception e) {
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_CONNECT_FAIL);
+				connectionResult.setStatusMessage("Connection connect failed, exception " + e);
+			}
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection connect failed, exception " + e + ", " + httpURLConnection.getRequestMethod() + ", " + strUrl);
+			}
+			return;
+		}
+		if(outputType == OUTPUT_TYPE_SKIP){
+			if(connectionResult != null){
+				connectionResult.setStatusCode(CONNECTION_CONNECTED);
+				connectionResult.setStatusMessage("Connection connected");
+			}
+			return;
+		}
+		if(connectionResult == null){
+			httpURLConnection.disconnect();
+			return;
+		}
+
+		try {
+			if(outputType == OUTPUT_TYPE_BYTES) {
+				connectionResult.setContentBytes(inputStreamToByteArray(httpURLConnection.getInputStream(), NETWORKSETTING.mBufferSize, connectionResult));
+			}else if(outputType == OUTPUT_TYPE_STRING){
+				connectionResult.setContentString(inputStreamToString(httpURLConnection.getInputStream(), charset, NETWORKSETTING.mBufferSize
+						, connectionResult));
+			}else if(outputType == OUTPUT_TYPE_FILE && fileOutput != null){
+				if(!inputStreamWriteOutputStream(httpURLConnection.getInputStream(), new FileOutputStream(fileOutput), NETWORKSETTING.mBufferSize
+						, connectionResult)){
+					if(fileOutput.delete()){
+						System.out.println("not delete file " + fileOutput.getPath());
+					}
+				}
+				connectionResult.setContentOutputFile(fileOutput);
+			}
+			if(connectionResult.getStatusCode() != CONNECTION_LOAD_FAIL){
+				connectionResult.setStatusCode(CONNECTION_LOADED);
+				connectionResult.setStatusMessage("Connection loaded");
+			}
+		} catch (Exception e) {
+			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
+			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
+		}
+		if(connectionResult.getStatusCode() == CONNECTION_LOAD_FAIL && NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+			printInfo(connectionResult.getStatusMessage() + ", " + httpURLConnection.getRequestMethod() + ", " + strUrl);
+		}
+		httpURLConnection.disconnect();
+	}
+
+	public static Charset getCharsetInContentType(String contentType){
 		if(contentType != null && contentType.trim().length() > 0){
 			String[] values = contentType.split(";");
 			// 取得網頁文字編碼
@@ -817,9 +1053,6 @@ public class NetworkAccess {
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-				}
 			}
 		} catch (OutOfMemoryError e) {
 			baos = null;
@@ -827,10 +1060,7 @@ public class NetworkAccess {
 			is = null;
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-				}
+				connectionResult.setStatusMessage("Connection loading failed, error " + e);
 			}
 		}
 		return byteArray;
@@ -870,9 +1100,6 @@ public class NetworkAccess {
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-				}
 			}
 		} catch (OutOfMemoryError e) {
 			stringBuilder = null;
@@ -880,10 +1107,7 @@ public class NetworkAccess {
 			is = null;
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-				}
+				connectionResult.setStatusMessage("Connection loading failed, error " + e);
 			}
 		}
 		return stringBuilder == null ? null : stringBuilder.toString();
@@ -916,17 +1140,11 @@ public class NetworkAccess {
 		} catch (IOException e) {
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
-			}
 		} catch (OutOfMemoryError e) {
 			os = null;
 			is = null;
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
-			connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-				connectionResult.setStatusMessage("Connection loading failed, OutOfMemoryError");
-			}
+			connectionResult.setStatusMessage("Connection loading failed, error " + e);
 		}
 		return false;
 	}
@@ -996,7 +1214,7 @@ public class NetworkAccess {
 				if(mContentBytes == null){
 					return null;
 				}
-				return new String(mContentBytes, mContentCharset == null ? Charset.forName("UTF-8") : mContentCharset);
+				return new String(mContentBytes, mContentCharset == null ? DEFAULT_CHARSET : mContentCharset);
 			}
 			return mContentString;
 		}
