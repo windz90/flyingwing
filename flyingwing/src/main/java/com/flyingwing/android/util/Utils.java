@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.21
+ * @version 3.5.22
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1063,7 +1063,7 @@ public class Utils {
 	}
 
 	public static void invokeReflectionMethod(Object objectInstance, String methodName, Class<?>[] parameterTypes, Object... args){
-		// Reflection反射調用private方法
+		// Reflection反射調用方法
 		try {
 			Method method = objectInstance.getClass().getDeclaredMethod(methodName, parameterTypes);
 			method.setAccessible(true);
@@ -1651,24 +1651,12 @@ public class Utils {
 		return defInt;
 	}
 
-	public static int getUsableHeightSP(Context context, DisplayMetrics displayMetrics, String spName){
-		return displayMetrics.heightPixels - getStatusBarHeightSP(context, spName);
+	public static int readStatusBarHeightFromSharedPreferences(SharedPreferences sharedPreferences){
+		return sharedPreferences.getInt(SP_KEY_STATUS_BAR_HEIGHT, 0);
 	}
 
-	public static int getUsableHeightSP(Context context, String spName){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		if(windowManager == null){
-			displayMetrics = context.getResources().getDisplayMetrics();
-		}else{
-			windowManager.getDefaultDisplay().getMetrics(displayMetrics);
-		}
-		return getUsableHeightSP(context, displayMetrics, spName);
-	}
-
-	public static int getStatusBarHeightSP(Context context, String spName){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return sp.getInt(SP_KEY_STATUS_BAR_HEIGHT, 0);
+	public static int readStatusBarHeightFromSharedPreferences(Context context, String spName){
+		return readStatusBarHeightFromSharedPreferences(context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE));
 	}
 
 	public static void clearWebViewCookie(Context context){
@@ -1843,9 +1831,7 @@ public class Utils {
 		setToast(context, text, Toast.LENGTH_SHORT);
 	}
 
-	public static synchronized boolean putSharedPreferences(Context context, String spName, String key, Object value, boolean toggleMode) {
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		SharedPreferences.Editor spEdit = sp.edit();
+	public static synchronized void changeSharedPreferences(SharedPreferences sp, SharedPreferences.Editor spEdit, String key, Object value, boolean toggleMode){
 		if(toggleMode && sp.contains(key)){
 			spEdit.remove(key);
 		}else if(value != null){
@@ -1861,20 +1847,55 @@ public class Utils {
 				spEdit.putString(key, value.toString());
 			}
 		}
+	}
+
+	public static synchronized boolean writeSharedPreferencesCommitSync(SharedPreferences sp, String key, Object value, boolean toggleMode){
+		SharedPreferences.Editor spEdit = sp.edit();
+		changeSharedPreferences(sp, spEdit, key, value, toggleMode);
 		return spEdit.commit();
 	}
 
-	public static boolean putSharedPreferences(final Context context, final String spName, final String key, final Object value){
-		return putSharedPreferences(context, spName, key, value, false);
+	public static boolean writeSharedPreferencesCommitSync(Context context, String spName, String key, Object value, boolean toggleMode){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return writeSharedPreferencesCommitSync(sp, key, value, toggleMode);
 	}
 
-	public static void putSharedPreferences(final Context context, final String spName, final String key, final Object value
-			, final boolean toggleMode, final Handler handler){
+	public static boolean writeSharedPreferencesCommitSync(SharedPreferences sp, String key, Object value){
+		return writeSharedPreferencesCommitSync(sp, key, value, false);
+	}
+
+	public static boolean writeSharedPreferencesCommitSync(Context context, String spName, String key, Object value){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return writeSharedPreferencesCommitSync(sp, key, value, false);
+	}
+
+	public static synchronized void writeSharedPreferencesApplySync(SharedPreferences sp, String key, Object value, boolean toggleMode){
+		SharedPreferences.Editor spEdit = sp.edit();
+		changeSharedPreferences(sp, spEdit, key, value, toggleMode);
+		spEdit.apply();
+	}
+
+	public static void writeSharedPreferencesApplySync(Context context, String spName, String key, Object value, boolean toggleMode){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		writeSharedPreferencesApplySync(sp, key, value, toggleMode);
+	}
+
+	public static void writeSharedPreferencesApplySync(SharedPreferences sp, String key, Object value){
+		writeSharedPreferencesApplySync(sp, key, value, false);
+	}
+
+	public static void writeSharedPreferencesApplySync(Context context, String spName, String key, Object value){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		writeSharedPreferencesApplySync(sp, key, value, false);
+	}
+
+	public static void writeSharedPreferencesCommitAsync(final SharedPreferences sp, final String key, final Object value, final boolean toggleMode
+			, final Handler handler){
 		Thread thread = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				boolean isSuccess = putSharedPreferences(context, spName, key, value, toggleMode);
+				boolean isSuccess = writeSharedPreferencesCommitSync(sp, key, value, toggleMode);
 				if(handler != null){
 					Message msg = new Message();
 					Bundle bundle = new Bundle();
@@ -1888,50 +1909,77 @@ public class Utils {
 		thread.start();
 	}
 
-	public static void putSharedPreferences(Context context, String spName, String key, Object value, Handler handler){
-		putSharedPreferences(context, spName, key, value, false, handler);
+	public static void writeSharedPreferencesCommitAsync(Context context, String spName, String key, Object value, boolean toggleMode, Handler handler){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		writeSharedPreferencesCommitAsync(sp, key, value, toggleMode, handler);
 	}
 
-	public static boolean removeSharedPreferences(Context context, String spName, String key){
-		return putSharedPreferences(context, spName, key, null, true);
+	public static void writeSharedPreferencesCommitAsync(SharedPreferences sp, String key, Object value, Handler handler){
+		writeSharedPreferencesCommitAsync(sp, key, value, false, handler);
 	}
 
-	public static void removeSharedPreferences(Context context, String spName, String key, Handler handler){
-		putSharedPreferences(context, spName, key, null, true, handler);
+	public static void writeSharedPreferencesCommitAsync(Context context, String spName, String key, Object value, Handler handler){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		writeSharedPreferencesCommitAsync(sp, key, value, false, handler);
 	}
 
-	public static void putSharedPreferencesMap(Context context, String spName, String mapSaveKey, Map<String, String> map
-			, final Handler handler){
-		putSharedPreferencesMap(context, spName, mapSaveKey, map, false, handler);
+	public static boolean removeSharedPreferencesCommitSync(SharedPreferences sp, String key){
+		return writeSharedPreferencesCommitSync(sp, key, null, true);
 	}
 
-	public static void putSharedPreferencesMap(final Context context, final String spName, final String mapSaveKey
-			, final Map<String, String> map, final boolean toggleMode, final Handler handler){
-		final SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		final SharedPreferences.Editor spEdit = sp.edit();
+	public static boolean removeSharedPreferencesCommitSync(Context context, String spName, String key){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return writeSharedPreferencesCommitSync(sp, key, null, true);
+	}
 
-		Thread thread = new Thread(new Runnable() {
+	public static void removeSharedPreferencesCommitAsync(SharedPreferences sp, String key, Handler handler){
+		writeSharedPreferencesCommitAsync(sp, key, null, true, handler);
+	}
 
-			@Override
-			public void run() {
-				putSharedPreferencesMap(context, spName, mapSaveKey, map, toggleMode, sp, spEdit);
+	public static void removeSharedPreferencesCommitAsync(Context context, String spName, String key, Handler handler){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		writeSharedPreferencesCommitAsync(sp, key, null, true, handler);
+	}
 
-				boolean isSuccess = spEdit.commit();
-				if(handler != null){
-					Message msg = new Message();
-					Bundle bundle = new Bundle();
-					bundle.putBoolean(mapSaveKey, isSuccess);
-					msg.what = 1;
-					msg.setData(bundle);
-					handler.sendMessage(msg);
+	public static boolean clearAndDeleteSharedPreferencesFile(Context context, String spName){
+		boolean isCommit = context.getSharedPreferences(spName, Context.MODE_PRIVATE).edit().clear().commit();
+		return new File(context.getFilesDir().getParent() + "/shared_prefs/" + spName + ".xml").delete() && isCommit;
+	}
+
+	public static boolean clearAndDeleteAllSharedPreferencesFile(Context context){
+		File fileDir = new File(context.getFilesDir().getParent() + "/shared_prefs/");
+		String[] filePaths = fileDir.list();
+		if(filePaths == null){
+			return false;
+		}
+		String fileName;
+		SharedPreferences.Editor spEdit;
+		File file;
+		Boolean isDeleteAll = null;
+		for(int i=0; i<filePaths.length; i++){
+			if(filePaths[i].lastIndexOf(".xml") < filePaths[i].length()){
+				fileName = filePaths[i].substring(0, filePaths[i].lastIndexOf(".xml"));
+				spEdit = context.getSharedPreferences(fileName, Context.MODE_PRIVATE).edit();
+				if(spEdit.clear().commit()){
+					isDeleteAll = isDeleteAll == null ? true : isDeleteAll;
+				}else{
+					isDeleteAll = false;
+					System.out.println("not commit shared preferences " + fileName);
 				}
 			}
-		});
-		thread.start();
+			file = new File(fileDir.getPath() + filePaths[i]);
+			if(file.delete()){
+				isDeleteAll = isDeleteAll == null ? true : isDeleteAll;
+			}else{
+				isDeleteAll = false;
+				System.out.println("not delete file " + file.getPath());
+			}
+		}
+		return isDeleteAll != null && isDeleteAll;
 	}
 
-	private static void putSharedPreferencesMap(Context context, String spName, String mapSaveKey, Map<String, String> map
-			, boolean toggleMode, SharedPreferences sp, SharedPreferences.Editor spEdit){
+	private static synchronized void changeSharedPreferencesMap(SharedPreferences sp, SharedPreferences.Editor spEdit, String mapSaveKey, Map<String, String> map
+			, boolean toggleMode){
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spOldKey = sp.getString(spMapHeadKey, "");
@@ -1976,25 +2024,34 @@ public class Utils {
 		}
 	}
 
-	public static void removeSharedPreferencesMap(Context context, String spName, final String mapSaveKey, final Handler handler){
+	public static synchronized boolean writeSharedPreferencesMapCommitSync(SharedPreferences sp, String mapSaveKey, Map<String, String> map, boolean toggleMode){
+		SharedPreferences.Editor spEdit = sp.edit();
+		changeSharedPreferencesMap(sp, spEdit, mapSaveKey, map, toggleMode);
+		return spEdit.commit();
+	}
+
+	public static boolean writeSharedPreferencesMapCommitSync(Context context, String spName, String mapSaveKey, Map<String, String> map
+			, boolean toggleMode){
 		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		final SharedPreferences.Editor spEdit = sp.edit();
-		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
+		return writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, toggleMode);
+	}
 
-		String spKey = sp.getString(spMapHeadKey, "");
-		if(!TextUtils.isEmpty(spKey)){
-			String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
-			for(int i=0; i<spKeyArray.length; i++){
-				spEdit.remove(spMapHeadKey + spKeyArray[i]);
-			}
-		}
-		spEdit.remove(spMapHeadKey);
+	public static boolean writeSharedPreferencesMapCommitSync(SharedPreferences sp, String mapSaveKey, Map<String, String> map){
+		return writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, false);
+	}
 
+	public static boolean writeSharedPreferencesMapCommitSync(Context context, String spName, String mapSaveKey, Map<String, String> map){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, false);
+	}
+
+	public static void writeSharedPreferencesMapCommitAsync(final SharedPreferences sp, final String mapSaveKey, final Map<String, String> map
+			, final boolean toggleMode, final Handler handler){
 		Thread thread = new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				boolean isSuccess = spEdit.commit();
+				boolean isSuccess = writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, toggleMode);
 				if(handler != null){
 					Message msg = new Message();
 					Bundle bundle = new Bundle();
@@ -2008,8 +2065,70 @@ public class Utils {
 		thread.start();
 	}
 
-	public static Map<String, String> getSharedPreferencesMap(Context context, String spName, String mapSaveKey){
+	public static void writeSharedPreferencesMapCommitAsync(Context context, String spName, String mapSaveKey, Map<String, String> map, boolean toggleMode
+			, Handler handler){
 		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		writeSharedPreferencesMapCommitAsync(sp, mapSaveKey, map, toggleMode, handler);
+	}
+
+	public static void writeSharedPreferencesMapCommitAsync(SharedPreferences sp, String mapSaveKey, Map<String, String> map, Handler handler){
+		writeSharedPreferencesMapCommitAsync(sp, mapSaveKey, map, false, handler);
+	}
+
+	public static void writeSharedPreferencesMapCommitAsync(Context context, String spName, String mapSaveKey, Map<String, String> map, Handler handler){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		writeSharedPreferencesMapCommitAsync(sp, mapSaveKey, map, false, handler);
+	}
+
+	private static void removeSharedPreferencesMap(SharedPreferences sp, SharedPreferences.Editor spEdit, String mapSaveKey){
+		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
+
+		String spKey = sp.getString(spMapHeadKey, "");
+		if(!TextUtils.isEmpty(spKey)){
+			String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
+			for(int i=0; i<spKeyArray.length; i++){
+				spEdit.remove(spMapHeadKey + spKeyArray[i]);
+			}
+		}
+		spEdit.remove(spMapHeadKey);
+	}
+
+	public static synchronized boolean removeSharedPreferencesMapCommitSync(SharedPreferences sp, String mapSaveKey){
+		SharedPreferences.Editor spEdit = sp.edit();
+		removeSharedPreferencesMap(sp, spEdit, mapSaveKey);
+		return spEdit.commit();
+	}
+
+	public static boolean removeSharedPreferencesMapCommitSync(Context context, String spName, String mapSaveKey){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return removeSharedPreferencesMapCommitSync(sp, mapSaveKey);
+	}
+
+	public static void removeSharedPreferencesMapCommitAsync(final SharedPreferences sp, final String mapSaveKey, final Handler handler){
+		Thread thread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				boolean isSuccess = removeSharedPreferencesMapCommitSync(sp, mapSaveKey);
+				if(handler != null){
+					Message msg = new Message();
+					Bundle bundle = new Bundle();
+					bundle.putBoolean(mapSaveKey, isSuccess);
+					msg.what = 1;
+					msg.setData(bundle);
+					handler.sendMessage(msg);
+				}
+			}
+		});
+		thread.start();
+	}
+
+	public static void removeSharedPreferencesMapCommitAsync(Context context, String spName, String mapSaveKey, Handler handler){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		removeSharedPreferencesMapCommitAsync(sp, mapSaveKey, handler);
+	}
+
+	public static Map<String, String> readSharedPreferencesMapSync(SharedPreferences sp, String mapSaveKey){
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -2030,8 +2149,12 @@ public class Utils {
 		return map;
 	}
 
-	public static String getSharedPreferencesMapInItem(Context context, String spName, String mapSaveKey, int location){
+	public static Map<String, String> readSharedPreferencesMapSync(Context context, String spName, String mapSaveKey){
 		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return readSharedPreferencesMapSync(sp, mapSaveKey);
+	}
+
+	public static String readSharedPreferencesMapInItemSync(SharedPreferences sp, String mapSaveKey, int location){
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -2043,8 +2166,12 @@ public class Utils {
 		return sp.getString(spMapHeadKey + spKeyArray[location], null);
 	}
 
-	public static String getSharedPreferencesMapInItem(Context context, String spName, String mapSaveKey, String mapSaveItemKey){
+	public static String readSharedPreferencesMapInItemSync(Context context, String spName, String mapSaveKey, int location){
 		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return readSharedPreferencesMapInItemSync(sp, mapSaveKey, location);
+	}
+
+	public static String readSharedPreferencesMapInItemSync(SharedPreferences sp, String mapSaveKey, String mapSaveItemKey){
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
@@ -2053,6 +2180,11 @@ public class Utils {
 		}
 
 		return sp.getString(spMapHeadKey + mapSaveItemKey, null);
+	}
+
+	public static String readSharedPreferencesMapInItemSync(Context context, String spName, String mapSaveKey, String mapSaveItemKey){
+		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
+		return readSharedPreferencesMapInItemSync(sp, mapSaveKey, mapSaveItemKey);
 	}
 
 	/**

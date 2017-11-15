@@ -48,7 +48,7 @@ public class First extends Activity {
 
 			@Override
 			public void completed(int statusBarHe, int usableHe) {
-				Utils.putSharedPreferences(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT, statusBarHe, null);
+				Utils.writeSharedPreferencesCommitAsync(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT, statusBarHe, null);
 				next();
 			}
 		});
