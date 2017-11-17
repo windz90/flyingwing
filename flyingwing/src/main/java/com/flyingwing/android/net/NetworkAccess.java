@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.6.0
+ * @version 3.6.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -42,6 +42,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -280,7 +281,8 @@ public class NetworkAccess {
 	 * This SSL no verify and trust any certificate, very dangerous.
 	 */
 	public static SSLContext getSSLContextNoCertificate(){
-		return getSSLContext(null, null, null, null, null, null);
+		return getSSLContext(null, null, null, null, null
+				, null);
 	}
 
 	public static HostnameVerifier getHostnameVerifierWhiteList(final String[] allowHostnameArray, final boolean isOnly){
@@ -321,42 +323,46 @@ public class NetworkAccess {
 	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(@NonNull String strUrl, String httpMethod
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(@NonNull String strUrl, String httpMethod, String contentType
 			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
 		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && contentArrays != null && contentArrays.length > 0){
 			boolean isContains = strUrl.contains("?");
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append(strUrl);
 			for(int i=0; i<contentArrays.length; i++){
-				if(contentArrays[i].length < 2 || contentArrays[i][0] == null || contentArrays[i][1] == null){
+				if(contentArrays[i] == null || contentArrays[i].length == 0 || contentArrays[i][0] == null){
 					continue;
 				}
-				stringBuilder.append(i == 0 && !isContains ? "?" : "&").append(contentArrays[i][0]).append("=").append(contentArrays[i][1]);
+				stringBuilder.append(i == 0 && !isContains ? "?" : "&").append(contentArrays[i][0]).append("=");
+				if(contentArrays[i].length > 1){
+					stringBuilder.append(contentArrays[i][contentArrays[i].length - 1]);
+				}
 			}
 			strUrl = stringBuilder.toString();
 			contentArrays = null;
 		}
 		HttpURLConnection httpURLConnection = openHttpURLConnectionWithHttps(strUrl, sslContext, hostnameVerifier);
 		boolean doOutput = false;
-		String contentType = null;
 		if(contentArrays != null && contentArrays.length > 0){
 			for(int i=0; i<contentArrays.length; i++){
-				if(contentArrays[i].length < 2){
-					continue;
-				}
-				if(contentArrays[i][0] == null || contentArrays[i][contentArrays[i].length - 1] == null){
+				if(contentArrays[i] == null || contentArrays[i].length == 0 || contentArrays[i][0] == null || contentArrays[i].length < 2){
 					continue;
 				}
 				doOutput = true;
-				if(contentArrays[i][contentArrays[i].length - 1] instanceof InputStream){
+				if(!TextUtils.isEmpty(contentType)){
+					break;
+				}
+				if(contentArrays[i][contentArrays[i].length - 1] instanceof InputStream && TextUtils.isEmpty(contentType)){
 					contentType = CONTENT_TYPE_MULTIPART;
 					break;
 				}
-				contentType = CONTENT_TYPE_URLENCODED;
 			}
 		}
-		if(!setHttpURLConnectionFieldsWithContentArrays(httpURLConnection, httpMethod, true, doOutput, false, true, contentType
-				, headerArrays, contentArrays)){
+		if(TextUtils.isEmpty(contentType)){
+			contentType = CONTENT_TYPE_URLENCODED;
+		}
+		if(!setHttpURLConnectionFieldsWithContentArrays(httpURLConnection, httpMethod, true, doOutput, false, true, contentType, headerArrays
+				, contentArrays)){
 			httpURLConnection = null;
 		}
 		return httpURLConnection;
@@ -368,9 +374,9 @@ public class NetworkAccess {
 	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysGet(@NonNull String strUrl, String[][] headerArrays
-			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, httpMethod, null, headerArrays, contentArrays, sslContext, hostnameVerifier);
 	}
 
 	/**
@@ -379,42 +385,10 @@ public class NetworkAccess {
 	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPost(@NonNull String strUrl, String[][] headerArrays
-			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPut(@NonNull String strUrl, String[][] headerArrays
-			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysDelete(@NonNull String strUrl, String[][] headerArrays
-			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, sslContext, hostnameVerifier);
-	}
-
-	/**
-	 * @param contentArrays <br>
-	 * contentArrays[][2] = String key, String value<br>
-	 * contentArrays[][3] = String key, String fileName, Object object<br>
-	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
-	 */
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysHead(@NonNull String strUrl, String[][] headerArrays
-			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_HEAD, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(@NonNull String strUrl, String httpMethod, String contentType
+			, String[][] headerArrays, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, httpMethod, contentType, headerArrays, contentArrays, null
+				, null);
 	}
 
 	/**
@@ -425,7 +399,131 @@ public class NetworkAccess {
 	 */
 	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(@NonNull String strUrl, String httpMethod
 			, String[][] headerArrays, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, httpMethod, headerArrays, contentArrays, null, null);
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, httpMethod, null, headerArrays, contentArrays, null
+				, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, httpMethod, CONTENT_TYPE_URLENCODED, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, httpMethod, CONTENT_TYPE_MULTIPART, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod, String contentType
+			, String[][] headerArrays, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && content != null){
+			content = null;
+		}
+		HttpURLConnection httpURLConnection = openHttpURLConnectionWithHttps(strUrl, sslContext, hostnameVerifier);
+		boolean doOutput = !TextUtils.isEmpty(content);
+		if(TextUtils.isEmpty(contentType)){
+			boolean isJson = false;
+			try {
+				JSONTokener jsonTokener = new JSONTokener(content);
+				Object object = jsonTokener.nextValue();
+				if(object instanceof JSONArray || object instanceof JSONObject){
+					isJson = true;
+				}
+			} catch (Exception ignored) {}
+			contentType = isJson ? CONTENT_TYPE_JSON : CONTENT_TYPE_PLAIN;
+		}
+		if(!setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(httpURLConnection, httpMethod, true, doOutput, false, true, contentType
+				, headerArrays, content)){
+			httpURLConnection = null;
+		}
+		return httpURLConnection;
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, httpMethod, null, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod, String contentType
+			, String[][] headerArrays, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, httpMethod, contentType, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, httpMethod, null, headerArrays, content, null
+				, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, httpMethod, CONTENT_TYPE_PLAIN, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(@NonNull String strUrl, String httpMethod
+			, String[][] headerArrays, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, httpMethod, CONTENT_TYPE_JSON, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysGet(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_GET, null, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPost(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_POST, null, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPut(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_PUT, null, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysDelete(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_DELETE, null, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
 	}
 
 	/**
@@ -436,7 +534,8 @@ public class NetworkAccess {
 	 */
 	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysGet(@NonNull String strUrl, String[][] headerArrays
 			, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, null, null);
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_GET, null, headerArrays, contentArrays, null
+				, null);
 	}
 
 	/**
@@ -447,7 +546,8 @@ public class NetworkAccess {
 	 */
 	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPost(@NonNull String strUrl, String[][] headerArrays
 			, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, null, null);
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_POST, null, headerArrays, contentArrays, null
+				, null);
 	}
 
 	/**
@@ -458,7 +558,8 @@ public class NetworkAccess {
 	 */
 	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysPut(@NonNull String strUrl, String[][] headerArrays
 			, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, null, null);
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_PUT, null, headerArrays, contentArrays, null
+				, null);
 	}
 
 	/**
@@ -469,7 +570,8 @@ public class NetworkAccess {
 	 */
 	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysDelete(@NonNull String strUrl, String[][] headerArrays
 			, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, null, null);
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_DELETE, null, headerArrays, contentArrays, null
+				, null);
 	}
 
 	/**
@@ -478,37 +580,314 @@ public class NetworkAccess {
 	 * contentArrays[][3] = String key, String fileName, Object object<br>
 	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
 	 */
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentArraysHead(@NonNull String strUrl, String[][] headerArrays
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedGet(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedPost(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedPut(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedDelete(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, sslContext, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedGet(@NonNull String strUrl, String[][] headerArrays
 			, Object[][] contentArrays){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentArrays(strUrl, HTTP_METHOD_HEAD, headerArrays, contentArrays, null, null);
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, null
+				, null);
 	}
 
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod
-			, String[][] headerArrays, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
-		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && content != null){
-			content = null;
-		}
-		HttpURLConnection httpURLConnection = openHttpURLConnectionWithHttps(strUrl, sslContext, hostnameVerifier);
-		boolean isJson = false;
-		try {
-			JSONTokener jsonTokener = new JSONTokener(content);
-			Object object = jsonTokener.nextValue();
-			if(object instanceof JSONArray || object instanceof JSONObject){
-				isJson = true;
-			}
-		} catch (Exception ignored) {}
-		String contentType = isJson ? CONTENT_TYPE_JSON : CONTENT_TYPE_PLAIN;
-		boolean doOutput = !TextUtils.isEmpty(content);
-		if(!setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(httpURLConnection, httpMethod, true, doOutput, false, true
-				, contentType, headerArrays, content)){
-			httpURLConnection = null;
-		}
-		return httpURLConnection;
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedPost(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, null
+				, null);
 	}
 
-	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(@NonNull String strUrl, String httpMethod
-			, String[][] headerArrays, String content){
-		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(httpMethod, strUrl, headerArrays, content, null, null);
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedPut(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, null
+				, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncodedDelete(@NonNull String strUrl, String[][] headerArrays
+			, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentUrlEncoded(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, null
+				, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataGet(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataPost(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataPut(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataDelete(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, sslContext
+				, hostnameVerifier);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataGet(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_GET, headerArrays, contentArrays, null
+				, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataPost(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_POST, headerArrays, contentArrays, null
+				, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataPut(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_PUT, headerArrays, contentArrays, null
+				, null);
+	}
+
+	/**
+	 * @param contentArrays <br>
+	 * contentArrays[][2] = String key, String value<br>
+	 * contentArrays[][3] = String key, String fileName, Object object<br>
+	 * contentArrays[][4] = String key, String fileName, String contentType(MIME Type), Object object
+	 */
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormDataDelete(@NonNull String strUrl
+			, String[][] headerArrays, Object[][] contentArrays){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentMultipartFormData(strUrl, HTTP_METHOD_DELETE, headerArrays, contentArrays, null
+				, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringGet(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_GET, null, headerArrays, content, sslContext
+				, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringPost(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_POST, null, headerArrays, content, sslContext
+				, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringPut(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_PUT, null, headerArrays, content, sslContext
+				, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringDelete(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_DELETE, null, headerArrays, content, sslContext
+				, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringGet(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_GET, null, headerArrays, content, null
+				, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringPost(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_POST, null, headerArrays, content, null
+				, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringPut(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_PUT, null, headerArrays, content, null
+				, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentStringDelete(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentString(strUrl, HTTP_METHOD_DELETE, null, headerArrays, content, null
+				, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainGet(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_GET, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainPost(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_POST, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainPut(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_PUT, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainDelete(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_DELETE, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainGet(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_GET, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainPost(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_POST, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainPut(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_PUT, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlainDelete(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentPlain(strUrl, HTTP_METHOD_DELETE, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONGet(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_GET, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONPost(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_POST, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONPut(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_PUT, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONDelete(@NonNull String strUrl, String[][] headerArrays
+			, String content, SSLContext sslContext, HostnameVerifier hostnameVerifier){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_DELETE, headerArrays, content, sslContext, hostnameVerifier);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONGet(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_GET, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONPost(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_POST, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONPut(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_PUT, headerArrays, content, null, null);
+	}
+
+	public static @Nullable HttpURLConnection openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSONDelete(@NonNull String strUrl, String[][] headerArrays
+			, String content){
+		return openHttpURLConnectionWithHttpsAndSetFieldsWithContentJSON(strUrl, HTTP_METHOD_DELETE, headerArrays, content, null, null);
 	}
 
 	public static boolean setHttpURLConnectionFieldsWithContentArrays(HttpURLConnection httpURLConnection, String httpMethod, boolean doInput, boolean doOutput
@@ -530,7 +909,7 @@ public class NetworkAccess {
 			if(TextUtils.isEmpty(contentType) || contentType.contains(CONTENT_TYPE_URLENCODED)){
 				return setHttpURLConnectionContentForUrlEncodedUseFixedStreaming(httpURLConnection, contentArrays);
 			}else if(contentType.contains(CONTENT_TYPE_MULTIPART)){
-				return setHttpURLConnectionContentForMultiPartUseChunkStreaming(httpURLConnection, 0, hyphens, boundary, breakLine, contentArrays);
+				return setHttpURLConnectionContentForMultipartFormDataUseChunkStreaming(httpURLConnection, 0, hyphens, boundary, breakLine, contentArrays);
 			}
 		}
 		return false;
@@ -548,23 +927,24 @@ public class NetworkAccess {
 
 	public static boolean setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(HttpURLConnection httpURLConnection, String httpMethod, boolean doInput
 			, boolean doOutput, boolean useCaches, boolean keepAlive, String contentType, String[][] headerArrays, String content){
-		if(setHttpURLConnectionFields(httpURLConnection, httpMethod, doInput, doOutput, useCaches, keepAlive, contentType, headerArrays)){
-			try {
-				if(content != null){
-					httpURLConnection.setFixedLengthStreamingMode(content.length());
-					DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
-					dataOutputStream.write(content.getBytes(DEFAULT_CHARSET));
-					if(NETWORKSETTING.mIsPrintConnectionRequest){
-						printInfo("Request content:\n" + content);
-					}
-					dataOutputStream.flush();
-					dataOutputStream.close();
+		if(!setHttpURLConnectionFields(httpURLConnection, httpMethod, doInput, doOutput, useCaches, keepAlive, contentType, headerArrays)){
+			return false;
+		}
+		try {
+			if(content != null){
+				httpURLConnection.setFixedLengthStreamingMode(content.length());
+				DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
+				dataOutputStream.write(content.getBytes(DEFAULT_CHARSET));
+				if(NETWORKSETTING.mIsPrintConnectionRequest){
+					printInfo("Request content:\n" + content);
 				}
-				return true;
-			} catch (Exception e) {
-				if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
-					printInfo("Connection set content failed, exception " + e + ", " + httpMethod + ", " + httpURLConnection.getURL().toString());
-				}
+				dataOutputStream.flush();
+				dataOutputStream.close();
+			}
+			return true;
+		} catch (Exception e) {
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection set content failed, exception " + e + ", " + httpMethod + ", " + httpURLConnection.getURL().toString());
 			}
 		}
 		return false;
@@ -578,6 +958,41 @@ public class NetworkAccess {
 		boolean doOutput = !TextUtils.isEmpty(content);
 		return setHttpURLConnectionFieldsWithContentStringUseFixedStreaming(httpURLConnection, httpMethod, true, doOutput, false, true
 				, contentType, headerArrays, content);
+	}
+
+	public static boolean setHttpURLConnectionFieldsWithContentStringUseChunkStreaming(HttpURLConnection httpURLConnection, int chunkLength, String httpMethod
+			, boolean doInput, boolean doOutput, boolean useCaches, boolean keepAlive, String contentType, String[][] headerArrays, String content){
+		if(!setHttpURLConnectionFields(httpURLConnection, httpMethod, doInput, doOutput, useCaches, keepAlive, contentType, headerArrays)){
+			return false;
+		}
+		try {
+			if(content != null){
+				httpURLConnection.setChunkedStreamingMode(chunkLength);
+				DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
+				dataOutputStream.write(content.getBytes(DEFAULT_CHARSET));
+				if(NETWORKSETTING.mIsPrintConnectionRequest){
+					printInfo("Request content:\n" + content);
+				}
+				dataOutputStream.flush();
+				dataOutputStream.close();
+			}
+			return true;
+		} catch (Exception e) {
+			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectException){
+				printInfo("Connection set content failed, exception " + e + ", " + httpMethod + ", " + httpURLConnection.getURL().toString());
+			}
+		}
+		return false;
+	}
+
+	public static boolean setHttpURLConnectionFieldsWithContentStringUseChunkStreaming(HttpURLConnection httpURLConnection, int chunkLength, String httpMethod
+			, String contentType, String[][] headerArrays, String content){
+		if((TextUtils.isEmpty(httpMethod) || HTTP_METHOD_GET.equals(httpMethod)) && content != null){
+			content = null;
+		}
+		boolean doOutput = !TextUtils.isEmpty(content);
+		return setHttpURLConnectionFieldsWithContentStringUseChunkStreaming(httpURLConnection, chunkLength, httpMethod, true, doOutput, false
+				, true, contentType, headerArrays, content);
 	}
 
 	public static boolean setHttpURLConnectionFields(HttpURLConnection httpURLConnection, String httpMethod, boolean doInput, boolean doOutput, boolean useCaches
@@ -659,11 +1074,14 @@ public class NetworkAccess {
 		try {
 			String pairs = null;
 			for(int i=0; i<contentArrays.length; i++){
-				if(contentArrays[i].length < 2 || contentArrays[i][0] == null || contentArrays[i][1] == null){
+				if(contentArrays[i] == null || contentArrays[i].length == 0 || contentArrays[i][0] == null){
 					continue;
 				}
 				pairs = TextUtils.isEmpty(pairs) ? "" : pairs + "&";
-				pairs = pairs + contentArrays[i][0] + "=" + contentArrays[i][1];
+				pairs = pairs + contentArrays[i][0] + "=";
+				if(contentArrays[i].length > 1){
+					pairs = pairs + contentArrays[i][contentArrays[i].length - 1];
+				}
 			}
 			if(pairs != null){
 				httpURLConnection.setFixedLengthStreamingMode(pairs.length());
@@ -695,14 +1113,17 @@ public class NetworkAccess {
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
 			printInfo("Request content:");
 			for(int i=0; i<contentArrays.length; i++){
-				if(contentArrays[i].length < 2 || contentArrays[i][0] == null || contentArrays[i][1] == null){
+				if(contentArrays[i] == null || contentArrays[i].length == 0 || contentArrays[i][0] == null){
 					continue;
 				}
 				if(isFirstPair){
 					isFirstPair = false;
-					pairs = contentArrays[i][0] + "=" + contentArrays[i][1];
+					pairs = contentArrays[i][0] + "=";
 				}else{
-					pairs = "&" + contentArrays[i][0] + "=" + contentArrays[i][1];
+					pairs = "&" + contentArrays[i][0] + "=";
+				}
+				if(contentArrays[i].length > 1){
+					pairs = pairs + contentArrays[i][contentArrays[i].length - 1];
 				}
 				dataOutputStream.write(pairs.getBytes(DEFAULT_CHARSET));
 				if(NETWORKSETTING.mIsPrintConnectionRequest){
@@ -720,7 +1141,7 @@ public class NetworkAccess {
 		return false;
 	}
 
-	public static boolean setHttpURLConnectionContentForMultiPartUseChunkStreaming(HttpURLConnection httpURLConnection, int chunkLength, String hyphens
+	public static boolean setHttpURLConnectionContentForMultipartFormDataUseChunkStreaming(HttpURLConnection httpURLConnection, int chunkLength, String hyphens
 			, String boundary, String breakLine, Object[][] contentArrays){
 		if(contentArrays == null || contentArrays.length == 0){
 			return false;
@@ -734,16 +1155,13 @@ public class NetworkAccess {
 			printInfo("Request content:");
 			for(int i=0; i<contentArrays.length; i++){
 				contentArray = contentArrays[i];
-				if(contentArray.length < 2){
+				if(contentArray.length == 2 && contentArrays[i][0] == null){
 					continue;
 				}
-				if(contentArray.length == 2 && (contentArray[0] == null || contentArray[1] == null)){
+				if(contentArray.length == 3 && contentArrays[i][0] == null){
 					continue;
 				}
-				if(contentArray.length == 3 && (contentArray[0] == null || contentArray[1] == null || contentArray[2] == null)){
-					continue;
-				}
-				if(contentArray.length == 4 && (contentArray[0] == null || contentArray[1] == null || contentArray[3] == null)){
+				if(contentArray.length == 4 && contentArrays[i][0] == null){
 					continue;
 				}
 				line = hyphens + boundary +
@@ -779,7 +1197,10 @@ public class NetworkAccess {
 						printInfo(line);
 					}
 				}
-				if(contentArray[contentArray.length - 1] != null){
+				if(contentArray[contentArray.length - 1] == null){
+					line = "null";
+					dataOutputStream.write(line.getBytes(charset));
+				}else{
 					if(contentArray[contentArray.length - 1] instanceof String){
 						line = (String) contentArray[contentArray.length - 1];
 						dataOutputStream.write(line.getBytes(charset));
@@ -798,8 +1219,6 @@ public class NetworkAccess {
 						dataOutputStream.flush();
 						line = "write bytes, length " + ((byte[]) contentArray[contentArray.length - 1]).length;
 					}
-				}else{
-					line = "";
 				}
 				if(NETWORKSETTING.mIsPrintConnectionRequest){
 					printInfo(line);
@@ -824,6 +1243,20 @@ public class NetworkAccess {
 			}
 		}
 		return false;
+	}
+
+	public static Object[][] filterNotNullContentArrays(Object[][] contentArrays){
+		List<Object[]> list = new ArrayList<>();
+		for(int i=0; i<contentArrays.length; i++){
+			if(contentArrays[i] == null || contentArrays[i].length == 0 || contentArrays[i][0] == null || contentArrays[i][contentArrays[i].length - 1] == null){
+				continue;
+			}
+			list.add(contentArrays[i]);
+		}
+		if(list.size() == contentArrays.length){
+			return contentArrays;
+		}
+		return list.toArray(new Object[0][0]);
 	}
 
 	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
