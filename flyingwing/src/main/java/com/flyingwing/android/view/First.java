@@ -6,9 +6,9 @@ import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.support.multidex.BuildConfig;
 import android.view.Window;
 
-import com.flyingwing.android.BuildConfig;
 import com.flyingwing.android.Global;
 import com.flyingwing.android.R;
 import com.flyingwing.android.graphics.ImageProcessor;

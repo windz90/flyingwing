@@ -321,7 +321,8 @@ public class BluetoothLE {
 					if(arrayMap == null){
 						return;
 					}
-					final int reconnectCount = TextUtils.isEmpty(arrayMap.get("reconnectCount")) ? 0 : Integer.parseInt(arrayMap.get("reconnectCount"));
+					String strReconnectCount = arrayMap.get("reconnectCount");
+					final int reconnectCount = TextUtils.isEmpty(strReconnectCount) ? 0 : Integer.parseInt(strReconnectCount);
 					final Runnable runnable = new Runnable() {
 						@RequiresPermission(android.Manifest.permission.BLUETOOTH)
 						@Override

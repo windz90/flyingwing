@@ -7,6 +7,7 @@
 
 package com.flyingwing.android.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -97,13 +98,13 @@ public class ColorPickerView extends View {
 			int radius = (int)mPaint.getStrokeWidth() >> 1;
 			mRectF.left = radius;
 			mRectF.top = radius;
-			mRectF.right = canvas.getWidth() - radius;
-			mRectF.bottom = canvas.getHeight() - radius;
+			mRectF.right = getWidth() - radius;
+			mRectF.bottom = getHeight() - radius;
 			mPaint.setStyle(Paint.Style.STROKE);
 			canvas.drawArc(mRectF, 0, 360, false, mPaint);
 		}else{
 			mPaint.setStyle(Paint.Style.FILL);
-			canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), mPaint);
+			canvas.drawRect(0, 0, getWidth(), getHeight(), mPaint);
 		}
 		if(mMarkDrawable != null){
 			int radiusWi = mMarkDrawable.getIntrinsicWidth() >> 1;
@@ -113,6 +114,7 @@ public class ColorPickerView extends View {
 		}
 	}
 
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		switch (event.getAction()) {

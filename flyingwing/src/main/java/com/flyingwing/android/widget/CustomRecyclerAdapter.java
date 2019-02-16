@@ -11,6 +11,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -76,10 +77,10 @@ public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<Recy
 		}
 
 		@Override
-		public boolean onInterceptTouchEvent(RecyclerView recyclerView, MotionEvent e) {
+		public boolean onInterceptTouchEvent(@NonNull RecyclerView recyclerView, @NonNull MotionEvent motionEvent) {
 			if(mGestureDetector != null){
-				View childView = recyclerView.findChildViewUnder(e.getX(), e.getY());
-				if(childView != null && mGestureDetector.onTouchEvent(e)){
+				View childView = recyclerView.findChildViewUnder(motionEvent.getX(), motionEvent.getY());
+				if(childView != null && mGestureDetector.onTouchEvent(motionEvent)){
 					onItemClick(recyclerView, childView, "itemView", recyclerView.getChildAdapterPosition(childView));
 					return true;
 				}
@@ -575,11 +576,12 @@ public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<Recy
 	@Override
 	public abstract int getItemCount();
 
+	@NonNull
 	@Override
-	public abstract ViewHolder onCreateViewHolder(ViewGroup parent, int viewType);
+	public abstract ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType);
 
 	@Override
-	public abstract void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position);
+	public abstract void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int position);
 
 	public class ViewHolder extends RecyclerView.ViewHolder {
 

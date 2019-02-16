@@ -267,8 +267,8 @@ public class ImageMatrix {
 					camera.getMatrix(matrix);
 					camera.restore();
 
-					matrix.preTranslate(-bitmap.getWidth() / 2, -bitmap.getHeight() / 2);
-					matrix.postTranslate(bitmap.getWidth() / 2, bitmap.getHeight() / 2);
+					matrix.preTranslate(-(bitmap.getWidth() + 0f) / 2, -(bitmap.getHeight() + 0f) / 2);
+					matrix.postTranslate((bitmap.getWidth() + 0f) / 2, (bitmap.getHeight() + 0f) / 2);
 					Bitmap tmpBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 					matrix.reset();
 

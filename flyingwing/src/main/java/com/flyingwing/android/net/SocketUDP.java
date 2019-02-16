@@ -46,11 +46,11 @@ public class SocketUDP {
 	private boolean mIsKeepReceive;
 
 	/**
-	 * if running {@link #receivePacketKeep(int, SocketCallback)}, {@link #receiveSync(int, Bundle)} can call {@link #keepReceive(boolean)} stop receive loop, or call {@link #close()} close socket.<br/>
-	 * bundle include:<br/>
-	 * Serializable : InetAddress<br/>
-	 * Serializable : InetSocketAddress<br/>
-	 * int : port<br/>
+	 * if running {@link #receivePacketKeep(int, SocketCallback)}, {@link #receiveSync(int, Bundle)} can call {@link #keepReceive(boolean)} stop receive loop, or call {@link #close()} close socket.<br>
+	 * bundle include:<br>
+	 * Serializable : InetAddress<br>
+	 * Serializable : InetSocketAddress<br>
+	 * int : port<br>
 	 * byte[] : data
 	 */
 	public static abstract class SocketCallback {

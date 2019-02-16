@@ -7,6 +7,7 @@
 
 package com.flyingwing.android.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings({"unused", "Convert2Diamond"})
+@SuppressLint("ClickableViewAccessibility")
 public class CustomTabView extends LinearLayout {
 	
 	private RelativeLayout mRelLay;
@@ -660,7 +662,7 @@ public class CustomTabView extends LinearLayout {
 		}
 
 		@Override
-		public int getItemPosition(Object object) {
+		public int getItemPosition(@NonNull Object object) {
 			int size = mList.size();
 			for(int i=0; i<size; i++){
 				if(mList.get(i)[0] == object){
@@ -671,21 +673,20 @@ public class CustomTabView extends LinearLayout {
 		}
 
 		@Override
-		public boolean isViewFromObject(View arg0, Object arg1) {
-			return arg0 == arg1;
+		public boolean isViewFromObject(@NonNull View view, @NonNull Object o) {
+			return view == o;
 		}
 
+		@NonNull
 		@Override
-		public Object instantiateItem(ViewGroup container, int position) {
+		public Object instantiateItem(@NonNull ViewGroup container, int position) {
 			View view = mList.get(position)[1];
-			if(view != null){
-				container.addView(view);
-			}
+			container.addView(view);
 			return view;
 		}
 
 		@Override
-		public void destroyItem(ViewGroup container, int position, Object object) {
+		public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
 			if(position >= 0 && position < mList.size()){
 				container.removeView(mList.get(position)[1]);
 			}

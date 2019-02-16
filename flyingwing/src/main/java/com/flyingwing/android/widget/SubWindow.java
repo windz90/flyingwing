@@ -158,7 +158,7 @@ public class SubWindow {
 			textViews[i].setEllipsize(textViewAttribute.getEllipsize());
 			textViews[i].setMaxLines(textViewAttribute.getMaxLines());
 
-			if(i < strArray.length && !TextUtils.isEmpty(strArray[i])){
+			if(!TextUtils.isEmpty(strArray[i])){
 				textViews[i].setText(strArray[i]);
 			}else{
 				textViews[i].setVisibility(View.GONE);
