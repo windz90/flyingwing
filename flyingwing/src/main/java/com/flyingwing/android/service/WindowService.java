@@ -1,12 +1,13 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.2
+ * @version 1.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.service;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -99,6 +100,7 @@ public class WindowService extends Service {
 		return mIsRunning;
 	}
 	
+	@SuppressLint("ClickableViewAccessibility")
 	private void buildUi(){
 		final Resources res = getResources();
 
@@ -115,7 +117,7 @@ public class WindowService extends Service {
 		windowLayPar = new WindowManager.LayoutParams();
 		windowLayPar.width = itemWi;
 		windowLayPar.height = itemHe;
-		windowLayPar.gravity = Gravity.LEFT|Gravity.TOP;
+		windowLayPar.gravity = Gravity.START | Gravity.TOP;
 		windowLayPar.x = dm.widthPixels - windowLayPar.width;
 		windowLayPar.y = windowLayPar.height;
 		windowLayPar.type = WindowManager.LayoutParams.TYPE_PHONE;
@@ -132,7 +134,7 @@ public class WindowService extends Service {
 		windowLayPar = new WindowManager.LayoutParams();
 		windowLayPar.width = itemWi;
 		windowLayPar.height = itemHe;
-		windowLayPar.gravity = Gravity.LEFT|Gravity.TOP;
+		windowLayPar.gravity = Gravity.START | Gravity.TOP;
 		windowLayPar.x = 0;
 		windowLayPar.y = 0;
 		windowLayPar.type = WindowManager.LayoutParams.TYPE_PHONE;
@@ -217,7 +219,7 @@ public class WindowService extends Service {
 	}
 
 	protected Notification buildForegroundNotification(){
-		return buildForegroundNotification(new NotificationCompat.Builder(this));
+		return buildForegroundNotification(new NotificationCompat.Builder(this, "Top float view channel"));
 	}
 
 	protected void setNotification(Notification notification){

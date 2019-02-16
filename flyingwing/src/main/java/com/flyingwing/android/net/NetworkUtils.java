@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.4
+ * @version 1.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -350,7 +350,7 @@ public class NetworkUtils {
 		if(list.size() > 0){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
-				message.obj = list.toArray(new String[list.size()]);
+				message.obj = list.toArray(new String[0]);
 				handlerNoPermissions.sendMessage(message);
 			}
 			return;
@@ -398,7 +398,7 @@ public class NetworkUtils {
 		if(list.size() > 0){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
-				message.obj = list.toArray(new String[list.size()]);
+				message.obj = list.toArray(new String[0]);
 				handlerNoPermissions.sendMessage(message);
 			}
 			return false;
@@ -674,7 +674,7 @@ public class NetworkUtils {
 		if(list.size() > 0){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
-				message.obj = list.toArray(new String[list.size()]);
+				message.obj = list.toArray(new String[0]);
 				handlerNoPermissions.sendMessage(message);
 			}
 			return;
@@ -746,7 +746,7 @@ public class NetworkUtils {
 		if(list.size() > 0){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
-				message.obj = list.toArray(new String[list.size()]);
+				message.obj = list.toArray(new String[0]);
 				handlerNoPermissions.sendMessage(message);
 			}
 			return false;
@@ -855,7 +855,7 @@ public class NetworkUtils {
 		if(list.size() > 0){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
-				message.obj = list.toArray(new String[list.size()]);
+				message.obj = list.toArray(new String[0]);
 				handlerNoPermissions.sendMessage(message);
 			}
 			return;

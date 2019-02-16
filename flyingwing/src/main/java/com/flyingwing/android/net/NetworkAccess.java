@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.6.1
+ * @version 3.6.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -31,6 +31,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -39,13 +40,15 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -258,11 +261,11 @@ public class NetworkAccess {
 			sslContext.init(null, new TrustManager[]{new X509TrustManager() {
 				@SuppressLint("TrustAllX509TrustManager")
 				@Override
-				public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+				public void checkClientTrusted(X509Certificate[] chain, String authType) {}
 
 				@SuppressLint("TrustAllX509TrustManager")
 				@Override
-				public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {}
+				public void checkServerTrusted(X509Certificate[] chain, String authType) {}
 
 				@Override
 				public X509Certificate[] getAcceptedIssuers() {
@@ -1005,8 +1008,13 @@ public class NetworkAccess {
 					httpMethod = HTTP_METHOD_GET;
 				}
 				httpURLConnection.setRequestMethod(httpMethod);
-			} catch (ProtocolException e) {
-				setRequestMethodReflection(httpURLConnection, httpMethod);
+			} catch (ProtocolException e1) {
+				try {
+					expandHttpURLConnectionMethodsByReflection(httpMethod);
+					httpURLConnection.setRequestMethod(httpMethod);
+				} catch (Exception e2) {
+					setHttpURLConnectionRequestMethodByReflection(httpURLConnection, httpMethod);
+				}
 			}
 			httpURLConnection.setDoInput(doInput);
 			httpURLConnection.setDoOutput(doOutput);
@@ -1047,24 +1055,56 @@ public class NetworkAccess {
 		return false;
 	}
 
-	public static void setHttpURLConnectionFields(HttpURLConnection httpURLConnection, String httpMethod, String contentType, String[][] headerArrays)
-			throws ReflectiveOperationException {
+	public static void setHttpURLConnectionFields(HttpURLConnection httpURLConnection, String httpMethod, String contentType, String[][] headerArrays) {
 		boolean doOutput = !httpMethod.equals(HTTP_METHOD_GET);
 		setHttpURLConnectionFields(httpURLConnection, httpMethod, true, doOutput, false, true, contentType, headerArrays);
 	}
 
-	public static void setRequestMethodReflection(HttpURLConnection httpURLConnection, String httpMethod) throws ReflectiveOperationException {
+	@SuppressWarnings("JavaReflectionMemberAccess")
+	public static void expandHttpURLConnectionMethodsByReflection(String httpMethod) throws ReflectiveOperationException {
 		// Reflection反射調用屬性
-		Field field = httpURLConnection.getClass().getDeclaredField("delegate");
-		field.setAccessible(true);
-		Object objectField = field.get(httpURLConnection);
-		field.setAccessible(false);
+		Field fieldModifiers = Field.class.getDeclaredField("modifiers");
+		Field fieldStaticMethods = HttpURLConnection.class.getDeclaredField("methods");
+		fieldModifiers.setAccessible(true);
+		// remove final modifiers flag
+		fieldModifiers.setInt(fieldStaticMethods, fieldModifiers.getInt(fieldModifiers) & ~Modifier.FINAL);
+		fieldModifiers.setAccessible(false);
 
-		// Reflection反射調用方法
-		Method method = objectField.getClass().getDeclaredMethod("setRequestMethod", java.lang.String.class);
-		method.setAccessible(true);
-		method.invoke(objectField, httpMethod);
-		method.setAccessible(false);
+		fieldStaticMethods.setAccessible(true);
+		String[] methods = (String[]) fieldStaticMethods.get(null);// static field
+		Set<String> setMethods = new LinkedHashSet<>(Arrays.asList(methods));
+		setMethods.add(httpMethod);
+		methods = setMethods.toArray(new String[0]);
+		fieldStaticMethods.set(null, methods);
+		fieldStaticMethods.setAccessible(false);
+	}
+
+	public static void setHttpURLConnectionRequestMethodByReflection(HttpURLConnection httpURLConnection, String httpMethod) throws ReflectiveOperationException {
+		Object object;
+		String className = httpURLConnection.getClass().getName();
+		if((className.contains("$") && className.substring(className.lastIndexOf("$")).equals("HttpsURLConnectionImpl"))
+				|| className.substring(className.lastIndexOf(".")).equals("HttpsURLConnectionImpl")){
+			// Reflection反射調用屬性
+			Field field = httpURLConnection.getClass().getDeclaredField("delegate");
+			field.setAccessible(true);
+			object = field.get(httpURLConnection);
+			field.setAccessible(false);
+		}else{
+			object = httpURLConnection;
+		}
+
+		try {
+			// Reflection反射調用方法
+			Method method = object.getClass().getDeclaredMethod("setRequestMethod", java.lang.String.class);
+			method.setAccessible(true);
+			method.invoke(object, httpMethod);
+			method.setAccessible(false);
+		} catch (Exception e) {
+			Field field = object.getClass().getDeclaredField("method");
+			field.setAccessible(true);
+			field.set(object, httpMethod);
+			field.setAccessible(false);
+		}
 	}
 
 	public static boolean setHttpURLConnectionContentForUrlEncodedUseFixedStreaming(HttpURLConnection httpURLConnection, Object[][] contentArrays){

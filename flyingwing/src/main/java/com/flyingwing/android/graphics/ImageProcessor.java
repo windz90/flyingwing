@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.8
+ * @version 3.5.9
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -40,7 +40,9 @@ import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 import android.support.annotation.FloatRange;
 import android.support.annotation.RequiresApi;
+import android.support.annotation.RequiresPermission;
 import android.support.v4.content.ContextCompat;
+import android.text.TextUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -733,8 +735,12 @@ public class ImageProcessor {
 		}
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static boolean isAvailable(Context context) {
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+		if(connectivityManager == null){
+			return false;
+		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
 	}
@@ -780,10 +786,11 @@ public class ImageProcessor {
 	public static void setBufferBitmap(Bitmap bitmap, String path, String sampleWord, int inSampleSize){
 		if(path != null && path.trim().length() > 0){
 			BUFFER_MAP.put(path + sampleWord + inSampleSize, new SoftReference<Bitmap>(bitmap));
-			if(SAMPLE_MAP.get(path) == null || SAMPLE_MAP.get(path).length() == 0){
+			String value = SAMPLE_MAP.get(path);
+			if(TextUtils.isEmpty(value)){
 				SAMPLE_MAP.put(path, "" + inSampleSize);
 			}else if(!isMatchBufferSample(path, sampleWord, inSampleSize)){
-				SAMPLE_MAP.put(path, SAMPLE_MAP.get(path) + "," + inSampleSize);
+				SAMPLE_MAP.put(path, value + "," + inSampleSize);
 			}
 		}
 	}
@@ -934,6 +941,7 @@ public class ImageProcessor {
 
 		Handler handlerNone = new Handler(new Callback() {
 
+			@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 			@Override
 			public boolean handleMessage(Message msg) {
 				if(isAvailable(context)){
@@ -1033,6 +1041,7 @@ public class ImageProcessor {
 		return null;
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static Bitmap getImageAsyncRemoteOnly(Context context, final String streamURL, final float specifiedSize, final ThreadPoolExecutor threadPoolExecutor
 			, final OnLoadImageListener onLoadImageListener){
 		if(streamURL == null || streamURL.trim().length() == 0){
@@ -1053,6 +1062,7 @@ public class ImageProcessor {
 
 		final Handler handlerDownload = new Handler(new Callback() {
 
+			@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 			@Override
 			public boolean handleMessage(Message msg) {
 				if(msg.what == 0 && onLoadImageListener != null){
@@ -1115,6 +1125,7 @@ public class ImageProcessor {
 		return null;
 	}
 
+	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	public static Bitmap getImageAsyncRemoteOnly(Context context, final String streamURL, final float specifiedSize, final OnLoadImageListener onLoadImageListener){
 		return getImageAsyncRemoteOnly(context, streamURL, specifiedSize, null, onLoadImageListener);
 	}

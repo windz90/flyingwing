@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.7
+ * @version 3.3.8
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -15,7 +15,6 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Build;
-import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
@@ -56,11 +55,8 @@ public class DisplayUtils {
 		return display;
 	}
 
-	public static @Nullable Display getDisplayFromContext(Context context){
+	public static Display getDisplayFromContext(Context context){
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		if(windowManager == null){
-			return null;
-		}
 		Display display = windowManager.getDefaultDisplay();
 		return display;
 	}
@@ -79,12 +75,9 @@ public class DisplayUtils {
 		return point;
 	}
 
-	public static @Nullable DisplayMetrics getDisplayMetricsFromWindowManager(Context context){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
+	public static DisplayMetrics getDisplayMetricsFromWindowManager(Context context){
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		if(windowManager == null){
-			return null;
-		}
+		DisplayMetrics displayMetrics = new DisplayMetrics();
 		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
 		return displayMetrics;
 	}
@@ -96,12 +89,9 @@ public class DisplayUtils {
 	}
 
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-	public static @Nullable DisplayMetrics getRealDisplayMetricsFromWindowManager(Context context){
-		DisplayMetrics displayMetrics = new DisplayMetrics();
+	public static DisplayMetrics getRealDisplayMetricsFromWindowManager(Context context){
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		if(windowManager == null){
-			return null;
-		}
+		DisplayMetrics displayMetrics = new DisplayMetrics();
 		windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
 		return displayMetrics;
 	}
@@ -117,7 +107,7 @@ public class DisplayUtils {
 		return context.getResources().getDisplayMetrics();
 	}
 
-	public static @Nullable DisplayMetrics getDisplayMetrics(Context context, int flag){
+	public static DisplayMetrics getDisplayMetrics(Context context, int flag){
 		if(flag == DISPLAY_METRICS_FROM_RESOURCES){
 			return getDisplayMetricsFromResources(context);
 		}
@@ -268,9 +258,6 @@ public class DisplayUtils {
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public static int measureNavigationBarHeight(Context context, DisplayMetrics displayMetrics){
 		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(context);
-		if(realDisplayMetrics == null){
-			return -1;
-		}
 		return realDisplayMetrics.heightPixels - displayMetrics.heightPixels;
 	}
 
@@ -278,9 +265,6 @@ public class DisplayUtils {
 	public static int measureNavigationBarHeight(Context context){
 		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(context);
 		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
-		if(realDisplayMetrics == null || displayMetrics == null){
-			return -1;
-		}
 		return realDisplayMetrics.heightPixels - displayMetrics.heightPixels;
 	}
 
@@ -288,11 +272,9 @@ public class DisplayUtils {
 	public static int getActionBarHeight(Context context, int defInt){
 		TypedValue typedValue = new TypedValue();
 		Resources.Theme theme = context.getTheme();
-		if(theme != null){
-			if(theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
-				// displayMetricsFromResources
-				return context.getResources().getDimensionPixelSize(typedValue.resourceId);
-			}
+		if(theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
+			// displayMetricsFromResources
+			return context.getResources().getDimensionPixelSize(typedValue.resourceId);
 		}
 		return defInt;
 	}
@@ -301,10 +283,8 @@ public class DisplayUtils {
 	public static int getActionBarHeight(Context context, DisplayMetrics displayMetrics, int defInt){
 		TypedValue typedValue = new TypedValue();
 		Resources.Theme theme = context.getTheme();
-		if(theme != null){
-			if(theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
-				return TypedValue.complexToDimensionPixelSize(typedValue.data, displayMetrics);
-			}
+		if(theme.resolveAttribute(android.R.attr.actionBarSize, typedValue, true)){
+			return TypedValue.complexToDimensionPixelSize(typedValue.data, displayMetrics);
 		}
 		return defInt;
 	}
@@ -511,17 +491,11 @@ public class DisplayUtils {
 
 	public static float getWidthMillimeter(Context context, int flag, boolean isAbs){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		if(displayMetrics == null){
-			return -1f;
-		}
 		return getMillimeter(getWidthPixels(displayMetrics, isAbs), displayMetrics.xdpi);
 	}
 
 	public static float getWidthMillimeter(Context context, boolean isAbs){
 		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
-		if(displayMetrics == null){
-			return -1f;
-		}
 		return getMillimeter(getWidthPixels(displayMetrics, isAbs), displayMetrics.xdpi);
 	}
 
@@ -531,17 +505,11 @@ public class DisplayUtils {
 
 	public static float getHeightMillimeter(Context context, int flag, boolean isAbs){
 		DisplayMetrics displayMetrics = getDisplayMetrics(context, flag);
-		if(displayMetrics == null){
-			return -1f;
-		}
 		return getMillimeter(getHeightPixels(displayMetrics, isAbs), displayMetrics.ydpi);
 	}
 
 	public static float getHeightMillimeter(Context context, boolean isAbs){
 		DisplayMetrics displayMetrics = getDisplayMetricsFromWindowManager(context);
-		if(displayMetrics == null){
-			return -1f;
-		}
 		return getMillimeter(getHeightPixels(displayMetrics, isAbs), displayMetrics.ydpi);
 	}
 
@@ -554,9 +522,6 @@ public class DisplayUtils {
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public static double getScreenInch(Context context){
 		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(context);
-		if(realDisplayMetrics == null){
-			return -1f;
-		}
 		return getScreenInch(realDisplayMetrics.widthPixels, realDisplayMetrics.heightPixels, realDisplayMetrics.xdpi, realDisplayMetrics.ydpi);
 	}
 
@@ -580,9 +545,6 @@ public class DisplayUtils {
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public static double getScreenDPIFromPixels(Context context){
 		DisplayMetrics realDisplayMetrics = getRealDisplayMetricsFromWindowManager(context);
-		if(realDisplayMetrics == null){
-			return -1f;
-		}
 		return getScreenDPIFromPixels(realDisplayMetrics.widthPixels, realDisplayMetrics.heightPixels, realDisplayMetrics.xdpi, realDisplayMetrics.ydpi);
 	}
 

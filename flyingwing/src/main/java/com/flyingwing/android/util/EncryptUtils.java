@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 1.1.2
+ * @version 1.1.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -25,74 +25,46 @@ public class EncryptUtils {
 	public static final String TYPE_BASE64 = "BASE64";
 	
 	public static byte[] getEncrypted(String type, byte[] value){
-		if(isNull(type, value)){
-			return null;
-		}
 		if(type.equals(TYPE_BASE64)){
 			return getBase64Encode(value);
-		}else{
-			return getMessageDigestEncode(type, value);
 		}
+		return getMessageDigestEncode(type, value);
 	}
 	
 	public static byte[] getEncrypted(String type, String value){
-		if(isNull(type, value)){
-			return null;
-		}
 		return getEncrypted(type, value.getBytes());
 	}
 	
 	public static String getEncryptedToString(String type, byte[] value){
-		if(isNull(type, value)){
-			return null;
-		}
 		if(type.equals(TYPE_BASE64)){
 			return getBase64EncodeToString(value);
-		}else{
-			return encodeToString(getEncrypted(type, value));
 		}
+		return encodeToString(getEncrypted(type, value));
 	}
 	
 	public static String getEncryptedToString(String type, String value){
-		if(isNull(type, value)){
-			return null;
-		}
 		return getEncryptedToString(type, value.getBytes());
 	}
 	
 	public static byte[] getDecrypted(String type, byte[] value){
-		if(isNull(type, value)){
-			return null;
-		}
 		if(type.equals(TYPE_BASE64)){
 			return getBase64Decode(value);
-		}else{
-			return null;
 		}
+		return null;
 	}
 	
 	public static byte[] getDecrypted(String type, String value){
-		if(isNull(type, value)){
-			return null;
-		}
 		return getDecrypted(type, value.getBytes());
 	}
 	
 	public static String getDecryptedToString(String type, byte[] value){
-		if(isNull(type, value)){
-			return null;
-		}
 		if(type.equals(TYPE_BASE64)){
 			return getBase64DecodeToString(value);
-		}else{
-			return null;
 		}
+		return null;
 	}
 	
 	public static String getDecryptedToString(String type, String value){
-		if(isNull(type, value)){
-			return null;
-		}
 		return getDecryptedToString(type, value.getBytes());
 	}
 	
@@ -109,17 +81,20 @@ public class EncryptUtils {
 	}
 	
 	private static String encodeToString(byte[] encode){
-		StringBuilder sb = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
+		if(encode == null){
+			return null;
+		}
+		StringBuilder stringBuilder = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
 		for(int i=0; i<encode.length; i++){
 			int num = 0xff & encode[i];
 			String hex = Integer.toHexString(num);
 			if(num > 0x0f){
-				sb.append(hex);
+				stringBuilder.append(hex);
 			}else{
-				sb.append("0").append(hex);
+				stringBuilder.append("0").append(hex);
 			}
 		}
-		return sb.toString();
+		return stringBuilder.toString();
 	}
 	
 	private static byte[] getBase64Encode(byte[] value){
@@ -136,17 +111,5 @@ public class EncryptUtils {
 	
 	private static String getBase64DecodeToString(byte[] value){
 		return new String(Base64.decode(value, Base64.DEFAULT));
-	}
-	
-	private static boolean isNull(Object...content){
-		if(content == null){
-			return true;
-		}
-		for(Object item : content){
-			if(item == null){
-				return true;
-			}
-		}
-		return false;
 	}
 }

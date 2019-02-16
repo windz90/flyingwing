@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.22
+ * @version 3.5.23
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1007,10 +1007,14 @@ public class Utils {
 	}
 
 	public static void printListItem(List<? extends Map<String, ?>> list, String...keyArray){
+		Object value;
 		int size = list.size();
 		for(int i=0; i<size; i++){
 			for(int j=0; j<keyArray.length; j++){
-				System.out.println("count " + i + ":" + keyArray[j] + ":" + list.get(i).get(keyArray[j]).toString());
+				value = list.get(i).get(keyArray[j]);
+				if(value != null){
+					System.out.println("count " + i + ":" + keyArray[j] + ":" + value.toString());
+				}
 			}
 		}
 	}
@@ -1062,16 +1066,18 @@ public class Utils {
 		return null;
 	}
 
-	public static void invokeReflectionMethod(Object objectInstance, String methodName, Class<?>[] parameterTypes, Object... args){
+	public static Object invokeReflectionMethod(Object objectInstance, String methodName, Class<?>[] parameterTypes, Object... args){
+		Object object = null;
 		// Reflection反射調用方法
 		try {
 			Method method = objectInstance.getClass().getDeclaredMethod(methodName, parameterTypes);
 			method.setAccessible(true);
-			method.invoke(objectInstance, args);
+			object = method.invoke(objectInstance, args);
 			method.setAccessible(false);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return object;
 	}
 
 	/**
@@ -1117,7 +1123,7 @@ public class Utils {
 		}
 
 		Object[] enumConstants = class1.getEnumConstants();
-		if(enumConstants != null && enumConstants.length > 0){
+		if(enumConstants.length > 0){
 			Log.i("Reflection", "**** Enum Constant count:" + enumConstants.length + " ****");
 			for(int i=0; i<enumConstants.length; i++){
 				info = enumConstants[i].getClass().getName();
@@ -1808,7 +1814,7 @@ public class Utils {
 
 	public static float getTextBaselineY(Paint paint, int canvasHeight){
 		FontMetrics fontMetrics = paint.getFontMetrics();
-		return canvasHeight / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
+		return (canvasHeight + 0f) / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
 	}
 
 	public static float getTextStaticLayoutVerticalCenterOffsetY(Paint paint){
@@ -2140,11 +2146,12 @@ public class Utils {
 		String spValue;
 		Map<String, String> map = new HashMap<String, String>(spKeyArray.length);
 		for(int i=0; i<spKeyArray.length; i++){
-			if(!sp.contains(spMapHeadKey + spKeyArray[i])){
-				continue;
+			if(sp.contains(spMapHeadKey + spKeyArray[i])){
+				spValue = sp.getString(spMapHeadKey + spKeyArray[i], "");
+				if(spValue != null){
+					map.put(spKeyArray[i], spValue);
+				}
 			}
-			spValue = sp.getString(spMapHeadKey + spKeyArray[i], null);
-			map.put(spKeyArray[i], spValue);
 		}
 		return map;
 	}
@@ -2158,7 +2165,7 @@ public class Utils {
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
-		if(spKey.length() == 0){
+		if(TextUtils.isEmpty(spKey)){
 			return null;
 		}
 
@@ -2175,7 +2182,7 @@ public class Utils {
 		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
 
 		String spKey = sp.getString(spMapHeadKey, "");
-		if(spKey.length() == 0){
+		if(TextUtils.isEmpty(spKey)){
 			return null;
 		}
 
@@ -2482,15 +2489,17 @@ public class Utils {
 			activity.startActivityForResult(intent, onActivityResultRequestCode);
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			if(intentMatchAppCount(fragment.getActivity(), intent) == 0){
-				setToast(fragment.getActivity().getApplicationContext(), failInfo);
+			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+			if(fragmentActivity != null && intentMatchAppCount(fragmentActivity, intent) == 0){
+				setToast(fragmentActivity.getApplicationContext(), failInfo);
 				return;
 			}
 			fragment.startActivityForResult(intent, onActivityResultRequestCode);
-		}else if(objectThis instanceof android.app.Fragment && Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
+		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			if(intentMatchAppCount(fragment.getActivity(), intent) == 0){
-				setToast(fragment.getActivity().getApplicationContext(), failInfo);
+			Activity activity = fragment.getActivity();
+			if(activity != null && intentMatchAppCount(activity, intent) == 0){
+				setToast(activity.getApplicationContext(), failInfo);
 				return;
 			}
 			fragment.startActivityForResult(intent, onActivityResultRequestCode);
@@ -2598,7 +2607,8 @@ public class Utils {
 
 	public static String[] getFilesPathFromIntentUri(Context context, Intent intent){
 		Uri[] uris = getIntentUris(intent);
-		String[] paths = new String[uris.length];
+		String[] paths = new String[uris.length], divide;
+		String authority, docId, scheme;
 		for(int i=0; i<uris.length; i++){
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 				if(!DocumentsContract.isDocumentUri(context, uris[i])){
@@ -2606,35 +2616,38 @@ public class Utils {
 					continue;
 				}
 
-				String authority = uris[i].getAuthority();
-				String docId = DocumentsContract.getDocumentId(uris[i]);
+				authority = uris[i].getAuthority();
+				if(authority == null){
+					continue;
+				}
+				docId = DocumentsContract.getDocumentId(uris[i]);
 				if(authority.equals("com.android.providers.downloads.documents")){
 					uris[i] = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(docId));
 					paths[i] = queryFilePathFromUri(context, uris[i]);
 					continue;
 				}
 
-				String[] divide = docId.split(":");
-				String type = divide[0];
+				divide = docId.split(":");
 				if(authority.equals("com.android.externalstorage.documents")){
-					if(type.equals("primary")){
+					if(divide[0].equals("primary")){
 						paths[i] = Environment.getExternalStorageDirectory() + File.separator + divide[1];
 					}
 				}else if(authority.equals("com.android.providers.media.documents")){
-					if(type.equals("image")){
+					if(divide[0].equals("image")){
 						uris[i] = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
 						paths[i] = queryFilePathFromUri(context, uris[i]);
-					}else if(type.equals("audio")){
+					}else if(divide[0].equals("audio")){
 						uris[i] = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
 						paths[i] = queryFilePathFromUri(context, uris[i]);
-					}else if(type.equals("video")){
+					}else if(divide[0].equals("video")){
 						uris[i] = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
 						paths[i] = queryFilePathFromUri(context, uris[i]);
 					}
 				}
 			}
 
-			if(uris[i].getScheme().equals("content")){
+			scheme = uris[i].getScheme();
+			if(scheme != null && scheme.equals("content")){
 				paths[i] = queryFilePathFromUri(context, uris[i]);
 			}else{
 				paths[i] = uris[i].getPath();
@@ -2762,16 +2775,18 @@ public class Utils {
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			if(!Settings.System.canWrite(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
+			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+			if(fragmentActivity != null && !Settings.System.canWrite(fragmentActivity)){
+				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
 			}
 		}else if(objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			if(!Settings.System.canWrite(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
+			Activity activity = fragment.getActivity();
+			if(activity != null && !Settings.System.canWrite(activity)){
+				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
@@ -2806,15 +2821,17 @@ public class Utils {
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			if(!Settings.canDrawOverlays(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
+			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+			if(fragmentActivity != null && !Settings.canDrawOverlays(fragmentActivity)){
+				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
 			}
 		}else if(objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			if(!Settings.canDrawOverlays(fragment.getActivity())){
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragment.getActivity().getApplicationContext().getPackageName()));
+			Activity activity = fragment.getActivity();
+			if(activity != null && !Settings.canDrawOverlays(activity)){
+				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 				return false;
 			}
@@ -2874,10 +2891,10 @@ public class Utils {
 		inputMethodManager.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
 	}
 
-	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, String contentInfo, int color, int smallIcon
-			, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
+	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
+			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
 			, boolean isAutoCancel, boolean isOngoing, int notificationDefault, int notificationPriority, int notificationVisibility, Notification notificationPublic){
-		NotificationCompat.Builder notificationCompatBuilder = new NotificationCompat.Builder(context);
+		NotificationCompat.Builder notificationCompatBuilder = new NotificationCompat.Builder(context, channelId);
 		notificationCompatBuilder.setTicker(ticker);
 		notificationCompatBuilder.setContentTitle(contentTitle);
 		notificationCompatBuilder.setContentText(contentText);
@@ -2908,24 +2925,24 @@ public class Utils {
 		return notificationCompatBuilder.build();
 	}
 
-	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, String contentInfo, int color, int smallIcon
-			, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
+	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
+			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
 			, boolean isAutoCancel, boolean isOngoing, int notificationDefault, int notificationVisibility, Notification notificationPublic){
-		return getNotification(context, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
+		return getNotification(context, channelId, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
 				, pendingIntentFlag, isAutoCancel, isOngoing, notificationDefault, NotificationCompat.PRIORITY_DEFAULT, notificationVisibility, notificationPublic);
 	}
 
-	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, String contentInfo, int color, int smallIcon
-			, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
+	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
+			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
 			, boolean isAutoCancel, boolean isOngoing, int notificationDefault, int notificationPriority){
-		return getNotification(context, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
+		return getNotification(context, channelId, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
 				, pendingIntentFlag, isAutoCancel, isOngoing, notificationDefault, notificationPriority, NotificationCompat.VISIBILITY_PUBLIC, null);
 	}
 
-	public static Notification getNotification(Context context, String ticker, String contentTitle, String contentText, String contentInfo, int color, int smallIcon
-			, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
+	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
+			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
 			, boolean isAutoCancel, boolean isOngoing, int notificationDefault){
-		return getNotification(context, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
+		return getNotification(context, channelId, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
 				, pendingIntentFlag, isAutoCancel, isOngoing, notificationDefault, NotificationCompat.PRIORITY_DEFAULT, NotificationCompat.VISIBILITY_PUBLIC, null);
 	}
 
@@ -2982,37 +2999,34 @@ public class Utils {
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(activity, permissions);
 			}
-			if(permissions == null || permissions.length == 0){
-				return false;
+			if(permissions != null && permissions.length > 0){
+				ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+				return true;
 			}
-			ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
 			}
-			if(permissions == null || permissions.length == 0){
-				return false;
+			if(permissions != null && permissions.length > 0){
+				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+				return true;
 			}
-			fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
-		}else if(objectThis instanceof android.app.Fragment){
-			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB){
-				return false;
-			}
+		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
 			}
-			if(permissions == null || permissions.length == 0){
-				return false;
-			}
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
-			}else{
-				ActivityCompat.requestPermissions(fragment.getActivity(), permissions, onRequestPermissionsResultRequestCode);
+			if(permissions != null && permissions.length > 0){
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+					fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+				}else{
+					ActivityCompat.requestPermissions(fragment.getActivity(), permissions, onRequestPermissionsResultRequestCode);
+				}
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	public static boolean requestPermissionsWaitResult(Activity activity, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
@@ -3277,7 +3291,7 @@ public class Utils {
 
 	/**
 	 *  列印此App單一Process記憶體資訊<br>
-	 *  NavtiveHeap: C & C++ heap space<br>
+	 *  NavtiveHeap: C &amp; C++ heap space<br>
 	 *  DalvikVMHeap: Java heap space
 	 */
 	public static void logProcessMemoryHeap(){
@@ -3360,18 +3374,20 @@ public class Utils {
 	// 取得已安裝的軟體資訊
 	public static List<PackageInfo> getInstallPackageInfo(Context context, boolean isContainSystemDefaultInstall){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
-		List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(0);
+		List<PackageInfo> listPackageInfo = packageManager.getInstalledPackages(0);
 		if(!isContainSystemDefaultInstall){
-			List<PackageInfo> linkedList = new LinkedList<PackageInfo>(packageInfoList);
-			for(int i=0; i<packageInfoList.size(); i++){
-				if ((packageInfoList.get(i).applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) <= 0){
-					// System Default Install
-					linkedList.remove(i);
+			List<PackageInfo> linkedList = new LinkedList<PackageInfo>(listPackageInfo);
+			PackageInfo packageInfo;
+			for(Iterator<PackageInfo> iterator=listPackageInfo.iterator(); iterator.hasNext();){
+				packageInfo = iterator.next();
+				// Remove system default install
+				if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) <= 0){
+					iterator.remove();
 				}
 			}
-			packageInfoList = new ArrayList<PackageInfo>(linkedList);
+			listPackageInfo = new ArrayList<PackageInfo>(linkedList);
 		}
-		return packageInfoList;
+		return listPackageInfo;
 	}
 
 	public static boolean isRooted(Context context){

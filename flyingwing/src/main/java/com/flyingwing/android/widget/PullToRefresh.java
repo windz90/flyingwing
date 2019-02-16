@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Andy Lin. All rights reserved.
- * @version 1.0.3
+ * @version 1.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.0
  */
@@ -82,13 +82,13 @@ public class PullToRefresh {
 		
 		/**
 		 * 下拉更新已觸發，可以進行更新事件<br>
-		 * 更新事件完畢後需調用C_pullToRefresh.done()或OnRefreshListener.done()通知更新已結束
+		 * 更新事件完畢後需調用PullToRefresh.done()或OnRefreshListener.done()通知更新已結束
 		 */
-		public abstract boolean onRefresh();
+		public abstract void onRefresh();
 		
 		/**
 		 * 更新完畢，停止下拉更新各標示<br>
-		 * OnRefreshListener建構子需傳入C_pullToRefresh實例
+		 * OnRefreshListener建構子需傳入PullToRefresh實例
 		 */
 		@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 		public void done(){
@@ -468,7 +468,7 @@ public class PullToRefresh {
 						mProgressView.setVisibility(View.VISIBLE);
 					}
 					mProgressView.setLayoutParams(new LayoutParams(progress, progressViewHeight));
-				}else if(progress >= mProgressWidth){
+				}else{
 					mProgressView.setLayoutParams(new LayoutParams(0, progressViewHeight));
 					mProgressView.setVisibility(View.GONE);
 					
