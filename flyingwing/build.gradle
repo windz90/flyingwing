@@ -1,19 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-	compileSdkVersion 25
-	buildToolsVersion "27.0.1"
-	signingConfigs {
-		release {
-			System.println("\n＊＊　　　　　～喝杯水休息一下～　　　　　＊＊")
-			System.println("＊＊　正在強迫懶惰的Ｇｒａｄｌｅ市民工作　＊＊\n")
-		}
-	}
+	compileSdkVersion 28
+	buildToolsVersion "28.0.3"
 
 	defaultConfig {
-//		applicationId "com.flyingwing.android"
 		minSdkVersion 9 // Android Support Library 24.2.0 removes support for Android 2.2 (API level 8) and lower.
-		targetSdkVersion 25
+		targetSdkVersion 28
 		versionCode 1
 		versionName "1.0.60"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -30,15 +23,14 @@ android {
 }
 
 dependencies {
-	compile fileTree(dir: 'libs', include: ['*.jar'])
-	androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-		exclude group: 'com.android.support', module: 'support-annotations'
-	})
-	compile 'com.android.support:support-annotations:27.0.2'
-	compile 'com.android.support:design:25.4.0'
-	compile 'com.android.support:appcompat-v7:25.4.0'
-	compile 'com.android.support:recyclerview-v7:25.4.0'
-	testCompile 'junit:junit:4.12'
+	implementation fileTree(include: ['*.jar'], dir: 'libs')
+	testImplementation 'junit:junit:4.12'
+	androidTestImplementation 'com.android.support.test:runner:1.0.2'
+	androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+	implementation 'com.android.support:support-annotations:28.0.0'
+	implementation 'com.android.support:appcompat-v7:28.0.0'
+	implementation 'com.android.support:design:28.0.0'
+	implementation 'com.android.support:recyclerview-v7:28.0.0'
 }
 
 apply from: "https://raw.githubusercontent.com/xiaopansky/android-library-publish-to-jcenter/master/bintrayUpload.gradle"
