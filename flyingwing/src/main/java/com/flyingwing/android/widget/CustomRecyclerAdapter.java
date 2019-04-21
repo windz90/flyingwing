@@ -7,7 +7,6 @@
 
 package com.flyingwing.android.widget;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
@@ -92,7 +91,6 @@ public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<Recy
 		public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {}
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public CustomRecyclerAdapter(Context context){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
 			mSelectorBgRes = Utils.getAttributeResource(context, android.R.attr.selectableItemBackground, android.R.color.white);

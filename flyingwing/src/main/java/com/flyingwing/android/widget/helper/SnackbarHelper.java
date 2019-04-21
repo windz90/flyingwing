@@ -7,10 +7,8 @@
 
 package com.flyingwing.android.widget.helper;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
@@ -37,7 +35,6 @@ public class SnackbarHelper {
 	@IntDef({Snackbar.LENGTH_INDEFINITE, Snackbar.LENGTH_SHORT, Snackbar.LENGTH_LONG})
 	public @interface Duration {}
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static void pendingMakeWindowSnackbar(final Context context, final int gravity, @NonNull final CharSequence text, @Duration final int duration
 			, final PendingMakeWindowSnackbarCallback pendingMakeWindowSnackbarCallback){
 		final WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
@@ -107,19 +104,16 @@ public class SnackbarHelper {
 		view.setVisibility(View.GONE);
 	}
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static void pendingMakeWindowSnackbar(Context context, @NonNull CharSequence text, @Duration int duration
 			, PendingMakeWindowSnackbarCallback pendingMakeWindowSnackbarCallback){
 		pendingMakeWindowSnackbar(context, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, text, duration, pendingMakeWindowSnackbarCallback);
 	}
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static void pendingMakeWindowSnackbar(Context context, int gravity, @StringRes int resId, @Duration int duration
 			, PendingMakeWindowSnackbarCallback pendingMakeWindowSnackbarCallback){
 		pendingMakeWindowSnackbar(context, gravity, context.getString(resId), duration, pendingMakeWindowSnackbarCallback);
 	}
 
-	@TargetApi(Build.VERSION_CODES.KITKAT)
 	public static void pendingMakeWindowSnackbar(Context context, @StringRes int resId, @Duration int duration
 			, PendingMakeWindowSnackbarCallback pendingMakeWindowSnackbarCallback){
 		pendingMakeWindowSnackbar(context, Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, context.getString(resId), duration, pendingMakeWindowSnackbarCallback);

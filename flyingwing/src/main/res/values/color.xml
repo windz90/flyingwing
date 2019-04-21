@@ -264,7 +264,7 @@
 	<color name="BackgroundActivatedDark">@color/WhiteAlpha33</color>
 </resources>
 <!-- 
-16進制各均分值
+8-bit 256 colors ratio for hex
 1/3 0x55 85
 2/3 0xAA 170
 1/4 0x40 64

@@ -1,13 +1,12 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.11
+ * @version 2.4.12
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.widget;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -20,7 +19,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.text.InputFilter;
@@ -71,7 +69,7 @@ public class SubWindow {
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
-		alertDialogBuilder.setPositiveButton(context.getString(R.string.close), click);
+		alertDialogBuilder.setPositiveButton(context.getString(R.string.common_close), click);
 		AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
 		alertDialog.setOnCancelListener(new OnCancelListener() {
@@ -109,7 +107,6 @@ public class SubWindow {
 		alertBuilderMessage(context, null, message, true, null);
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public static void popupMessage(Context context, final View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity, int x, int y
 			, int width, int height, TextViewAttribute[] textViewAttributes, String[] strArray, final ClickAction clickAction){
 		Resources res = context.getResources();
@@ -142,21 +139,23 @@ public class SubWindow {
 		scrollView.addView(scrollLinLay);
 
 		linLayPar = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-		TextViewAttribute textViewAttribute = new TextViewAttribute();
+		TextViewAttribute textViewAttribute = null;
 		for(int i=0; i<textViews.length; i++){
-			if(i < textViewAttributes.length - 1){
+			if(i <= textViewAttributes.length - 1){
 				textViewAttribute = textViewAttributes[i];
 			}
 			textViews[i] = new TextView(context);
 			textViews[i].setLayoutParams(linLayPar);
-			textViews[i].setGravity(textViewAttribute.getGravity());
-			if(textViewAttribute.getTextColor() != null){
-				textViews[i].setTextColor(textViewAttribute.getTextColor());
+			if(textViewAttribute != null){
+				textViews[i].setGravity(textViewAttribute.getGravity());
+				if(textViewAttribute.getTextColor() != null){
+					textViews[i].setTextColor(textViewAttribute.getTextColor());
+				}
+				textViews[i].setTextSize(textViewAttribute.getTextSize());
+				textViews[i].setTypeface(textViewAttribute.getTypeface());
+				textViews[i].setEllipsize(textViewAttribute.getEllipsize());
+				textViews[i].setMaxLines(textViewAttribute.getMaxLines());
 			}
-			textViews[i].setTextSize(textViewAttribute.getTextSize());
-			textViews[i].setTypeface(textViewAttribute.getTypeface());
-			textViews[i].setEllipsize(textViewAttribute.getEllipsize());
-			textViews[i].setMaxLines(textViewAttribute.getMaxLines());
 
 			if(!TextUtils.isEmpty(strArray[i])){
 				textViews[i].setText(strArray[i]);
@@ -351,11 +350,11 @@ public class SubWindow {
 	}
 
 	public static void alertBuilderConfirm(Context context, String title, String message, final ClickAction clickAction){
-		alertBuilderConfirm(context, title, message, context.getString(R.string.ok), context.getString(R.string.cancel), clickAction);
+		alertBuilderConfirm(context, title, message, context.getString(R.string.common_ok), context.getString(R.string.common_cancel), clickAction);
 	}
 
 	public static void alertBuilderConfirm(Context context, String message, final ClickAction clickAction){
-		alertBuilderConfirm(context, null, message, context.getString(R.string.ok), context.getString(R.string.cancel), clickAction);
+		alertBuilderConfirm(context, null, message, context.getString(R.string.common_ok), context.getString(R.string.common_cancel), clickAction);
 	}
 
 	public static void alertBuilderQuit(final Activity activity, final Class<? extends Activity> quitClass, String title, String message, String textPositive
@@ -391,11 +390,11 @@ public class SubWindow {
 	}
 
 	public static void alertBuilderQuit(Activity activity, Class<? extends Activity> quitClass, String title, String message){
-		alertBuilderQuit(activity, quitClass, title, message, activity.getString(R.string.ok), activity.getString(R.string.cancel));
+		alertBuilderQuit(activity, quitClass, title, message, activity.getString(R.string.common_ok), activity.getString(R.string.common_cancel));
 	}
 
 	public static void alertBuilderQuit(Activity activity, Class<? extends Activity> quitClass, String message){
-		alertBuilderQuit(activity, quitClass, null, message, activity.getString(R.string.ok), activity.getString(R.string.cancel));
+		alertBuilderQuit(activity, quitClass, null, message, activity.getString(R.string.common_ok), activity.getString(R.string.common_cancel));
 	}
 
 	public static void popupWindow(Context context, View contentView, final View anchorView, Drawable drawableBackground, boolean isSetLocation, int gravity
@@ -501,7 +500,7 @@ public class SubWindow {
 				}
 				String inputName = editText.getText().toString();
 				if(inputName.trim().length() < minLength || (inputName.length() > maxLength && maxLength > 0)){
-					Utils.setToast(context, res.getString(R.string.char_length_hint, "" + minLength, "" + maxLength));
+					Utils.setToast(context, res.getString(R.string.common_char_length_hint, "" + minLength, "" + maxLength));
 					return;
 				}
 				Bundle bundle = new Bundle();
@@ -534,8 +533,8 @@ public class SubWindow {
 		alertDialogBuilder.setTitle(title);
 		alertDialogBuilder.setMessage(message);
 		alertDialogBuilder.setView(linearLayout);
-		alertDialogBuilder.setPositiveButton(res.getString(R.string.submit), null);// disable click button auto dismiss
-		alertDialogBuilder.setNegativeButton(res.getString(R.string.cancel), null);
+		alertDialogBuilder.setPositiveButton(res.getString(R.string.common_submit), null);// disable click button auto dismiss
+		alertDialogBuilder.setNegativeButton(res.getString(R.string.common_cancel), null);
 		final AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
 
@@ -710,22 +709,24 @@ public class SubWindow {
 		itemHe = LayoutParams.WRAP_CONTENT;
 		linLayPar = new LayoutParams(itemWi, itemHe);
 		linLayPar.setMargins(space, 0, space, 0);
-		TextViewAttribute textViewAttribute = new TextViewAttribute();
+		TextViewAttribute textViewAttribute = null;
 		for(int i=0; i<buttons.length; i++){
-			if(i < textViewAttributes.length -1){
+			if(i <= textViewAttributes.length -1){
 				textViewAttribute = textViewAttributes[i];
 			}
 			buttons[i] = new Button(context);
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
-			buttons[i].setGravity(textViewAttribute.getGravity());
-			if(textViewAttribute.getTextColor() != null){
-				buttons[i].setTextColor(textViewAttribute.getTextColor());
+			if(textViewAttribute != null){
+				buttons[i].setGravity(textViewAttribute.getGravity());
+				if(textViewAttribute.getTextColor() != null){
+					buttons[i].setTextColor(textViewAttribute.getTextColor());
+				}
+				buttons[i].setTextSize(textViewAttribute.getTextSize());
+				buttons[i].setTypeface(textViewAttribute.getTypeface());
+				buttons[i].setEllipsize(textViewAttribute.getEllipsize());
+				buttons[i].setMaxLines(textViewAttribute.getMaxLines());
 			}
-			buttons[i].setTextSize(textViewAttribute.getTextSize());
-			buttons[i].setTypeface(textViewAttribute.getTypeface());
-			buttons[i].setEllipsize(textViewAttribute.getEllipsize());
-			buttons[i].setMaxLines(textViewAttribute.getMaxLines());
 			scrollLinLay.addView(buttons[i]);
 
 			buttons[i].setText(strArray[i][1]);
@@ -740,7 +741,7 @@ public class SubWindow {
 		final AlertDialog alertDialog = new AlertDialog.Builder(context).create();
 		alertDialog.setTitle(title);
 		alertDialog.setView(linLay, 0, 0, 0, 0);
-		alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, context.getString(R.string.cancel), onClick);
+		alertDialog.setButton(DialogInterface.BUTTON_NEGATIVE, context.getString(R.string.common_cancel), onClick);
 		alertDialog.setCanceledOnTouchOutside(isOutsideCancel);
 
 		alertDialog.setOnCancelListener(new OnCancelListener() {
@@ -978,7 +979,7 @@ public class SubWindow {
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
 
-		TextViewAttribute textViewAttribute = textViewAttributes.length > 0 ? textViewAttributes[0] : new TextViewAttribute();
+		TextViewAttribute textViewAttribute = textViewAttributes.length > 0 ? textViewAttributes[0] : null;
 		space = res.getDimensionPixelSize(R.dimen.dip8);
 		itemWi = width - space * 2;
 		itemHe = (int)(61.5f * 0.75f * displayMetrics.density);
@@ -988,12 +989,14 @@ public class SubWindow {
 			textView = new TextView(context);
 			textView.setLayoutParams(linLayPar);
 			textView.setPadding(space, 0, 0, 0);
-			textView.setGravity(textViewAttribute.getGravity());
-			if(textViewAttribute.getTextColor() != null){
-				textView.setTextColor(textViewAttribute.getTextColor());
+			if(textViewAttribute != null){
+				textView.setGravity(textViewAttribute.getGravity());
+				if(textViewAttribute.getTextColor() != null){
+					textView.setTextColor(textViewAttribute.getTextColor());
+				}
+				textView.setTextSize(textViewAttribute.getTextSize());
+				textView.setTypeface(textViewAttribute.getTypeface());
 			}
-			textView.setTextSize(textViewAttribute.getTextSize());
-			textView.setTypeface(textViewAttribute.getTypeface());
 			scrollLinLay.addView(textView);
 
 			textView.setText(title);
@@ -1002,26 +1005,28 @@ public class SubWindow {
 		linLayPar = new LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 		linLayPar.setMargins(space, 0, space, 0);
 		for(int i=0; i<buttons.length; i++){
-			if(i + 1 < textViewAttributes.length -1){
+			if(i + 1 <= textViewAttributes.length - 1){
 				textViewAttribute = textViewAttributes[i + 1];
 			}
 			buttons[i] = new Button(context);
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
-			buttons[i].setGravity(textViewAttribute.getGravity());
-			if(textViewAttribute.getTextColor() != null){
-				buttons[i].setTextColor(textViewAttribute.getTextColor());
+			if(textViewAttribute != null){
+				buttons[i].setGravity(textViewAttribute.getGravity());
+				if(textViewAttribute.getTextColor() != null){
+					buttons[i].setTextColor(textViewAttribute.getTextColor());
+				}
+				buttons[i].setTextSize(textViewAttribute.getTextSize());
+				buttons[i].setTypeface(textViewAttribute.getTypeface());
+				buttons[i].setEllipsize(textViewAttribute.getEllipsize());
+				buttons[i].setMaxLines(textViewAttribute.getMaxLines());
 			}
-			buttons[i].setTextSize(textViewAttribute.getTextSize());
-			buttons[i].setTypeface(textViewAttribute.getTypeface());
-			buttons[i].setEllipsize(textViewAttribute.getEllipsize());
-			buttons[i].setMaxLines(textViewAttribute.getMaxLines());
 			scrollLinLay.addView(buttons[i]);
 
 			if(i < buttons.length - 1){
 				buttons[i].setText(strArray[i][1]);
 			}else{
-				buttons[i].setText(res.getString(R.string.cancel));
+				buttons[i].setText(res.getString(R.string.common_cancel));
 			}
 		}
 
@@ -1161,7 +1166,7 @@ public class SubWindow {
 			topBar.findViewById(R.id.topLayoutLeftView).setBackgroundResource(android.R.color.white);
 
 			if(topBar.findViewById(R.id.topLayoutLeftView) instanceof TextView){
-				((TextView)topBar.findViewById(R.id.topLayoutLeftView)).setText(res.getString(R.string.cancel));
+				((TextView)topBar.findViewById(R.id.topLayoutLeftView)).setText(res.getString(R.string.common_cancel));
 			}
 		}
 
@@ -1346,32 +1351,36 @@ public class SubWindow {
 		scrollLinLay.setGravity(Gravity.CENTER_HORIZONTAL);
 		scrollView.addView(scrollLinLay);
 
-		TextViewAttribute textViewAttribute = textViewAttributes.length > 0 ? textViewAttributes[0] : new TextViewAttribute();
+		TextViewAttribute textViewAttribute = textViewAttributes.length > 0 ? textViewAttributes[0] : null;
 		if(!TextUtils.isEmpty(title)){
 			textView = new TextView(context);
 			textView.setLayoutParams(linLayPar);
-			textView.setGravity(textViewAttribute.getGravity());
-			textView.setTextSize(textViewAttribute.getTextSize());
-			textView.setTypeface(textViewAttribute.getTypeface());
+			if(textViewAttribute != null){
+				textView.setGravity(textViewAttribute.getGravity());
+				textView.setTextSize(textViewAttribute.getTextSize());
+				textView.setTypeface(textViewAttribute.getTypeface());
+			}
 			textView.setText(title);
 			scrollLinLay.addView(textView);
 		}
 
 		for(int i=0; i<buttons.length; i++){
-			if(i + 1 < textViewAttributes.length -1){
+			if(i + 1 <= textViewAttributes.length - 1){
 				textViewAttribute = textViewAttributes[i + 1];
 			}
 			buttons[i] = new Button(context);
 			buttons[i].setLayoutParams(linLayPar);
 			buttons[i].setPadding(0, 0, 0, 0);
-			buttons[i].setGravity(textViewAttribute.getGravity());
-			if(textViewAttribute.getTextColor() != null){
-				buttons[i].setTextColor(textViewAttribute.getTextColor());
+			if(textViewAttribute != null){
+				buttons[i].setGravity(textViewAttribute.getGravity());
+				if(textViewAttribute.getTextColor() != null){
+					buttons[i].setTextColor(textViewAttribute.getTextColor());
+				}
+				buttons[i].setTextSize(textViewAttribute.getTextSize());
+				buttons[i].setTypeface(textViewAttribute.getTypeface());
+				buttons[i].setEllipsize(textViewAttribute.getEllipsize());
+				buttons[i].setMaxLines(textViewAttribute.getMaxLines());
 			}
-			buttons[i].setTextSize(textViewAttribute.getTextSize());
-			buttons[i].setTypeface(textViewAttribute.getTypeface());
-			buttons[i].setEllipsize(textViewAttribute.getEllipsize());
-			buttons[i].setMaxLines(textViewAttribute.getMaxLines());
 			scrollLinLay.addView(buttons[i]);
 
 			buttons[i].setText(strArray[i][1]);

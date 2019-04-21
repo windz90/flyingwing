@@ -7,7 +7,6 @@
 
 package com.flyingwing.android.net;
 
-import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +16,7 @@ import android.os.ParcelFileDescriptor;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -246,7 +246,7 @@ public class SocketUDP {
 		return mDatagramSocket == null ? null : mDatagramSocket.getRemoteSocketAddress();
 	}
 
-	@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+	@RequiresApi(api = Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 	public ParcelFileDescriptor getDatagramSocketFileDescriptor(){
 		return ParcelFileDescriptor.fromDatagramSocket(mDatagramSocket);
 	}

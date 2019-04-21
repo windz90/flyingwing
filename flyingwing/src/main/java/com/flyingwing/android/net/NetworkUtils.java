@@ -8,7 +8,6 @@
 package com.flyingwing.android.net;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -38,6 +37,7 @@ import android.provider.Settings;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
@@ -488,7 +488,7 @@ public class NetworkUtils {
 		return context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH);
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	public static boolean isBluetoothLeSupported(@NonNull Context context){
 		return context.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
 	}
@@ -653,7 +653,7 @@ public class NetworkUtils {
 	 * BluetoothDevice bluetoothDevice = result.getDevice();<br>
 	 * BluetoothLeScanner.stopScan(scanCallback);
 	 */
-	@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static void bluetoothLeScan(@NonNull Context context, boolean isStartScan, ScanCallback scanCallback, Handler handlerNoPermissions){
 		List<String> list = new ArrayList<String>(4);
@@ -733,7 +733,7 @@ public class NetworkUtils {
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * BluetoothAdapter.stopLeScan(leScanCallback);
 	 */
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static boolean bluetoothLeScan(@NonNull Context context, boolean isStartScan, BluetoothAdapter.LeScanCallback leScanCallback, Handler handlerNoPermissions){
 		List<String> list = new ArrayList<String>(2);
@@ -782,7 +782,7 @@ public class NetworkUtils {
 	 * BluetoothLeScanner.stopScan(scanCallback);
 	 * BluetoothAdapter.stopLeScan(leScanCallback);
 	 */
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
 	public static void bluetoothLeScan(@NonNull Context context, boolean isStartScan, ScanCallback scanCallback, BluetoothAdapter.LeScanCallback leScanCallback
 			, Handler handlerNoPermissions){
@@ -812,7 +812,7 @@ public class NetworkUtils {
 		return isRefresh;
 	}
 
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	public static void bluetoothLeSubscribe(@NonNull BluetoothGatt bluetoothGatt, @NonNull BluetoothGattCharacteristic bluetoothGattCharacteristic
 			, @NonNull UUID uuidDescriptor, boolean isEnable){
 		bluetoothGatt.setCharacteristicNotification(bluetoothGattCharacteristic, isEnable);
@@ -823,10 +823,12 @@ public class NetworkUtils {
 		}
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	public static void bluetoothLeSubscribeEnable(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic bluetoothGattCharacteristic, UUID uuidDescriptor){
 		bluetoothLeSubscribe(bluetoothGatt, bluetoothGattCharacteristic, uuidDescriptor, true);
 	}
 
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	public static void bluetoothLeSubscribeDisable(BluetoothGatt bluetoothGatt, BluetoothGattCharacteristic bluetoothGattCharacteristic, UUID uuidDescriptor){
 		bluetoothLeSubscribe(bluetoothGatt, bluetoothGattCharacteristic, uuidDescriptor, false);
 	}
@@ -1105,7 +1107,7 @@ public class NetworkUtils {
 		return null;
 	}
 
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	@RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
 	public static InetAddress getBroadcastAddressFromNetworkInterface(){
 		System.setProperty("java.net.preferIPv4Stack", "true");
 		System.setProperty("java.net.preferIPv6Addresses", "false");
@@ -1130,7 +1132,7 @@ public class NetworkUtils {
 		return null;
 	}
 
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	@RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
 	public static String getLocalIpAddress(){
 		NetworkInterface networkInterface;
 		InetAddress inetAddress;
