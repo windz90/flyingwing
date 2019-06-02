@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.5.23
+ * @version 4.0.0
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -8,7 +8,6 @@
 package com.flyingwing.android.util;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -22,8 +21,8 @@ import android.content.ComponentName;
 import android.content.ContentProviderOperation;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -33,21 +32,14 @@ import android.content.pm.Signature;
 import android.content.res.Resources.Theme;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Paint;
-import android.graphics.Paint.FontMetrics;
-import android.graphics.PointF;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.MemoryFile;
 import android.os.Message;
 import android.os.PowerManager;
 import android.provider.ContactsContract;
@@ -60,11 +52,11 @@ import android.provider.ContactsContract.RawContacts;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.provider.Settings.SettingNotFoundException;
 import android.support.annotation.FloatRange;
 import android.support.annotation.RequiresApi;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NavUtils;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
@@ -73,85 +65,35 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Display;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.StringTokenizer;
 
-@SuppressWarnings({"unused", "WeakerAccess", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond", "TryFinallyCanBeTryWithResources", "ThrowFromFinallyBlock", "UnusedReturnValue", "SameParameterValue"})
+@SuppressWarnings({"unused", "WeakerAccess", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
 public class Utils {
-
-	public static final int SIZE_TEXT_S = 10;
-	public static final int SIZE_BULLET_S = 11;
-	public static final int SIZE_TITLE_S = 12;
-	// Above is not recommended
-	public static final int SIZE_TAB_S = 13;
-	public static final int SIZE_SUBJECT_S = 14;
-	public static final int SIZE_TEXT = 15;
-	public static final int SIZE_BULLET = 16;
-	public static final int SIZE_TITLE = 17;
-	public static final int SIZE_TAB = 18;
-	public static final int SIZE_SUBJECT = 19;
-	public static final int SIZE_TEXT_L = 20;
-	public static final int SIZE_BULLET_L = 21;
-	public static final int SIZE_TITLE_L = 22;
-	public static final int SIZE_TAB_L = 23;
-	public static final int SIZE_SUBJECT_L = 24;
-	public static final int SIZE_TEXT_XL = 25;
-	public static final int SIZE_BULLET_XL = 26;
-	public static final int SIZE_TITLE_XL = 27;
-	public static final int SIZE_TAB_XL = 28;
-	public static final int SIZE_SUBJECT_XL = 29;
 
 	public static final char[] HEX_CHARS_SAMPLE = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
 
-	public static final String SP_KEY_STATUS_BAR_HEIGHT = "statusBarHe";
-	public static final String SP_MAP_HEAD = "/!#/spMapHead/#!/";
-	public static final String SP_MAP_ITEM_LEFT_BORDER = "(!#/";
-	public static final String SP_MAP_ITEM_RIGHT_BORDER = "/#!)=";
-	public static final String SP_MAP_DELIMITER = "/!#/-/#!/";
 	public static final String REG_EXP_INT = "^-?\\d+$";
 	public static final String REG_EXP_INT_POS = "^\\d+$";
 	public static final String REG_EXP_INT_NEG = "^-\\d+$";
@@ -228,119 +170,6 @@ public class Utils {
 //			{"", "*/*"}
 //	};
 
-	@SuppressWarnings("UnusedAssignment")
-	public static String inputStreamToString(InputStream is, Charset charset, int bufferSize){
-		if(is == null){
-			return null;
-		}
-		if(charset == null){
-			charset = Charset.forName("ISO-8859-1");
-//			System.out.print("charset get fail, using default, ");
-		}
-//		System.out.println("charset = " + charset.displayName());
-		if(bufferSize < 8192){
-			bufferSize = 8192;
-		}
-		BufferedReader reader;
-		StringBuilder stringBuilder = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
-		try {
-			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
-			try {
-				String line;
-				while((line = reader.readLine()) != null){
-					stringBuilder.append(line).append("\n");
-				}
-			} finally {
-				reader.close();
-				is.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			stringBuilder = null;
-			reader = null;
-			is = null;
-			e.printStackTrace();
-		}
-		return stringBuilder == null ? null : stringBuilder.toString();
-	}
-
-	public static String inputStreamToString(InputStream is, Charset charset){
-		return inputStreamToString(is, charset, 1024 * 16);
-	}
-
-	public static String inputStreamToString(InputStream is){
-		return inputStreamToString(is, null, 1024 * 16);
-	}
-
-	@SuppressWarnings("UnusedAssignment")
-	public static byte[] inputStreamToByteArray(InputStream is, int bufferSize){
-		if(is == null){
-			return null;
-		}
-		byte[] byteArray = null;
-		if(bufferSize < 8192){
-			bufferSize = 8192;
-		}
-		ByteArrayOutputStream baos;
-		try {
-			baos = new ByteArrayOutputStream();
-			try {
-				int progress;
-				byte[] buffer = new byte[bufferSize];
-				while((progress = is.read(buffer)) != -1){
-					baos.write(buffer, 0, progress);
-				}
-				baos.flush();
-				byteArray = baos.toByteArray();
-			} finally {
-				baos.close();
-				is.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			baos = null;
-			byteArray = null;
-			is = null;
-			e.printStackTrace();
-		}
-		return byteArray;
-	}
-
-	public static byte[] inputStreamToByteArray(InputStream is){
-		return inputStreamToByteArray(is, 1024 * 16);
-	}
-
-	@SuppressWarnings("UnusedAssignment")
-	public static byte[] fileToByteArray(File file){
-		if(file == null){
-			return null;
-		}
-		byte[] byteArray = null;
-		InputStream is;
-		try {
-			is = new FileInputStream(file);
-			byteArray = new byte[(int)file.length()];
-			try {
-				int progress = 0;
-				while(progress < byteArray.length){
-					progress = progress + is.read(byteArray, progress, byteArray.length - progress);
-				}
-			} finally {
-				is.close();
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			byteArray = null;
-			is = null;
-			file = null;
-			e.printStackTrace();
-		}
-		return byteArray;
-	}
-
 	public static String byteArrayToHexString(byte[] bytes){
 		char[] hexChars = new char[bytes.length * 2];
 		int value;
@@ -352,354 +181,32 @@ public class Utils {
 		return new String(hexChars);
 	}
 
-	@SuppressWarnings("UnusedAssignment")
-	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os, int bufferSize){
-		if(byteArray == null || os == null){
-			return false;
+	public static Object removeNull(Object object, Object replace){
+		if(object == null){
+			return replace;
 		}
-		if(bufferSize < 8192){
-			bufferSize = 8192;
-		}
-		InputStream is;
-		try {
-			is = new ByteArrayInputStream(byteArray);
-			try {
-				int progress;
-				byte[] buffer = new byte[bufferSize];
-				while((progress = is.read(buffer)) != -1){
-					os.write(buffer, 0, progress);
-				}
-				os.flush();
-			} finally {
-				is.close();
-			}
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			is = null;
-			os = null;
-			byteArray = null;
-			e.printStackTrace();
-		}
-		return false;
+		return object;
 	}
 
-	public static boolean ByteArrayWriteOutStream(byte[] byteArray, OutputStream os){
-		return ByteArrayWriteOutStream(byteArray, os, 1024 * 16);
+	public static String removeNull(Object object, String replace){
+		if(object == null){
+			return replace;
+		}
+		return object.toString();
 	}
 
-	@SuppressWarnings("UnusedAssignment")
-	public static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os, int bufferSize){
-		if(is == null || os == null){
-			return false;
+	public static String removeNull(Object object){
+		if(object == null){
+			return "";
 		}
-		if(bufferSize < 8192){
-			bufferSize = 8192;
-		}
-		try {
-			try {
-				int progress;
-				byte[] buffer = new byte[bufferSize];
-				while((progress = is.read(buffer)) != -1){
-					os.write(buffer, 0, progress);
-				}
-				os.flush();
-			} finally {
-				os.close();
-				is.close();
-			}
-			return true;
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (OutOfMemoryError e) {
-			os = null;
-			is = null;
-			e.printStackTrace();
-		}
-		return false;
+		return object.toString();
 	}
 
-	public static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os){
-		return inputStreamWriteOutputStream(is, os, 1024 * 16);
-	}
-
-	public static boolean writeMemoryFile(String name, int length, boolean allowPurging, InputStream is, int bufferSize){
-		try {
-			MemoryFile memoryFile = new MemoryFile(name, length);
-			memoryFile.allowPurging(allowPurging);
-			boolean isSuccess = inputStreamWriteOutputStream(is, memoryFile.getOutputStream(), bufferSize);
-			memoryFile.close();
-			return isSuccess;
-		} catch (IOException e) {
-			e.printStackTrace();
+	public static String removeEmptyString(String original, String replace){
+		if(original == null || original.length() == 0){
+			return replace;
 		}
-		return false;
-	}
-
-	public static boolean writeMemoryFile(String name, int length, boolean allowPurging, InputStream is){
-		return writeMemoryFile(name, length, allowPurging, is, 1024 * 16);
-	}
-
-	public static byte[] readMemoryFile(String name, int length, int bufferSize){
-		try {
-			MemoryFile memoryFile = new MemoryFile(name, length);
-			byte[] bytes = inputStreamToByteArray(memoryFile.getInputStream(), bufferSize);
-			memoryFile.close();
-			return bytes;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public static byte[] readMemoryFile(String name, int length){
-		return readMemoryFile(name, length, 1024 * 16);
-	}
-
-	/**
-	 * android.permission.WRITE_EXTERNAL_STORAGE
-	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeSDCardFile(Context context, InputStream is, String directory, String fileName, int bufferSize, Handler handlerNoPermissions){
-		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-		// 確認sdCard是否掛載
-		if(!sdCardExist){
-			return false;
-		}
-		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
-			if(handlerNoPermissions != null){
-				Message message = handlerNoPermissions.obtainMessage();
-				message.obj = new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
-				handlerNoPermissions.sendMessage(message);
-			}
-			return false;
-		}
-
-		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-		// 取得sdCard路徑
-		File file = Environment.getExternalStorageDirectory();
-		String sdCardPath = file.toString() + File.separator;
-		if(directory.indexOf(sdCardPath) == 0){
-			sdCardPath = "";
-		}
-		file = new File(sdCardPath + directory);
-		if(!file.exists() && !file.mkdirs()){
-			System.out.println("directory cannot create");
-			return false;
-		}
-		file = new File(sdCardPath + directory + fileName);
-		try {
-			return inputStreamWriteOutputStream(is, new FileOutputStream(file, false), bufferSize);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	/**
-	 * android.permission.WRITE_EXTERNAL_STORAGE
-	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeSDCardFile(Context context, InputStream is, String directory, String fileName, Handler handlerNoPermissions){
-		return writeSDCardFile(context, is, directory, fileName, 1024 * 16, handlerNoPermissions);
-	}
-
-	/**
-	 * android.permission.READ_EXTERNAL_STORAGE
-	 */
-	public static byte[] readSDCardFile(Context context, String directory, String fileName, Handler handlerNoPermissions){
-		boolean sdCardExist = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-		// 確認sdCard是否掛載
-		if(!sdCardExist){
-			return null;
-		}
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN &&
-				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
-			if(handlerNoPermissions != null){
-				Message message = handlerNoPermissions.obtainMessage();
-				message.obj = new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE};
-				handlerNoPermissions.sendMessage(message);
-			}
-			return null;
-		}
-
-		// 取得sdCard路徑
-		// <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-		File file = Environment.getExternalStorageDirectory();
-		String sdCardPath = file.toString() + File.separator;
-		if(directory.indexOf(sdCardPath) == 0){
-			sdCardPath = "";
-		}
-		file = new File(sdCardPath + directory + fileName);
-		return fileToByteArray(file);
-	}
-
-	public static boolean copyUseFileChannel(String pathRead, String pathWrite, int bufferSize){
-		try {
-			File file = new File(pathRead);
-			FileInputStream fileInputStream = new FileInputStream(file);
-			file = new File(pathWrite);
-			FileOutputStream fileOutputStream = new FileOutputStream(file, false);
-			FileChannel fileChannelRead = fileInputStream.getChannel();
-			FileChannel fileChannelWrite = fileOutputStream.getChannel();
-
-			if(bufferSize < 8192){
-				bufferSize = 8192;
-			}
-			try {
-				ByteBuffer byteBuffer = ByteBuffer.allocate(bufferSize);
-				while(fileChannelRead.read(byteBuffer) != -1){
-					byteBuffer.flip();
-					fileChannelWrite.write(byteBuffer);
-					byteBuffer.clear();
-				}
-			} finally {
-				fileChannelWrite.close();
-				fileChannelRead.close();
-				fileOutputStream.close();
-				fileInputStream.close();
-			}
-
-			return file.isFile();
-		} catch (IOException | OutOfMemoryError e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	public static boolean copyUseRandomAccessFile(String pathRead, String pathWrite, int bufferSize){
-		try {
-			File file = new File(pathRead);
-			RandomAccessFile randomAccessFileRead = new RandomAccessFile(file, "r");
-			file = new File(pathWrite);
-			RandomAccessFile randomAccessFileWrite = new RandomAccessFile(file, "rw");
-			if(bufferSize < 8192){
-				bufferSize = 8192;
-			}
-			try {
-				byte[] buffer = new byte[bufferSize];
-				while(randomAccessFileRead.read(buffer) != -1){
-					randomAccessFileWrite.write(buffer);
-				}
-			} finally {
-				randomAccessFileWrite.close();
-				randomAccessFileRead.close();
-			}
-			return file.isFile();
-		} catch (IOException | OutOfMemoryError e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	public static boolean copyUseMappedByteBuffer(String pathRead, String pathWrite, long bufferSize){
-		try {
-			File file = new File(pathRead);
-			FileInputStream fileInputStream = new FileInputStream(file);
-			file = new File(pathWrite);
-			RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-			FileChannel fileChannelRead = fileInputStream.getChannel();
-			FileChannel fileChannelWrite = randomAccessFile.getChannel();
-
-			if(bufferSize < 8192){
-				bufferSize = 8192;
-			}
-			try {
-				long progress = 0;
-				MappedByteBuffer mappedByteBufferRead, mappedByteBufferWrite;
-				while(progress < fileChannelRead.size()){
-					if(fileChannelRead.size() - progress < bufferSize){
-						bufferSize = fileChannelRead.size() - progress;
-					}
-					mappedByteBufferRead = fileChannelRead.map(FileChannel.MapMode.READ_ONLY, progress, bufferSize);
-					mappedByteBufferWrite = fileChannelWrite.map(FileChannel.MapMode.READ_WRITE, progress, bufferSize);
-					mappedByteBufferWrite.put(mappedByteBufferRead);
-					progress = progress + bufferSize;
-					mappedByteBufferWrite.clear();
-					mappedByteBufferRead.clear();
-				}
-			} finally {
-				fileChannelWrite.close();
-				fileChannelRead.close();
-				randomAccessFile.close();
-				fileInputStream.close();
-			}
-
-			return file.isFile();
-		} catch (IOException | OutOfMemoryError e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
-
-	public static boolean fileCreate(File file, boolean targetIsFile, boolean isDeleteIncorrect){
-		if(file.exists()){
-			if(targetIsFile){
-				if(file.isFile()){
-					return true;
-				}
-				if(isDeleteIncorrect && file.canWrite() && file.delete()){
-					try {
-						return file.createNewFile();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}else{
-				if(file.isDirectory()){
-					return true;
-				}
-				if(isDeleteIncorrect && file.canWrite() && file.delete()){
-					return file.mkdirs();
-				}
-			}
-			return targetIsFile ? file.isFile() : file.isDirectory();
-		}
-
-		if(!file.getParentFile().exists() || !file.getParentFile().isDirectory()){
-			if(filePathLayersCheck(file.getParentFile(), isDeleteIncorrect)){
-				if(!file.getParentFile().mkdirs()){
-					return false;
-				}
-			}else{
-				return false;
-			}
-		}
-
-		if(targetIsFile){
-			try {
-				return file.createNewFile();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}else{
-			return file.mkdirs();
-		}
-		return false;
-	}
-
-	public static boolean filePathLayersCheck(File file, boolean isDeleteIncorrect){
-		if(file.exists()){
-			return file.isDirectory() ||
-					isDeleteIncorrect && file.canWrite() && file.delete() &&
-							(file.mkdirs() || filePathLayersCheck(file.getParentFile(), true));
-		}
-		return file.mkdirs() || filePathLayersCheck(file.getParentFile(), isDeleteIncorrect);
-	}
-
-	public static boolean fileDeleteAll(File file){
-		File[] fileArray = file.listFiles();
-		if(fileArray != null){
-			for(int i=0; i<fileArray.length; i++){
-				if(fileArray[i].isDirectory()){
-					fileDeleteAll(fileArray[i]);
-				}else if(!fileArray[i].delete()){
-					System.out.println("not delete file " + fileArray[i].getPath());
-				}
-			}
-		}
-		return file.delete();
+		return original;
 	}
 
 	public static String trimAndMergeLines(String string){
@@ -709,24 +216,6 @@ public class Utils {
 		return string;
 	}
 
-	public static Object removeNull(Object object, Object replace){
-		if(object == null){
-			object = replace;
-		}
-		return object;
-	}
-
-	public static String removeNull(Object object, String replace){
-		if(object == null || object.toString().length() == 0){
-			object = replace;
-		}
-		return object.toString();
-	}
-
-	public static String removeNull(Object object){
-		return removeNull(object, "");
-	}
-
 	public static String halfWidthToFullWidth(String text){
 		StringBuilder stringBuilder = new StringBuilder();
 		char word;
@@ -734,7 +223,7 @@ public class Utils {
 			word = text.charAt(i);
 			// 半形ASCII 33~126 與 全形ASCII 65281~65374 對應之 ASCII 皆相差 65248
 			if(word > 32 && word < 127){
-				word = (char)((int)word + 65248);
+				word = (char) ((int) word + 65248);
 			}
 			stringBuilder.append(word);
 		}
@@ -753,7 +242,7 @@ public class Utils {
 				case '\'': stringBuilder.append("&apos;"); break;
 				default:
 					if(c>0x7e) {
-						stringBuilder.append("&#").append((int)c).append(";");
+						stringBuilder.append("&#").append((int) c).append(";");
 					}else{
 						stringBuilder.append(c);
 					}
@@ -800,7 +289,7 @@ public class Utils {
 	}
 
 	public static String getStringSymbolCombine(String body, String sub, boolean isAllowRepeat){
-		return getStringSymbolCombine(body, sub, SP_MAP_DELIMITER, isAllowRepeat);
+		return getStringSymbolCombine(body, sub, IOUtils.SP_MAP_DELIMITER, isAllowRepeat);
 	}
 
 	public static String findStringTarget(String text, String target, String prefix, String suffix){
@@ -1168,59 +657,19 @@ public class Utils {
 		}
 	}
 
-	// 計算兩點距離API版
-	public static double getDistance1(double lat1, double lon1, double lat2, double lon2) {
-		float[] results=new float[1];
-		Location.distanceBetween(lat1, lon1, lat2, lon2, results);
-		return results[0];
-	}
-
-	// 計算兩點距離簡算版
-	public static double getDistance2(double lat1, double lon1, double lat2, double lon2) {
-		double theta = lon1 - lon2;
-		double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2))
-				+ Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+	/**
+	 * Can also be use API {@link Location#distanceBetween(double, double, double, double, float[])} like:<br>
+	 * Location.distanceBetween(latitude1, longitude1, latitude2, longitude2, results);<br>
+	 * return results[0];
+	 */
+	public static double getDistanceSimpleFromLatitudeAndLongitude(double latitude1, double longitude1, double latitude2, double longitude2) {
+		double theta = longitude1 - longitude2;
+		double dist = Math.sin(Math.toRadians(latitude1)) * Math.sin(Math.toRadians(latitude2))
+				+ Math.cos(Math.toRadians(latitude1)) * Math.cos(Math.toRadians(latitude2))
 				* Math.cos(Math.toRadians(theta));
 		dist = Math.acos(dist);
 		dist = Math.toDegrees(dist);
 		return dist * 60 * 1.1515;
-	}
-
-	public static float getSpacing(MotionEvent event) {
-		float x = event.getX(0) - event.getX(1);
-		float y = event.getY(0) - event.getY(1);
-		return (float)Math.sqrt(x * x + y * y);
-	}
-
-	public static float getRotate(MotionEvent event){
-		double x = event.getX(0) - event.getX(1);
-		double y = event.getY(0) - event.getY(1);
-		double radians = Math.atan2(y, x);
-		return (float)Math.toDegrees(radians);
-	}
-
-	public static void setMidPoint(PointF point, MotionEvent event) {
-		float x = event.getX(0) + event.getX(1);
-		float y = event.getY(0) + event.getY(1);
-		point.set(x / 2, y / 2);
-	}
-
-	public static float getRoundAngle(float centerX, float centerY, float pointX, float pointY, float angleOffset) {
-		// half round 180 angle, left to positive, right to negative
-		float angle = (float) Math.toDegrees(Math.atan2(centerX - pointX, centerY - pointY));
-		// full round angle, left increment
-		if(angle < 0){
-			angle += 360;
-		}
-		// change round angle, right increment
-		angle = 360 - angle;
-
-		// offset angle
-		angle += 360 - angleOffset;
-		if(angle >= 360){
-			angle -= 360;
-		}
-		return angle;
 	}
 
 	/**
@@ -1243,7 +692,7 @@ public class Utils {
 		try {
 			Process process = processBuilder.start();
 			if(isPrintResult){
-				System.out.println(Utils.inputStreamToString(process.getInputStream()));
+				System.out.println(IOUtils.inputStreamToString(process.getInputStream()));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -1260,7 +709,7 @@ public class Utils {
 		try {
 			Process process = processBuilder.start();
 			if(isPrintResult){
-				System.out.println(Utils.inputStreamToString(process.getInputStream()));
+				System.out.println(IOUtils.inputStreamToString(process.getInputStream()));
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -1274,7 +723,7 @@ public class Utils {
 			try {
 				Process process = processBuilder.start();
 				if(isPrintResult){
-					System.out.println(Utils.inputStreamToString(process.getInputStream()));
+					System.out.println(IOUtils.inputStreamToString(process.getInputStream()));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -1296,7 +745,7 @@ public class Utils {
 			try {
 				Process process = processBuilder.start();
 				if(isPrintResult){
-					System.out.println(Utils.inputStreamToString(process.getInputStream()));
+					System.out.println(IOUtils.inputStreamToString(process.getInputStream()));
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -1624,6 +1073,21 @@ public class Utils {
 		return "android.resource://" + context.getApplicationContext().getPackageName() + "/" + rawResourceId;
 	}
 
+	public static void clearWebViewCookie(Context context){
+		CookieManager cookieManager;
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+			cookieManager = CookieManager.getInstance();
+			cookieManager.removeAllCookies(null);
+			cookieManager.flush();
+		}else{
+			CookieSyncManager cookieSyncManager = CookieSyncManager.createInstance(context);
+			cookieSyncManager.startSync();
+			cookieManager = CookieManager.getInstance();
+			cookieManager.removeAllCookie();
+			cookieSyncManager.stopSync();
+		}
+	}
+
 	public static TypedValue getAttribute(Context context, int attrResource){
 		TypedValue typedValue = new TypedValue();
 		Theme theme = context.getTheme();
@@ -1655,543 +1119,6 @@ public class Utils {
 			}
 		}
 		return defInt;
-	}
-
-	public static int readStatusBarHeightFromSharedPreferences(SharedPreferences sharedPreferences){
-		return sharedPreferences.getInt(SP_KEY_STATUS_BAR_HEIGHT, 0);
-	}
-
-	public static int readStatusBarHeightFromSharedPreferences(Context context, String spName){
-		return readStatusBarHeightFromSharedPreferences(context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE));
-	}
-
-	public static void clearWebViewCookie(Context context){
-		CookieManager cookieManager;
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
-			cookieManager = CookieManager.getInstance();
-			cookieManager.removeAllCookies(null);
-			cookieManager.flush();
-		}else{
-			//noinspection deprecation
-			CookieSyncManager cookieSyncManager = CookieSyncManager.createInstance(context);
-			//noinspection deprecation
-			cookieSyncManager.startSync();
-			cookieManager = CookieManager.getInstance();
-			//noinspection deprecation
-			cookieManager.removeAllCookie();
-			//noinspection deprecation
-			cookieSyncManager.stopSync();
-		}
-	}
-
-	@SuppressLint("PrivateApi")
-	public static void setTextSizeFix(Context context, TextView textView, int unit, float textSize){
-		DisplayMetrics displayMetricsFromWindowManager = new DisplayMetrics();
-		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		if(windowManager == null){
-			textView.setTextSize(unit, textSize);
-			return;
-		}
-		windowManager.getDefaultDisplay().getMetrics(displayMetricsFromWindowManager);
-		DisplayMetrics displayMetricsFromResources = context.getResources().getDisplayMetrics();
-		if(displayMetricsFromWindowManager.scaledDensity == displayMetricsFromResources.scaledDensity){
-			textView.setTextSize(unit, textSize);
-			return;
-		}
-		// Reflection反射調用private方法
-		try {
-			Method method = textView.getClass().getDeclaredMethod("setRawTextSize", float.class);
-			method.setAccessible(true);
-			method.invoke(textView, TypedValue.applyDimension(unit, textSize, displayMetricsFromWindowManager));
-			method.setAccessible(false);
-		} catch (Exception e) {
-			float sizeRaw = TypedValue.applyDimension(unit, textSize, displayMetricsFromWindowManager);
-			if(sizeRaw == textView.getTextSize()){
-				return;
-			}
-			textView.getPaint().setTextSize(sizeRaw);
-			// Adjust layout
-			textView.setEllipsize(textView.getEllipsize());
-			e.printStackTrace();
-		}
-	}
-
-	public static void setTextSizeFix(Context context, TextView textView, float textSize){
-		setTextSizeFix(context, textView, TypedValue.COMPLEX_UNIT_SP, textSize);
-	}
-
-	public static float getTextSize(float textSize, boolean isBigScreen, float offsetSize){
-		if(isBigScreen){
-			textSize = textSize + offsetSize;
-		}
-		return textSize;
-	}
-
-	public static float getTextSize(float textSize, boolean isBigScreen){
-		return getTextSize(textSize, isBigScreen, 3);
-	}
-
-	/**
-	 * @param textView {@link TextView#getLayoutParams()}.{@link ViewGroup.LayoutParams#width} or {@link View#getWidth()} must have actual width value.
-	 */
-	public static float adjustSingleLineTextSizeFitWidth(Context context, TextView textView, String text){
-		int width = 0;
-		if(textView.getLayoutParams().width > 0){
-			width = textView.getLayoutParams().width;
-		}else if(textView.getWidth() > 0){
-			width = textView.getWidth();
-		}
-		if(width == 0){
-			return 0;
-		}
-
-		Paint paint = textView.getPaint();
-		int length = text.length();
-		int widthDiff = (int) (width - paint.measureText(text, 0, length));
-		if(widthDiff == 0){
-			return 0;
-		}
-		DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-		paint.setTextSize(paint.getTextSize() + (int) (widthDiff / displayMetrics.scaledDensity));
-		widthDiff = (int) (width - paint.measureText(text, 0, length));
-		paint.setTextSize(paint.getTextSize() + (int) (widthDiff / displayMetrics.scaledDensity));
-
-		while (paint.measureText(text, 0, length) < width) {
-			paint.setTextSize(paint.getTextSize() + 1);
-		}
-		while (paint.measureText(text, 0, length) > width) {
-			paint.setTextSize(paint.getTextSize() - 1);
-		}
-		// Adjust layout
-		textView.setEllipsize(textView.getEllipsize());
-		return paint.getTextSize();
-	}
-
-	public static float getTextWidths(Paint textViewPaint, String text){
-		/*
-		 * 1.
-		 * width = TextView.getPaint().measureText(text);
-		 * 
-		 * 2.
-		 * width = Layout.getDesiredWidth(text, textPaint);
-		 * 
-		 * 3.
-		 * width = new StaticLayout(text, textPaint, width, Alignment.ALIGN_NORMAL, 1.0f, 0.0f, true).getLineWidth(0);
-		 * 
-		 * 4.minimal bounds
-		 * Rect rect = new Rect();
-		 * paint.getTextBounds(text, 0, text.length(), rect);
-		 * width = rect.width();
-		 */
-
-		float width = 0;
-		if(TextUtils.isEmpty(text)){
-			return 0;
-		}
-
-		int length = text.length();
-		float[] widths = new float[length];
-		textViewPaint.getTextWidths(text, widths);
-		for(int i=0; i<length; i++){
-			width = width + (float)Math.ceil(widths[i]);
-		}
-		return width;
-	}
-
-	public static float getTextWidths(TextView textView, String text){
-		return getTextWidths(textView.getPaint(), text);
-	}
-
-	/**
-	 * Inaccurate, not recommended
-	 */
-	public static float getTextWidths(Context context, float textSize, String text){
-		DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-		Paint paint = new Paint();
-		paint.setTextSize(textSize * displayMetrics.scaledDensity);
-		return getTextWidths(paint, text);
-	}
-
-	public static float getTextBaselineY(Paint paint, int canvasHeight){
-		FontMetrics fontMetrics = paint.getFontMetrics();
-		return (canvasHeight + 0f) / 2 + (fontMetrics.descent - fontMetrics.ascent) / 2 - fontMetrics.descent;
-	}
-
-	public static float getTextStaticLayoutVerticalCenterOffsetY(Paint paint){
-		FontMetrics fontMetrics = paint.getFontMetrics();
-		return (fontMetrics.descent - fontMetrics.ascent) / 2 + fontMetrics.descent;
-	}
-
-	public static void setToast(Context context, CharSequence text, int gravity, int duration){
-		Toast toast = Toast.makeText(context, text, duration);
-		toast.setGravity(gravity, 0, 0);
-		toast.show();
-	}
-
-	public static void setToast(Context context, CharSequence text, int duration){
-		Toast toast = Toast.makeText(context.getApplicationContext(), text, duration);
-		toast.show();
-	}
-
-	public static void setToast(Context context, CharSequence text){
-		setToast(context, text, Toast.LENGTH_SHORT);
-	}
-
-	public static synchronized void changeSharedPreferences(SharedPreferences sp, SharedPreferences.Editor spEdit, String key, Object value, boolean toggleMode){
-		if(toggleMode && sp.contains(key)){
-			spEdit.remove(key);
-		}else if(value != null){
-			if(value instanceof Boolean){
-				spEdit.putBoolean(key, Boolean.parseBoolean(value.toString()));
-			}else if(value instanceof Integer){
-				spEdit.putInt(key, Integer.parseInt(value.toString()));
-			}else if(value instanceof Long){
-				spEdit.putLong(key, Long.parseLong(value.toString()));
-			}else if(value instanceof Float){
-				spEdit.putFloat(key, Float.parseFloat(value.toString()));
-			}else if(value instanceof String){
-				spEdit.putString(key, value.toString());
-			}
-		}
-	}
-
-	public static synchronized boolean writeSharedPreferencesCommitSync(SharedPreferences sp, String key, Object value, boolean toggleMode){
-		SharedPreferences.Editor spEdit = sp.edit();
-		changeSharedPreferences(sp, spEdit, key, value, toggleMode);
-		return spEdit.commit();
-	}
-
-	public static boolean writeSharedPreferencesCommitSync(Context context, String spName, String key, Object value, boolean toggleMode){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return writeSharedPreferencesCommitSync(sp, key, value, toggleMode);
-	}
-
-	public static boolean writeSharedPreferencesCommitSync(SharedPreferences sp, String key, Object value){
-		return writeSharedPreferencesCommitSync(sp, key, value, false);
-	}
-
-	public static boolean writeSharedPreferencesCommitSync(Context context, String spName, String key, Object value){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return writeSharedPreferencesCommitSync(sp, key, value, false);
-	}
-
-	public static synchronized void writeSharedPreferencesApplySync(SharedPreferences sp, String key, Object value, boolean toggleMode){
-		SharedPreferences.Editor spEdit = sp.edit();
-		changeSharedPreferences(sp, spEdit, key, value, toggleMode);
-		spEdit.apply();
-	}
-
-	public static void writeSharedPreferencesApplySync(Context context, String spName, String key, Object value, boolean toggleMode){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		writeSharedPreferencesApplySync(sp, key, value, toggleMode);
-	}
-
-	public static void writeSharedPreferencesApplySync(SharedPreferences sp, String key, Object value){
-		writeSharedPreferencesApplySync(sp, key, value, false);
-	}
-
-	public static void writeSharedPreferencesApplySync(Context context, String spName, String key, Object value){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		writeSharedPreferencesApplySync(sp, key, value, false);
-	}
-
-	public static void writeSharedPreferencesCommitAsync(final SharedPreferences sp, final String key, final Object value, final boolean toggleMode
-			, final Handler handler){
-		Thread thread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				boolean isSuccess = writeSharedPreferencesCommitSync(sp, key, value, toggleMode);
-				if(handler != null){
-					Message msg = new Message();
-					Bundle bundle = new Bundle();
-					bundle.putBoolean(key, isSuccess);
-					msg.what = 1;
-					msg.setData(bundle);
-					handler.sendMessage(msg);
-				}
-			}
-		});
-		thread.start();
-	}
-
-	public static void writeSharedPreferencesCommitAsync(Context context, String spName, String key, Object value, boolean toggleMode, Handler handler){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		writeSharedPreferencesCommitAsync(sp, key, value, toggleMode, handler);
-	}
-
-	public static void writeSharedPreferencesCommitAsync(SharedPreferences sp, String key, Object value, Handler handler){
-		writeSharedPreferencesCommitAsync(sp, key, value, false, handler);
-	}
-
-	public static void writeSharedPreferencesCommitAsync(Context context, String spName, String key, Object value, Handler handler){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		writeSharedPreferencesCommitAsync(sp, key, value, false, handler);
-	}
-
-	public static boolean removeSharedPreferencesCommitSync(SharedPreferences sp, String key){
-		return writeSharedPreferencesCommitSync(sp, key, null, true);
-	}
-
-	public static boolean removeSharedPreferencesCommitSync(Context context, String spName, String key){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return writeSharedPreferencesCommitSync(sp, key, null, true);
-	}
-
-	public static void removeSharedPreferencesCommitAsync(SharedPreferences sp, String key, Handler handler){
-		writeSharedPreferencesCommitAsync(sp, key, null, true, handler);
-	}
-
-	public static void removeSharedPreferencesCommitAsync(Context context, String spName, String key, Handler handler){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		writeSharedPreferencesCommitAsync(sp, key, null, true, handler);
-	}
-
-	public static boolean clearAndDeleteSharedPreferencesFile(Context context, String spName){
-		boolean isCommit = context.getSharedPreferences(spName, Context.MODE_PRIVATE).edit().clear().commit();
-		return new File(context.getFilesDir().getParent() + "/shared_prefs/" + spName + ".xml").delete() && isCommit;
-	}
-
-	public static boolean clearAndDeleteAllSharedPreferencesFile(Context context){
-		File fileDir = new File(context.getFilesDir().getParent() + "/shared_prefs/");
-		String[] filePaths = fileDir.list();
-		if(filePaths == null){
-			return false;
-		}
-		String fileName;
-		SharedPreferences.Editor spEdit;
-		File file;
-		Boolean isDeleteAll = null;
-		for(int i=0; i<filePaths.length; i++){
-			if(filePaths[i].lastIndexOf(".xml") < filePaths[i].length()){
-				fileName = filePaths[i].substring(0, filePaths[i].lastIndexOf(".xml"));
-				spEdit = context.getSharedPreferences(fileName, Context.MODE_PRIVATE).edit();
-				if(spEdit.clear().commit()){
-					isDeleteAll = isDeleteAll == null ? true : isDeleteAll;
-				}else{
-					isDeleteAll = false;
-					System.out.println("not commit shared preferences " + fileName);
-				}
-			}
-			file = new File(fileDir.getPath() + filePaths[i]);
-			if(file.delete()){
-				isDeleteAll = isDeleteAll == null ? true : isDeleteAll;
-			}else{
-				isDeleteAll = false;
-				System.out.println("not delete file " + file.getPath());
-			}
-		}
-		return isDeleteAll != null && isDeleteAll;
-	}
-
-	private static synchronized void changeSharedPreferencesMap(SharedPreferences sp, SharedPreferences.Editor spEdit, String mapSaveKey, Map<String, String> map
-			, boolean toggleMode){
-		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
-
-		String spOldKey = sp.getString(spMapHeadKey, "");
-		Set<String> setOldKey = new HashSet<String>();
-		if(!TextUtils.isEmpty(spOldKey)){
-			String[] spOldKeyArray = spOldKey.split(SP_MAP_DELIMITER);
-			Collections.addAll(setOldKey, spOldKeyArray);
-		}
-
-		Iterator<Entry<String, String>> iteratorEntry;
-		Entry<String, String> entry;
-		String spNewKey = null;
-		if(map != null){
-			spNewKey = "";
-			iteratorEntry = map.entrySet().iterator();
-			try {
-				while(iteratorEntry.hasNext()){
-					entry = iteratorEntry.next();
-
-					if(toggleMode && sp.contains(spMapHeadKey + entry.getKey())){
-						spEdit.remove(spMapHeadKey + entry.getKey());
-					}else{
-						spEdit.putString(spMapHeadKey + entry.getKey(), entry.getValue());
-						spNewKey = getStringSymbolCombine(spNewKey, entry.getKey(), SP_MAP_DELIMITER, false);
-					}
-					if(setOldKey.size() > 0){
-						setOldKey.remove(entry.getKey());
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		spEdit.putString(spMapHeadKey, spNewKey);
-
-		int size = setOldKey.size();
-		if(size > 0){
-			Iterator<String> iterator = setOldKey.iterator();
-			for(int i=0; i<size; i++){
-				spEdit.remove(spMapHeadKey + iterator.next());
-			}
-		}
-	}
-
-	public static synchronized boolean writeSharedPreferencesMapCommitSync(SharedPreferences sp, String mapSaveKey, Map<String, String> map, boolean toggleMode){
-		SharedPreferences.Editor spEdit = sp.edit();
-		changeSharedPreferencesMap(sp, spEdit, mapSaveKey, map, toggleMode);
-		return spEdit.commit();
-	}
-
-	public static boolean writeSharedPreferencesMapCommitSync(Context context, String spName, String mapSaveKey, Map<String, String> map
-			, boolean toggleMode){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, toggleMode);
-	}
-
-	public static boolean writeSharedPreferencesMapCommitSync(SharedPreferences sp, String mapSaveKey, Map<String, String> map){
-		return writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, false);
-	}
-
-	public static boolean writeSharedPreferencesMapCommitSync(Context context, String spName, String mapSaveKey, Map<String, String> map){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, false);
-	}
-
-	public static void writeSharedPreferencesMapCommitAsync(final SharedPreferences sp, final String mapSaveKey, final Map<String, String> map
-			, final boolean toggleMode, final Handler handler){
-		Thread thread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				boolean isSuccess = writeSharedPreferencesMapCommitSync(sp, mapSaveKey, map, toggleMode);
-				if(handler != null){
-					Message msg = new Message();
-					Bundle bundle = new Bundle();
-					bundle.putBoolean(mapSaveKey, isSuccess);
-					msg.what = 1;
-					msg.setData(bundle);
-					handler.sendMessage(msg);
-				}
-			}
-		});
-		thread.start();
-	}
-
-	public static void writeSharedPreferencesMapCommitAsync(Context context, String spName, String mapSaveKey, Map<String, String> map, boolean toggleMode
-			, Handler handler){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		writeSharedPreferencesMapCommitAsync(sp, mapSaveKey, map, toggleMode, handler);
-	}
-
-	public static void writeSharedPreferencesMapCommitAsync(SharedPreferences sp, String mapSaveKey, Map<String, String> map, Handler handler){
-		writeSharedPreferencesMapCommitAsync(sp, mapSaveKey, map, false, handler);
-	}
-
-	public static void writeSharedPreferencesMapCommitAsync(Context context, String spName, String mapSaveKey, Map<String, String> map, Handler handler){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		writeSharedPreferencesMapCommitAsync(sp, mapSaveKey, map, false, handler);
-	}
-
-	private static void removeSharedPreferencesMap(SharedPreferences sp, SharedPreferences.Editor spEdit, String mapSaveKey){
-		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
-
-		String spKey = sp.getString(spMapHeadKey, "");
-		if(!TextUtils.isEmpty(spKey)){
-			String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
-			for(int i=0; i<spKeyArray.length; i++){
-				spEdit.remove(spMapHeadKey + spKeyArray[i]);
-			}
-		}
-		spEdit.remove(spMapHeadKey);
-	}
-
-	public static synchronized boolean removeSharedPreferencesMapCommitSync(SharedPreferences sp, String mapSaveKey){
-		SharedPreferences.Editor spEdit = sp.edit();
-		removeSharedPreferencesMap(sp, spEdit, mapSaveKey);
-		return spEdit.commit();
-	}
-
-	public static boolean removeSharedPreferencesMapCommitSync(Context context, String spName, String mapSaveKey){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return removeSharedPreferencesMapCommitSync(sp, mapSaveKey);
-	}
-
-	public static void removeSharedPreferencesMapCommitAsync(final SharedPreferences sp, final String mapSaveKey, final Handler handler){
-		Thread thread = new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				boolean isSuccess = removeSharedPreferencesMapCommitSync(sp, mapSaveKey);
-				if(handler != null){
-					Message msg = new Message();
-					Bundle bundle = new Bundle();
-					bundle.putBoolean(mapSaveKey, isSuccess);
-					msg.what = 1;
-					msg.setData(bundle);
-					handler.sendMessage(msg);
-				}
-			}
-		});
-		thread.start();
-	}
-
-	public static void removeSharedPreferencesMapCommitAsync(Context context, String spName, String mapSaveKey, Handler handler){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		removeSharedPreferencesMapCommitAsync(sp, mapSaveKey, handler);
-	}
-
-	public static Map<String, String> readSharedPreferencesMapSync(SharedPreferences sp, String mapSaveKey){
-		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
-
-		String spKey = sp.getString(spMapHeadKey, "");
-		if(TextUtils.isEmpty(spKey)){
-			return new HashMap<String, String>();
-		}
-
-		String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
-		String spValue;
-		Map<String, String> map = new HashMap<String, String>(spKeyArray.length);
-		for(int i=0; i<spKeyArray.length; i++){
-			if(sp.contains(spMapHeadKey + spKeyArray[i])){
-				spValue = sp.getString(spMapHeadKey + spKeyArray[i], "");
-				if(spValue != null){
-					map.put(spKeyArray[i], spValue);
-				}
-			}
-		}
-		return map;
-	}
-
-	public static Map<String, String> readSharedPreferencesMapSync(Context context, String spName, String mapSaveKey){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return readSharedPreferencesMapSync(sp, mapSaveKey);
-	}
-
-	public static String readSharedPreferencesMapInItemSync(SharedPreferences sp, String mapSaveKey, int location){
-		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
-
-		String spKey = sp.getString(spMapHeadKey, "");
-		if(TextUtils.isEmpty(spKey)){
-			return null;
-		}
-
-		String[] spKeyArray = spKey.split(SP_MAP_DELIMITER);
-		return sp.getString(spMapHeadKey + spKeyArray[location], null);
-	}
-
-	public static String readSharedPreferencesMapInItemSync(Context context, String spName, String mapSaveKey, int location){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return readSharedPreferencesMapInItemSync(sp, mapSaveKey, location);
-	}
-
-	public static String readSharedPreferencesMapInItemSync(SharedPreferences sp, String mapSaveKey, String mapSaveItemKey){
-		final String spMapHeadKey = SP_MAP_HEAD + mapSaveKey;
-
-		String spKey = sp.getString(spMapHeadKey, "");
-		if(TextUtils.isEmpty(spKey)){
-			return null;
-		}
-
-		return sp.getString(spMapHeadKey + mapSaveItemKey, null);
-	}
-
-	public static String readSharedPreferencesMapInItemSync(Context context, String spName, String mapSaveKey, String mapSaveItemKey){
-		SharedPreferences sp = context.getApplicationContext().getSharedPreferences(spName, Context.MODE_PRIVATE);
-		return readSharedPreferencesMapInItemSync(sp, mapSaveKey, mapSaveItemKey);
 	}
 
 	/**
@@ -2237,7 +1164,6 @@ public class Utils {
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo == null || listResolveInfo.size() == 0){
-			setToast(context.getApplicationContext(), packageName + " Not installed");
 			Uri uri = Uri.parse("market://details?id=" + packageName);
 			intent = new Intent(Intent.ACTION_VIEW, uri);
 			return intent;
@@ -2343,6 +1269,21 @@ public class Utils {
 		return getLauncherIntent(new Intent(context, targetClass));
 	}
 
+	public static Intent getNextIntentFromTaskHistoryMigrate(Intent intent){
+		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+		return intent;
+	}
+
+	public static Intent getNextIntentFromTaskHistoryMigrate(String packageName, String className){
+		Intent intent = new Intent();
+		intent.setComponent(new ComponentName(packageName, className));
+		return getNextIntentFromTaskHistoryMigrate(intent);
+	}
+
+	public static Intent getNextIntentFromTaskHistoryMigrate(Context context, Class<? extends Activity> targetClass){
+		return getNextIntentFromTaskHistoryMigrate(new Intent(context, targetClass));
+	}
+
 	public static Intent getBackTaskIntent(Intent intent){
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -2359,21 +1300,21 @@ public class Utils {
 		return getBackTaskIntent(new Intent(context, targetClass));
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public static Intent getBackDifferentTaskIntent(Intent intent){
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
 		return intent;
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public static Intent getBackDifferentTaskIntent(String packageName, String className){
 		Intent intent = new Intent();
 		intent.setComponent(new ComponentName(packageName, className));
 		return getBackDifferentTaskIntent(intent);
 	}
 
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
 	public static Intent getBackDifferentTaskIntent(Context context, Class<? extends Activity> targetClass){
 		return getBackDifferentTaskIntent(new Intent(context, targetClass));
 	}
@@ -2450,6 +1391,31 @@ public class Utils {
 		return getImageCropIntent(uriSrc, uriDst, 0, 0, 0, 0, Bitmap.CompressFormat.PNG.toString(), false, false, returnData);
 	}
 
+	public static Activity getActivityFromViewContext(Context contextFromView){
+		while(contextFromView instanceof ContextWrapper){
+			if(contextFromView instanceof Activity){
+				return (Activity) contextFromView;
+			}
+			contextFromView = ((ContextWrapper) contextFromView).getBaseContext();
+		}
+		return null;
+	}
+
+	public static Activity getActivityFromView(View view){
+		Context contextFromView = view.getContext();
+		return Utils.getActivityFromViewContext(contextFromView);
+	}
+
+	public static void callNavigateUpTo(Activity activity){
+		String className = NavUtils.getParentActivityName(activity);
+		if(activity.getIntent().getAction() != null){
+			className = activity.getIntent().getAction();
+		}
+		if(className != null){
+			NavUtils.navigateUpTo(activity, getBackTaskIntent(activity.getPackageName(), className));
+		}
+	}
+
 	public static void finishAPP(Activity activity){
 		// Force kill process
 //		android.os.Process.killProcess(android.os.Process.myPid());
@@ -2469,98 +1435,126 @@ public class Utils {
 		return listResolveInfo == null ? 0 : listResolveInfo.size();
 	}
 
-	public static void callMatchApp(Context context, Intent intent, String failInfo){
+	public static int callMatchApp(Context context, Intent intent){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo == null || listResolveInfo.size() == 0){
-			setToast(context.getApplicationContext(), failInfo);
-			return;
+			return 0;
 		}
 		context.startActivity(intent);
+		return listResolveInfo.size();
 	}
 
-	private static void callMatchAppWaitResult(Object objectThis, Intent intent, String failInfo, int onActivityResultRequestCode){
+	private static int callMatchAppWaitResult(Object objectThis, Intent intent, int onActivityResultRequestCode){
+		int count;
+		Activity activity;
 		if(objectThis instanceof Activity){
-			Activity activity = (Activity) objectThis;
-			if(intentMatchAppCount(activity, intent) == 0){
-				setToast(activity.getApplicationContext(), failInfo);
-				return;
+			activity = (Activity) objectThis;
+			count = intentMatchAppCount(activity, intent);
+			if(count > 0){
+				activity.startActivityForResult(intent, onActivityResultRequestCode);
+				return count;
 			}
-			activity.startActivityForResult(intent, onActivityResultRequestCode);
+		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && objectThis instanceof android.app.Fragment){
+			android.app.Fragment fragment = (android.app.Fragment) objectThis;
+			activity = fragment.getActivity();
+			if(activity != null){
+				count = intentMatchAppCount(activity, intent);
+				if(count > 0){
+					fragment.startActivityForResult(intent, onActivityResultRequestCode);
+					return count;
+				}
+			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
-			if(fragmentActivity != null && intentMatchAppCount(fragmentActivity, intent) == 0){
-				setToast(fragmentActivity.getApplicationContext(), failInfo);
-				return;
+			if(fragmentActivity != null){
+				count = intentMatchAppCount(fragmentActivity, intent);
+				if(count > 0){
+					fragment.startActivityForResult(intent, onActivityResultRequestCode);
+					return count;
+				}
 			}
-			fragment.startActivityForResult(intent, onActivityResultRequestCode);
-		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && objectThis instanceof android.app.Fragment){
-			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			Activity activity = fragment.getActivity();
-			if(activity != null && intentMatchAppCount(activity, intent) == 0){
-				setToast(activity.getApplicationContext(), failInfo);
-				return;
+		}else if(objectThis instanceof Context){
+			activity = getActivityFromViewContext((Context) objectThis);
+			if(activity != null){
+				count = intentMatchAppCount(activity, intent);
+				if(count > 0){
+					activity.startActivityForResult(intent, onActivityResultRequestCode);
+					return count;
+				}
 			}
-			fragment.startActivityForResult(intent, onActivityResultRequestCode);
 		}
+		return -1;
 	}
 
-	public static void callMatchAppWaitResult(Activity activity, Intent intent, String failInfo, int onActivityResultRequestCode){
-		callMatchAppWaitResult((Object) activity, intent, failInfo, onActivityResultRequestCode);
+	public static int callMatchAppWaitResult(Activity activity, Intent intent, int onActivityResultRequestCode){
+		return callMatchAppWaitResult((Object) activity, intent, onActivityResultRequestCode);
 	}
 
-	public static void callMatchAppWaitResult(android.support.v4.app.Fragment fragment, Intent intent, String failInfo, int onActivityResultRequestCode){
-		callMatchAppWaitResult((Object) fragment, intent, failInfo, onActivityResultRequestCode);
+	public static int callMatchAppWaitResult(android.app.Fragment fragment, Intent intent, int onActivityResultRequestCode){
+		return callMatchAppWaitResult((Object) fragment, intent, onActivityResultRequestCode);
 	}
 
-	public static void callMatchAppWaitResult(android.app.Fragment fragment, Intent intent, String failInfo, int onActivityResultRequestCode){
-		callMatchAppWaitResult((Object) fragment, intent, failInfo, onActivityResultRequestCode);
+	public static int callMatchAppWaitResult(android.support.v4.app.Fragment fragment, Intent intent, int onActivityResultRequestCode){
+		return callMatchAppWaitResult((Object) fragment, intent, onActivityResultRequestCode);
+	}
+
+	public static int callMatchAppWaitResult(Context contextFromView, Intent intent, int onActivityResultRequestCode){
+		return callMatchAppWaitResult((Object) contextFromView, intent, onActivityResultRequestCode);
 	}
 
 	private static void callContentSelectionWaitResult(final Object objectThis, String intentType, boolean allowMultiple, final int onActivityResultRequestCode
-			, final String title, final String failInfo){
+			, final String title){
 		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				callMatchAppWaitResult(objectThis, title == null ? intent : Intent.createChooser(intent, title), failInfo, onActivityResultRequestCode);
+				callMatchAppWaitResult(objectThis, title == null ? intent : Intent.createChooser(intent, title), onActivityResultRequestCode);
 			}
 		}).start();
 	}
 
-	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onActivityResultRequestCode, String title
-			, String failInfo){
-		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, title, failInfo);
-	}
-
-	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode
-			, String title, String failInfo){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title, failInfo);
+	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onActivityResultRequestCode, String title){
+		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, title);
 	}
 
 	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode
-			, String title, String failInfo){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title, failInfo);
+			, String title){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title);
+	}
+
+	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onActivityResultRequestCode
+			, String title){
+		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onActivityResultRequestCode, title);
+	}
+
+	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode
+			, String title){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title);
 	}
 
 	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, null, "No application");
-	}
-
-	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null, "No application");
+		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, null);
 	}
 
 	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null, "No application");
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null);
 	}
 
-	public static void callAppStore(Context context, String packageName, String failInfo){
+	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null);
+	}
+
+	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
+		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onActivityResultRequestCode, null);
+	}
+
+	public static int callAppStore(Context context, String packageName){
 		Uri uri = Uri.parse("market://details?id=" + packageName);
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-		callMatchApp(context, intent, failInfo);
+		return callMatchApp(context, intent);
 	}
 
 	public static void callGoogleMapsNavigation(Context context, String sLatit, String sLongit, String dLatit, String dLongit){
@@ -2571,7 +1565,7 @@ public class Utils {
 		context.startActivity(intent);
 	}
 
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	@RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
 	public static void callAppSettings(Context context){
 		Uri packageUri = Uri.fromParts("package", context.getApplicationContext().getPackageName(), null);
 		/*
@@ -2689,27 +1683,15 @@ public class Utils {
 
 	// 設定螢幕亮度模式
 	/**
-	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
 	 * SCREEN_BRIGHTNESS_MODE_MANUAL = 0　為手動調節螢幕亮度
+	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
 	 * android.permission.WRITE_SETTINGS
 	 */
-	public static void setScreenBrightnessMode(Context context, int screenBrightnessMode){
+	public static void setScreenBrightnessMode(Context context, int screenBrightnessMode, int onActivityResultRequestCode){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
-	}
-
-	// 取得螢幕亮度模式
-	/**
-	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
-	 * SCREEN_BRIGHTNESS_MODE_MANUAL = 0　為手動調節螢幕亮度
-	 */
-	public static int getScreenBrightnessMode(Context context){
-		try {
-			return Settings.System.getInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE);
-		} catch (SettingNotFoundException e) {
-			e.printStackTrace();
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onActivityResultRequestCode)){
+			Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
 		}
-		return 0;
 	}
 
 	// 設定系統亮度
@@ -2717,14 +1699,11 @@ public class Utils {
 	 * brightness = 0 - 255
 	 * android.permission.WRITE_SETTINGS
 	 */
-	public static void setScreenBrightnessForSystem(Context context, int screenBrightness){
+	public static void setScreenBrightnessForSystem(Context context, int screenBrightness, int onActivityResultRequestCode){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
-	}
-
-	// 取得系統亮度
-	public static int getScreenBrightnessForSystem(Context context){
-		return Settings.System.getInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onActivityResultRequestCode)){
+			Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
+		}
 	}
 
 	// 設定目前亮度
@@ -2737,121 +1716,185 @@ public class Utils {
 		activity.getWindow().setAttributes(windowManagerLayoutParams);
 	}
 
+	// 設定螢幕觸摸點顯示開關狀態
+	/**
+	 * show_touches = 0 為不顯示觸摸點
+	 * show_touches = 1 為顯示觸摸點
+	 * android.permission.WRITE_SETTINGS
+	 */
+	public static void setTouchPointState(Context context, boolean isShow, int onActivityResultRequestCode){
+		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onActivityResultRequestCode)){
+			Settings.System.putInt(context.getApplicationContext().getContentResolver(), "show_touches", isShow ? 1 : 0);
+		}
+	}
+
+	// 取得螢幕亮度模式
+	/**
+	 * SCREEN_BRIGHTNESS_MODE_MANUAL = 0　為手動調節螢幕亮度
+	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
+	 */
+	public static int getScreenBrightnessMode(Context context){
+		return Settings.System.getInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, -1);
+	}
+
+	// 取得系統亮度
+	/**
+	 * brightness = 0 - 255
+	 */
+	public static int getScreenBrightnessForSystem(Context context){
+		return Settings.System.getInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, -1);
+	}
+
 	// 取得目前亮度
+	/**
+	 * brightness = 0 - 255
+	 */
 	public static int getScreenBrightnessForActivity(Activity activity){
 		WindowManager.LayoutParams windowManagerLayoutParams = activity.getWindow().getAttributes();
 		if(windowManagerLayoutParams.screenBrightness == WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE){
 			return getScreenBrightnessForSystem(activity);
 		}
-		return (int)(windowManagerLayoutParams.screenBrightness * 255.0f);
+		return (int) (windowManagerLayoutParams.screenBrightness * 255.0f);
 	}
 
+	// 取得螢幕觸摸點顯示開關狀態
 	/**
-	 * android.permission.WRITE_SETTINGS
+	 * show_touches = 0 為不顯示觸摸點
+	 * show_touches = 1 為顯示觸摸點
 	 */
-	public static void setTouchPointState(Context context, boolean isShow){
-		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		Settings.System.putInt(context.getApplicationContext().getContentResolver(), "show_touches", isShow ? 1 : 0);
-	}
-
 	public static int getTouchPointState(Context context){
-		try {
-			return Settings.System.getInt(context.getApplicationContext().getContentResolver(), "show_touches");
-		} catch (SettingNotFoundException e) {
-			e.printStackTrace();
-		}
-		return 0;
+		return Settings.System.getInt(context.getApplicationContext().getContentResolver(), "show_touches", -1);
 	}
 
-	@TargetApi(Build.VERSION_CODES.M)
+	@RequiresApi(api = Build.VERSION_CODES.M)
 	private static boolean checkWriteSettingsPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
+		Activity activity;
 		if(objectThis instanceof Activity){
-			Activity activity = (Activity) objectThis;
-			if(!Settings.System.canWrite(activity)){
+			activity = (Activity) objectThis;
+			if(Settings.System.canWrite(activity)){
+				return true;
+			}
+			Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			activity.startActivityForResult(intent, onActivityResultRequestCode);
+		}else if(objectThis instanceof android.app.Fragment){
+			android.app.Fragment fragment = (android.app.Fragment) objectThis;
+			activity = fragment.getActivity();
+			if(activity != null){
+				if(Settings.System.canWrite(activity)){
+					return true;
+				}
 				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				activity.startActivityForResult(intent, onActivityResultRequestCode);
-				return false;
+				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
-			if(fragmentActivity != null && !Settings.System.canWrite(fragmentActivity)){
+			if(fragmentActivity != null){
+				if(Settings.System.canWrite(fragmentActivity)){
+					return true;
+				}
 				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
-				return false;
 			}
-		}else if(objectThis instanceof android.app.Fragment){
-			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			Activity activity = fragment.getActivity();
-			if(activity != null && !Settings.System.canWrite(activity)){
+		}else if(objectThis instanceof Context){
+			activity = getActivityFromViewContext((Context) objectThis);
+			if(activity != null){
+				if(Settings.System.canWrite(activity)){
+					return true;
+				}
 				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				fragment.startActivityForResult(intent, onActivityResultRequestCode);
-				return false;
+				activity.startActivityForResult(intent, onActivityResultRequestCode);
 			}
 		}
-		return true;
+		return false;
 	}
 
-	@TargetApi(Build.VERSION_CODES.M)
+	@RequiresApi(api = Build.VERSION_CODES.M)
 	public static boolean checkWriteSettingsPermissionWaitResult(Activity activity, int onActivityResultRequestCode){
 		return checkWriteSettingsPermissionWaitResult((Object) activity, onActivityResultRequestCode);
 	}
 
-	@TargetApi(Build.VERSION_CODES.M)
-	public static boolean checkWriteSettingsPermissionWaitResult(android.support.v4.app.Fragment fragment, int onActivityResultRequestCode){
-		return checkWriteSettingsPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
-	}
-
-	@TargetApi(Build.VERSION_CODES.M)
+	@RequiresApi(api = Build.VERSION_CODES.M)
 	public static boolean checkWriteSettingsPermissionWaitResult(android.app.Fragment fragment, int onActivityResultRequestCode){
 		return checkWriteSettingsPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
 	}
 
-	@TargetApi(Build.VERSION_CODES.M)
+	@RequiresApi(api = Build.VERSION_CODES.M)
+	public static boolean checkWriteSettingsPermissionWaitResult(android.support.v4.app.Fragment fragment, int onActivityResultRequestCode){
+		return checkWriteSettingsPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.M)
+	public static boolean checkWriteSettingsPermissionWaitResult(Context contextFromView, int onActivityResultRequestCode){
+		return checkWriteSettingsPermissionWaitResult((Object) contextFromView, onActivityResultRequestCode);
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.M)
 	private static boolean checkSystemAlertOverlayPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
+		Activity activity;
 		if(objectThis instanceof Activity){
-			Activity activity = (Activity) objectThis;
-			if(!Settings.canDrawOverlays(activity)){
+			activity = (Activity) objectThis;
+			if(Settings.canDrawOverlays(activity)){
+				return true;
+			}
+			Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+			activity.startActivityForResult(intent, onActivityResultRequestCode);
+		}else if(objectThis instanceof android.app.Fragment){
+			android.app.Fragment fragment = (android.app.Fragment) objectThis;
+			activity = fragment.getActivity();
+			if(activity != null){
+				if(Settings.canDrawOverlays(activity)){
+					return true;
+				}
 				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
-				activity.startActivityForResult(intent, onActivityResultRequestCode);
-				return false;
+				fragment.startActivityForResult(intent, onActivityResultRequestCode);
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
 			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
-			if(fragmentActivity != null && !Settings.canDrawOverlays(fragmentActivity)){
+			if(fragmentActivity != null){
+				if(Settings.canDrawOverlays(fragmentActivity)){
+					return true;
+				}
 				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
 				fragment.startActivityForResult(intent, onActivityResultRequestCode);
-				return false;
 			}
-		}else if(objectThis instanceof android.app.Fragment){
-			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			Activity activity = fragment.getActivity();
-			if(activity != null && !Settings.canDrawOverlays(activity)){
+		}else if(objectThis instanceof Context){
+			activity = getActivityFromViewContext((Context) objectThis);
+			if(activity != null){
+				if(Settings.canDrawOverlays(activity)){
+					return true;
+				}
 				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
-				fragment.startActivityForResult(intent, onActivityResultRequestCode);
-				return false;
+				activity.startActivityForResult(intent, onActivityResultRequestCode);
 			}
 		}
-		return true;
+		return false;
 	}
 
-	@TargetApi(Build.VERSION_CODES.M)
+	@RequiresApi(api = Build.VERSION_CODES.M)
 	public static boolean checkSystemAlertOverlayPermissionWaitResult(Activity activity, int onActivityResultRequestCode){
 		return checkSystemAlertOverlayPermissionWaitResult((Object) activity, onActivityResultRequestCode);
 	}
 
-	@TargetApi(Build.VERSION_CODES.M)
+	@RequiresApi(api = Build.VERSION_CODES.M)
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.app.Fragment fragment, int onActivityResultRequestCode){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.M)
 	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.support.v4.app.Fragment fragment, int onActivityResultRequestCode){
 		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
 	}
 
-	@TargetApi(Build.VERSION_CODES.M)
-	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.app.Fragment fragment, int onActivityResultRequestCode){
-		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	@RequiresApi(api = Build.VERSION_CODES.M)
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(Context contextFromView, int onActivityResultRequestCode){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) contextFromView, onActivityResultRequestCode);
 	}
 
 	// 控制鍵盤開關
@@ -2994,8 +2037,9 @@ public class Utils {
 	 * {@link android.app.Fragment#onRequestPermissionsResult(int, String[], int[])}
 	 */
 	private static boolean requestPermissionsWaitResult(Object objectThis, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
+		Activity activity;
 		if(objectThis instanceof Activity){
-			Activity activity = (Activity) objectThis;
+			activity = (Activity) objectThis;
 			if(isCheckRequest){
 				permissions = checkNeedRequestPermissions(activity, permissions);
 			}
@@ -3003,27 +2047,44 @@ public class Utils {
 				ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
 				return true;
 			}
-		}else if(objectThis instanceof android.support.v4.app.Fragment){
-			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			if(isCheckRequest){
-				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
-			}
-			if(permissions != null && permissions.length > 0){
-				fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
-				return true;
-			}
 		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
-			if(isCheckRequest){
-				permissions = checkNeedRequestPermissions(fragment.getActivity(), permissions);
-			}
-			if(permissions != null && permissions.length > 0){
-				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-					fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
-				}else{
-					ActivityCompat.requestPermissions(fragment.getActivity(), permissions, onRequestPermissionsResultRequestCode);
+			activity = fragment.getActivity();
+			if(activity != null){
+				if(isCheckRequest){
+					permissions = checkNeedRequestPermissions(activity, permissions);
 				}
-				return true;
+				if(permissions != null && permissions.length > 0){
+					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+						fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+					}else{
+						ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+					}
+					return true;
+				}
+			}
+		}else if(objectThis instanceof android.support.v4.app.Fragment){
+			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
+			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+			if(fragmentActivity != null){
+				if(isCheckRequest){
+					permissions = checkNeedRequestPermissions(fragmentActivity, permissions);
+				}
+				if(permissions != null && permissions.length > 0){
+					fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+					return true;
+				}
+			}
+		}else if(objectThis instanceof Context){
+			activity = getActivityFromViewContext((Context) objectThis);
+			if(activity != null){
+				if(isCheckRequest){
+					permissions = checkNeedRequestPermissions(activity, permissions);
+				}
+				if(permissions != null && permissions.length > 0){
+					ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+					return true;
+				}
 			}
 		}
 		return false;
@@ -3033,13 +2094,17 @@ public class Utils {
 		return requestPermissionsWaitResult((Object) activity, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
 	}
 
+	public static boolean requestPermissionsWaitResult(android.app.Fragment fragment, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
+		return requestPermissionsWaitResult((Object) fragment, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+	}
+
 	public static boolean requestPermissionsWaitResult(android.support.v4.app.Fragment fragment, int onRequestPermissionsResultRequestCode, boolean isCheckRequest
 			, String...permissions){
 		return requestPermissionsWaitResult((Object) fragment, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
 	}
 
-	public static boolean requestPermissionsWaitResult(android.app.Fragment fragment, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
-		return requestPermissionsWaitResult((Object) fragment, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+	public static boolean requestPermissionsWaitResult(Context contextFromView, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
+		return requestPermissionsWaitResult((Object) contextFromView, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
 	}
 
 	public static boolean isMainThread(){
@@ -3126,7 +2191,6 @@ public class Utils {
 
 	// 判斷此Activity是否正在前端執行
 	/**@deprecated */
-	@SuppressWarnings("deprecation")
 	@RequiresPermission(android.Manifest.permission.GET_TASKS)
 	public static boolean isRunningTopActivity(Context context){
 		// <uses-permission android:name="android.permission.GET_TASKS"/>
@@ -3183,7 +2247,7 @@ public class Utils {
 	}
 
 	// Click Home key or App switch key
-	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	@RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
 	public static boolean isRunningAppOnKeep(Context context, String packageName){
 		return isRunningAppOnState(context, packageName, RunningAppProcessInfo.IMPORTANCE_PERCEPTIBLE);
 	}
@@ -3627,138 +2691,5 @@ public class Utils {
 		hashMap.put("phoneType", phoneType);
 
 		return hashMap;
-	}
-
-	public static void getViewGroupAllView(View view, List<View> list){
-		list.add(view);
-		if(view instanceof ViewGroup){
-			ViewGroup viewGroup = (ViewGroup)view;
-			View viewChild;
-			for(int i=0; i<viewGroup.getChildCount(); i++){
-				viewChild = viewGroup.getChildAt(i);
-				list.add(viewChild);
-				if(viewChild instanceof ViewGroup){
-					getViewGroupAllView(viewChild, list);
-				}
-			}
-		}
-	}
-
-	public static List<View> getViewGroupAllView(View view){
-		List<View> list = new ArrayList<View>();
-		getViewGroupAllView(view, list);
-		return list;
-	}
-
-	public static List<View> findViewByClass(View view, Class<?> targetClass, boolean isPrintClassName){
-		List<View> list = new ArrayList<View>();
-		List<View> listMatch = new ArrayList<View>();
-		getViewGroupAllView(view, list);
-		int size = list.size();
-		for(int i=0; i<size; i++){
-			if(isPrintClassName){
-				System.out.println(i + " " + list.get(i).getClass().getName());
-			}
-			if(targetClass.isInstance(list.get(i))){
-				listMatch.add(list.get(i));
-			}
-		}
-		list.clear();
-		return listMatch;
-	}
-
-	public static List<View> findViewByClass(View view, Class<?> targetClass){
-		return findViewByClass(view, targetClass, false);
-	}
-
-	public static void clearViewGroupInsideDrawable(ViewGroup viewGroup, boolean isIndicatesGC){
-		List<View> list = new ArrayList<View>();
-		getViewGroupAllView(viewGroup, list);
-		View view;
-		int size = list.size();
-		for(int i=size - 1; i>=0; i--){
-			view = list.get(i);
-			if(view != null){
-				clearViewInsideDrawable(view, true, true, false);
-				view.clearFocus();
-			}
-		}
-		list.clear();
-		if(isIndicatesGC){
-			System.gc();
-		}
-	}
-
-	public static void clearActivityInsideDrawable(Activity activity, boolean isIndicatesGC){
-		clearViewGroupInsideDrawable((ViewGroup)activity.getWindow().getDecorView(), isIndicatesGC);
-	}
-
-	public static void clearViewInsideDrawable(View view, boolean foreground, boolean background, boolean isIndicatesGC){
-		/*
-		Known Direct Subclasses
-		AnimatedVectorDrawable, BitmapDrawable, ClipDrawable, ColorDrawable, DrawableContainer, GradientDrawable, InsetDrawable, LayerDrawable
-		, NinePatchDrawable, PictureDrawable, RotateDrawable, RoundedBitmapDrawable, ScaleDrawable, ShapeDrawable, VectorDrawable
-		Known Indirect Subclasses
-		AnimatedStateListDrawable, AnimationDrawable, LevelListDrawable, PaintDrawable, RippleDrawable, StateListDrawable, TransitionDrawable
-		*/
-		if(foreground){
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-				clearDrawable(view.getForeground());
-			}else if(view instanceof FrameLayout){
-				//noinspection RedundantCast
-				clearDrawable(((FrameLayout) view).getForeground());
-			}
-			if(view instanceof ImageView){
-				clearDrawable(((ImageView)view).getDrawable());
-				((ImageView)view).setImageDrawable(null);
-			}else if(view instanceof TextView){
-				Drawable[] drawables = ((TextView)view).getCompoundDrawables();
-				((TextView)view).setCompoundDrawables(null, null, null, null);
-				for(int i=0; i<drawables.length; i++){
-					clearDrawable(drawables[i]);
-				}
-			}
-		}
-
-		if(background){
-			clearDrawable(view.getBackground());
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-				view.setBackground(null);
-			}else{
-				//noinspection deprecation
-				view.setBackgroundDrawable(null);
-			}
-		}
-
-		if(isIndicatesGC){
-			System.gc();
-		}
-	}
-
-	public static void clearDrawable(Drawable drawable){
-		if(drawable == null){
-			return;
-		}
-		BitmapDrawable bd;
-		if(drawable instanceof BitmapDrawable){
-			bd = (BitmapDrawable)drawable;
-			bd.setCallback(null);
-			recycleBitmap(bd.getBitmap(), false);
-		}else{
-			drawable.setCallback(null);
-		}
-	}
-
-	/**
-	 * @param isIndicatesGC Indicates to the VM that it would be a good time to run the garbage collector. Note that this is a hint only. There is no guarantee that the garbage collector will actually be run.
-	 */
-	public static void recycleBitmap(Bitmap bitmap, boolean isIndicatesGC){
-		if(bitmap == null){
-			return;
-		}
-		bitmap.recycle();
-		if(isIndicatesGC){
-			System.gc();
-		}
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.5
+ * @version 1.0.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -26,8 +26,6 @@ import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SocketUDP {
@@ -40,7 +38,6 @@ public class SocketUDP {
 	private DatagramSocket mDatagramSocket;
 	private DatagramPacket mDatagramPacketReceive;
 	private DatagramPacket mDatagramPacketSend;
-	private ReadWriteLock mReadWriteLock;
 	private InetAddress mInetAddressPacketRemote;
 	private int mPortPacketRemote;
 	private boolean mIsKeepReceive;
@@ -83,7 +80,6 @@ public class SocketUDP {
 	}
 
 	public SocketUDP(boolean isReuseAddress, @IntRange(from = 0, to = 65535) int portLocal){
-		mReadWriteLock = new ReentrantReadWriteLock();
 		try {
 			mDatagramSocket = new DatagramSocket(null);
 			mDatagramSocket.setReuseAddress(isReuseAddress);
@@ -101,7 +97,6 @@ public class SocketUDP {
 	 */
 	public SocketUDP(@IntRange(from = 0, to = 65535) final int portRangeMin, @IntRange(from = 0, to = 65535) final int portRangeMax, boolean isTryAsyncLoopBind
 			, final int...excludePort){
-		mReadWriteLock = new ReentrantReadWriteLock();
 		int randomPort = (int)(Math.random() * (portRangeMax - portRangeMin + 1)) + portRangeMin;
 		for(int i=0; i<excludePort.length; i++){
 			if(randomPort == excludePort[i]){
@@ -420,30 +415,22 @@ public class SocketUDP {
 		sendPacket(bytes, mInetAddressPacketRemote, mPortPacketRemote, sendCount, socketCallback);
 	}
 
-	public boolean isClosed(){
-		mReadWriteLock.readLock().lock();
-		boolean isClose = mDatagramSocket == null || mDatagramSocket.isClosed();
-		mReadWriteLock.readLock().unlock();
-		return isClose;
+	public synchronized boolean isClosed(){
+		return mDatagramSocket == null || mDatagramSocket.isClosed();
 	}
 
-	public void close(){
-		mReadWriteLock.writeLock().lock();
-		try {
-			if(mDatagramSocket != null){
-				if(!mDatagramSocket.isClosed()){
-					mDatagramSocket.close();
-				}
-				mDatagramSocket = null;
+	public synchronized void close(){
+		if(mDatagramSocket != null){
+			if(!mDatagramSocket.isClosed()){
+				mDatagramSocket.close();
 			}
-			if(mDatagramPacketReceive != null){
-				mDatagramPacketReceive = null;
-			}
-			if(mDatagramPacketSend != null){
-				mDatagramPacketSend = null;
-			}
-		} finally {
-			mReadWriteLock.writeLock().unlock();
+			mDatagramSocket = null;
+		}
+		if(mDatagramPacketReceive != null){
+			mDatagramPacketReceive = null;
+		}
+		if(mDatagramPacketSend != null){
+			mDatagramPacketSend = null;
 		}
 	}
 }

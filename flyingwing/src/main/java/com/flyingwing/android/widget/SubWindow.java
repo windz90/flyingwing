@@ -48,7 +48,8 @@ import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import com.flyingwing.android.R;
-import com.flyingwing.android.util.DisplayUtils;
+import com.flyingwing.android.view.DisplayUtils;
+import com.flyingwing.android.view.UIUtils;
 import com.flyingwing.android.util.Utils;
 
 import java.util.ArrayList;
@@ -264,18 +265,18 @@ public class SubWindow {
 		TextViewAttribute[] textViewAttributes = new TextViewAttribute[3];
 		textViewAttributes[0] = new TextViewAttribute();
 		textViewAttributes[0].setGravity(Gravity.CENTER_VERTICAL);
-		textViewAttributes[0].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+		textViewAttributes[0].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_SUBJECT, isBigScreen));
 		textViewAttributes[0].setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 		textViewAttributes[0].setEllipsize(TruncateAt.END);
 		textViewAttributes[0].setMaxLines(2);
 		textViewAttributes[1] = new TextViewAttribute();
 		textViewAttributes[1].setGravity(textViewAttributes[0].getGravity());
-		textViewAttributes[1].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
+		textViewAttributes[1].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_TITLE, isBigScreen));
 		textViewAttributes[1].setTypeface(textViewAttributes[0].getTypeface());
 		textViewAttributes[1].setEllipsize(textViewAttributes[0].getEllipsize());
 		textViewAttributes[1].setMaxLines(textViewAttributes[0].getMaxLines());
 		textViewAttributes[2] = new TextViewAttribute();
-		textViewAttributes[2].setTextSize(Utils.getTextSize(Utils.SIZE_TEXT, isBigScreen));
+		textViewAttributes[2].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_TEXT, isBigScreen));
 		popupMessage(context, anchorView, drawableBackground, isSetLocation, gravity, x, y, width, height, textViewAttributes, strArray, clickAction);
 	}
 
@@ -500,7 +501,7 @@ public class SubWindow {
 				}
 				String inputName = editText.getText().toString();
 				if(inputName.trim().length() < minLength || (inputName.length() > maxLength && maxLength > 0)){
-					Utils.setToast(context, res.getString(R.string.common_char_length_hint, "" + minLength, "" + maxLength));
+					UIUtils.setToastShort(context, res.getString(R.string.common_char_length_hint, "" + minLength, "" + maxLength));
 					return;
 				}
 				Bundle bundle = new Bundle();
@@ -514,9 +515,9 @@ public class SubWindow {
 					if(inputName.equals(excludeArray[i])){
 						if(excludeHintArray != null){
 							if(i < excludeHintArray.length && !TextUtils.isEmpty(excludeHintArray[i])){
-								Utils.setToast(context, excludeHintArray[i]);
+								UIUtils.setToastShort(context, excludeHintArray[i]);
 							}else if(excludeHintArray.length == 1 && !TextUtils.isEmpty(excludeHintArray[0])){
-								Utils.setToast(context, excludeHintArray[0]);
+								UIUtils.setToastShort(context, excludeHintArray[0]);
 							}
 						}
 						break;
@@ -612,7 +613,7 @@ public class SubWindow {
 		EditText editText = new EditText(context);
 		editText.setLayoutParams(linearLayoutParams);
 		editText.setGravity(Gravity.CENTER_VERTICAL);
-		editText.setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isFillScreenDip480));
+		editText.setTextSize(UIUtils.getTextSize(UIUtils.SIZE_SUBJECT, isFillScreenDip480));
 		editText.setInputType(inputType);
 		if(maxLines == 1){
 			editText.setSingleLine(true);
@@ -809,7 +810,7 @@ public class SubWindow {
 		textViewAttributes[0] = new TextViewAttribute();
 		textViewAttributes[0].setGravity(Gravity.CENTER);
 		textViewAttributes[0].setTextColor(ContextCompat.getColorStateList(context, R.color.selector_textcolor_item));
-		textViewAttributes[0].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+		textViewAttributes[0].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_SUBJECT, isBigScreen));
 		textViewAttributes[0].setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 		textViewAttributes[0].setEllipsize(TruncateAt.END);
 		textViewAttributes[0].setMaxLines(2);
@@ -869,10 +870,10 @@ public class SubWindow {
 			textViews[i].setGravity(Gravity.CENTER);
 			textViews[i].setTextColor(Color.BLACK);
 			if(i == 1){
-				textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
+				textViews[i].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_TITLE, isBigScreen));
 				textViews[i].getPaint().setFakeBoldText(true);
 			}else{
-				textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TEXT, isBigScreen));
+				textViews[i].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_TEXT, isBigScreen));
 			}
 			textViews[i].setEllipsize(TruncateAt.END);
 			textViews[i].setMaxLines(2);
@@ -929,7 +930,7 @@ public class SubWindow {
 			textViews[i].setLayoutParams(relLayPar);
 			textViews[i].setGravity(Gravity.CENTER);
 			textViews[i].setTextColor(Color.BLACK);
-			textViews[i].setTextSize(Utils.getTextSize(Utils.SIZE_TITLE, isBigScreen));
+			textViews[i].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_TITLE, isBigScreen));
 			textViews[i].getPaint().setFakeBoldText(true);
 			textViews[i].setEllipsize(TruncateAt.END);
 			textViews[i].setMaxLines(2);
@@ -1099,7 +1100,7 @@ public class SubWindow {
 		TextViewAttribute[] textViewAttributes = new TextViewAttribute[2];
 		textViewAttributes[0] = new TextViewAttribute();
 		textViewAttributes[0].setGravity(Gravity.CENTER_VERTICAL);
-		textViewAttributes[0].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+		textViewAttributes[0].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_SUBJECT, isBigScreen));
 		textViewAttributes[0].setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 		textViewAttributes[1] = new TextViewAttribute();
 		textViewAttributes[1].setGravity(Gravity.CENTER);
@@ -1124,7 +1125,7 @@ public class SubWindow {
 		TextViewAttribute[] textViewAttributes = new TextViewAttribute[2];
 		textViewAttributes[0] = new TextViewAttribute();
 		textViewAttributes[0].setGravity(Gravity.CENTER_VERTICAL);
-		textViewAttributes[0].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+		textViewAttributes[0].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_SUBJECT, isBigScreen));
 		textViewAttributes[0].setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 		textViewAttributes[1] = new TextViewAttribute();
 		textViewAttributes[1].setGravity(Gravity.CENTER);
@@ -1447,7 +1448,7 @@ public class SubWindow {
 		TextViewAttribute[] textViewAttributes = new TextViewAttribute[2];
 		textViewAttributes[0] = new TextViewAttribute();
 		textViewAttributes[0].setGravity(Gravity.CENTER);
-		textViewAttributes[0].setTextSize(Utils.getTextSize(Utils.SIZE_SUBJECT, isBigScreen));
+		textViewAttributes[0].setTextSize(UIUtils.getTextSize(UIUtils.SIZE_SUBJECT, isBigScreen));
 		textViewAttributes[0].setTypeface(Typeface.DEFAULT, Typeface.BOLD);
 		textViewAttributes[1] = new TextViewAttribute();
 		textViewAttributes[1].setGravity(textViewAttributes[0].getGravity());

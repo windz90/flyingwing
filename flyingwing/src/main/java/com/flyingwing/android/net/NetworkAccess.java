@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.6.3
+ * @version 3.6.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -10,7 +10,10 @@ package com.flyingwing.android.net;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
@@ -158,10 +161,18 @@ public class NetworkAccess {
 	}
 
 	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
-	public static boolean isAvailable(@NonNull Context context) {
+	public static boolean isAvailableByInternet(@NonNull Context context){
 		ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
 		if(connectivityManager == null){
 			return false;
+		}
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+			Network network = connectivityManager.getActiveNetwork();
+			if(network == null){
+				return false;
+			}
+			NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
+			return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
 		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
@@ -170,7 +181,7 @@ public class NetworkAccess {
 	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 	private static ConnectionResult getNetworkCheckConnectResult(@NonNull Context context){
 		ConnectionResult connectionResult = new ConnectionResult();
-		if(!isAvailable(context)){
+		if(!isAvailableByInternet(context)){
 			connectionResult.setStatusCode(CONNECTION_NO_NETWORK);
 			connectionResult.setStatusMessage("Connection check failed, no network connection");
 		}
@@ -1157,7 +1168,9 @@ public class NetworkAccess {
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
 			String pairs;
 			boolean isFirstPair = true;
-			printInfo("Request content:");
+			if(NETWORKSETTING.mIsPrintConnectionRequest){
+				printInfo("Request content:");
+			}
 			for(int i=0; i<contentArrays.length; i++){
 				contentArray = contentArrays[i];
 				if(contentArray == null || contentArray.length == 0 || contentArray[0] == null){
@@ -1199,7 +1212,9 @@ public class NetworkAccess {
 			String line;
 			httpURLConnection.setChunkedStreamingMode(chunkLength);
 			DataOutputStream dataOutputStream = new DataOutputStream(httpURLConnection.getOutputStream());
-			printInfo("Request content:");
+			if(NETWORKSETTING.mIsPrintConnectionRequest){
+				printInfo("Request content:");
+			}
 			for(int i=0; i<contentArrays.length; i++){
 				contentArray = contentArrays[i];
 				if(contentArray.length == 2 && contentArray[0] == null){
@@ -1507,28 +1522,28 @@ public class NetworkAccess {
 	}
 
 	@SuppressWarnings("UnusedAssignment")
-	private static byte[] inputStreamToByteArray(InputStream is, int bufferSize, ConnectionResult connectionResult){
-		if(is == null){
+	private static byte[] inputStreamToByteArray(InputStream inputStream, int bufferSize, ConnectionResult connectionResult){
+		if(inputStream == null){
 			return null;
 		}
-		byte[] byteArray = null;
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}
-		ByteArrayOutputStream baos;
+		ByteArrayOutputStream byteArrayOutputStream;
+		byte[] buffer, byteArray = null;
 		try {
-			baos = new ByteArrayOutputStream();
+			buffer = new byte[bufferSize];
+			byteArrayOutputStream = new ByteArrayOutputStream();
 			try {
 				int progress;
-				byte[] buffer = new byte[bufferSize];
-				while((progress = is.read(buffer)) != -1){
-					baos.write(buffer, 0, progress);
+				while((progress = inputStream.read(buffer)) != -1){
+					byteArrayOutputStream.write(buffer, 0, progress);
 				}
-				baos.flush();
-				byteArray = baos.toByteArray();
+				byteArrayOutputStream.flush();
+				byteArray = byteArrayOutputStream.toByteArray();
 			} finally {
-				baos.close();
-				is.close();
+				byteArrayOutputStream.close();
+				inputStream.close();
 			}
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
 				printInfo("read bytes, length " + byteArray.length);
@@ -1539,9 +1554,9 @@ public class NetworkAccess {
 				connectionResult.setStatusMessage("Connection loading failed, exception " + e);
 			}
 		} catch (OutOfMemoryError e) {
-			baos = null;
+			buffer = null;
+			byteArrayOutputStream = null;
 			byteArray = null;
-			is = null;
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, error " + e);
@@ -1551,30 +1566,31 @@ public class NetworkAccess {
 	}
 
 	@SuppressWarnings("UnusedAssignment")
-	public static String inputStreamToString(InputStream is, Charset charset, int bufferSize, ConnectionResult connectionResult){
-		if(is == null){
+	public static String inputStreamToString(InputStream inputStream, Charset charset, int bufferSize, ConnectionResult connectionResult){
+		if(inputStream == null){
 			return null;
 		}
 		if(charset == null){
 			charset = Charset.forName("ISO-8859-1");
-//			System.out.print("charset get fail, using default, ");
+//			System.out.println("charset get failed, using default charset " + charset.displayName());
 		}
 //		System.out.println("charset = " + charset.displayName());
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}
-		BufferedReader reader;
-		StringBuilder stringBuilder = new StringBuilder();// StringBuilder速度較快但不支援多執行緒同步
+		BufferedReader bufferedReader;
+		String line;
+		StringBuilder stringBuilder = null;
 		try {
-			reader = new BufferedReader(new InputStreamReader(is, charset), bufferSize);
+			bufferedReader = new BufferedReader(new InputStreamReader(inputStream, charset), bufferSize);
+			stringBuilder = new StringBuilder();// StringBuffer is thread safe, StringBuilder is faster but not thread safe.
 			try {
-				String line;
-				while((line = reader.readLine()) != null){
+				while((line = bufferedReader.readLine()) != null){
 					stringBuilder.append(line).append("\n");
 				}
 			} finally {
-				reader.close();
-				is.close();
+				bufferedReader.close();
+				inputStream.close();
 			}
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
 				printInfo("read string, length " + stringBuilder.length());
@@ -1587,8 +1603,8 @@ public class NetworkAccess {
 			}
 		} catch (OutOfMemoryError e) {
 			stringBuilder = null;
-			reader = null;
-			is = null;
+			line = null;
+			bufferedReader = null;
 			if(connectionResult != null){
 				connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 				connectionResult.setStatusMessage("Connection loading failed, error " + e);
@@ -1598,24 +1614,25 @@ public class NetworkAccess {
 	}
 
 	@SuppressWarnings("UnusedAssignment")
-	private static boolean inputStreamWriteOutputStream(InputStream is, OutputStream os, int bufferSize, ConnectionResult connectionResult){
-		if(is == null || os == null){
+	private static boolean inputStreamWriteOutputStream(InputStream inputStream, OutputStream outputStream, int bufferSize, ConnectionResult connectionResult){
+		if(inputStream == null || outputStream == null){
 			return false;
 		}
 		if(bufferSize < 8192){
 			bufferSize = 8192;
 		}
+		byte[] buffer;
 		try {
+			buffer = new byte[bufferSize];
 			try {
 				int progress;
-				byte[] buffer = new byte[bufferSize];
-				while((progress = is.read(buffer)) != -1){
-					os.write(buffer, 0, progress);
+				while((progress = inputStream.read(buffer)) != -1){
+					outputStream.write(buffer, 0, progress);
 				}
-				os.flush();
+				outputStream.flush();
 			} finally {
-				os.close();
-				is.close();
+				outputStream.close();
+				inputStream.close();
 			}
 			if(NetworkAccess.NETWORKSETTING.mIsPrintConnectionResponse){
 				printInfo("read stream and output");
@@ -1625,8 +1642,7 @@ public class NetworkAccess {
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, exception " + e);
 		} catch (OutOfMemoryError e) {
-			os = null;
-			is = null;
+			buffer = null;
 			connectionResult.setStatusCode(CONNECTION_LOAD_FAIL);
 			connectionResult.setStatusMessage("Connection loading failed, error " + e);
 		}
