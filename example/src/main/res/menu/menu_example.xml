@@ -2,10 +2,10 @@
 	<group
 		android:id="@+id/menuGroup">
 		<item
-			android:id="@+id/menu_flyingwing_setting"
+			android:id="@+id/menu_example_setting"
 			android:orderInCategory="1"
 			app:showAsAction="never"
 			android:icon="@android:drawable/ic_menu_preferences"
-			android:title=""/>
+			android:title="@string/common_setting"/>
 	</group>
 </menu>

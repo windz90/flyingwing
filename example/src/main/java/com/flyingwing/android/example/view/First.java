@@ -1,21 +1,20 @@
-package com.flyingwing.android.view;
+package com.flyingwing.android.example.view;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.support.multidex.BuildConfig;
 import android.view.Window;
 
-import com.flyingwing.android.Global;
 import com.flyingwing.android.R;
-import com.flyingwing.android.graphics.ImageProcessor;
+import com.flyingwing.android.example.BuildConfig;
+import com.flyingwing.android.example.Global;
 import com.flyingwing.android.net.NetworkAccess;
-import com.flyingwing.android.util.DisplayUtils;
-import com.flyingwing.android.util.DisplayUtils.MeasureCallback;
+import com.flyingwing.android.util.IOUtils;
 import com.flyingwing.android.util.Utils;
+import com.flyingwing.android.view.DisplayUtils;
+import com.flyingwing.android.view.DisplayUtils.MeasureCallback;
 import com.flyingwing.android.widget.CustomProgressDialog;
 
 public class First extends Activity {
@@ -42,14 +41,17 @@ public class First extends Activity {
 
 		NetworkAccess.setPrintConnectionUrl(BuildConfig.DEBUG);
 		NetworkAccess.setPrintConnectException(BuildConfig.DEBUG);
-		ImageProcessor.setPrintLoadStreamException(false);
+		NetworkAccess.setPrintConnectRequest(false);
+		NetworkAccess.setPrintConnectResponse(false);
 
 		DisplayUtils.measureUsableHeightWaitOnDraw(this, new MeasureCallback() {
 
 			@Override
 			public void completed(int statusBarHe, int usableHe) {
-				Utils.writeSharedPreferencesCommitAsync(First.this, Global.SP_NAME, Utils.SP_KEY_STATUS_BAR_HEIGHT, statusBarHe, null);
-				next();
+				IOUtils.writeSharedPreferencesCommitAsync(First.this, Global.SP_NAME, DisplayUtils.SP_KEY_STATUS_BAR_HEIGHT, statusBarHe, null);
+				CustomProgressDialog.dismissInstance();
+				startActivity(Utils.getNextIntentFromTaskHistoryMigrate(First.this, Main.class));
+				finish();
 			}
 		});
 
@@ -60,13 +62,5 @@ public class First extends Activity {
 	protected void onDestroy() {
 		CustomProgressDialog.dismissInstance();
 		super.onDestroy();
-	}
-
-	private void next(){
-		CustomProgressDialog.dismissInstance();
-		Intent intent = new Intent(this, Main.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-		startActivity(intent);
-		finish();
 	}
 }

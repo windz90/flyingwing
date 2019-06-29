@@ -1,1 +1,1 @@
-include ':flyingwing'
+include ':flyingwing', ':example'

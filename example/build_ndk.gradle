@@ -1,0 +1,124 @@
+apply plugin: 'com.android.application'
+
+android {
+	compileSdkVersion 28
+	buildToolsVersion "28.0.3"
+	signingConfigs {
+		release {
+			System.println("\n＊＊　　　　　～喝杯水休息一下～　　　　　＊＊")
+			System.println("＊＊　正在強迫懶惰的Ｇｒａｄｌｅ市民工作　＊＊\n")
+			// Keystore properties are set in gradle.properties
+//			storeFile file(KEYSTORE_FILE)
+//			storePassword KEYSTORE_PASSWORD
+//			keyAlias KEYSTORE_ALIAS
+//			keyPassword KEYSTORE_ALIAS_PASSWORD
+		}
+	}
+
+	defaultConfig {
+		applicationId "com.flyingwing.android.example"
+		manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/ic_launcher", appIconRound:"@drawable/ic_launcher_round"]
+		minSdkVersion 19
+		targetSdkVersion 28
+		versionCode 1
+		versionName "1.0"
+		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//		ndk {
+//			abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+//		}
+		externalNativeBuild {
+			cmake {
+				arguments "-DANDROID_TOOLCHAIN=clang",
+						"-DANDROID_STL=c++_static",
+						"-DANDROID_ARM_MODE=arm",
+						"-DANDROID_ARM_NEON=TRUE"
+				abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'//'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64', NDK r17 remove 'armeabi', 'mips', 'mips64'
+			}
+		}
+	}
+
+	externalNativeBuild {
+		cmake {
+			path "CMakeLists.txt"
+		}
+	}
+
+	splits {
+		abi {
+			enable true
+			reset()
+			include 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+			universalApk false // generate an additional APK that contains all the ABIs
+		}
+	}
+
+	buildTypes {
+		debug {
+			versionNameSuffix ".debug"
+			buildConfigField "boolean", "DEBUG_LOG", "true"
+			zipAlignEnabled false
+			minifyEnabled false
+			shrinkResources false
+			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+		}
+		alpha {
+			buildConfigField "boolean", "DEBUG_LOG", "true"
+			zipAlignEnabled true
+			minifyEnabled true
+			shrinkResources true
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
+		}
+		release {
+			buildConfigField "boolean", "DEBUG_LOG", "false"
+			zipAlignEnabled true
+			minifyEnabled true
+			shrinkResources true
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			signingConfig signingConfigs.release
+		}
+	}
+
+//	lintOptions {
+//		abortOnError false
+//		checkReleaseBuilds false
+//	}
+}
+
+dependencies {
+	implementation fileTree(include: ['*.jar'], dir: 'libs')
+	testImplementation 'junit:junit:4.12'
+	androidTestImplementation 'com.android.support.test:runner:1.0.2'
+	androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+	implementation 'com.android.support:appcompat-v7:28.0.0'
+	implementation project(':flyingwing')
+}
+
+configurations.all {
+	resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+		def requested = details.requested
+		if (requested.group == 'com.android.support') {
+			if (!requested.name.startsWith("multidex")) {
+				details.useVersion '28.0.0'
+			}
+		}
+	}
+}
+
+def keystorePropertiesFile = file('<keystore.properties>')
+def properties = new Properties()
+if (keystorePropertiesFile.canRead()) {
+	properties.load(new FileInputStream(keystorePropertiesFile))
+	if (properties != null) {
+		android.signingConfigs.release {
+			storeFile file(properties['KEYSTORE_FILE'])
+			storePassword properties['KEYSTORE_PASSWORD']
+			keyAlias properties['KEYSTORE_ALIAS']
+			keyPassword properties['KEYSTORE_ALIAS_PASSWORD']
+		}
+	} else {
+		println 'Properties in file \'keystore.properties\' not found!'
+	}
+} else {
+	println 'File \'keystore.properties\' not found!'
+}

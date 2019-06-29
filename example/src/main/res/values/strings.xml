@@ -1,0 +1,13 @@
+<resources>
+	<string name="app_name">FlyingwingExample</string>
+
+	<!--Deep Links-->
+	<string name="deep_links_scheme">deep_links_scheme_example</string>
+
+	<!--App Links-->
+	<string name="app_links_host">example.com</string>
+	<string name="app_links_path">/example/app_links</string>
+
+	<!-- Common -->
+	<string name="common_setting">Setting</string>
+</resources>

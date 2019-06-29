@@ -1,20 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 		  xmlns:tools="http://schemas.android.com/tools"
 		  package="com.flyingwing.android">
 
 	<!--Library minSdkVersion is 14-->
 	<uses-sdk tools:overrideLibrary="com.android.support:design:28.0.0"/>
-
-	<application>
-		<activity
-			android:name=".view.First"
-			android:configChanges="orientation|screenSize">
-		</activity>
-		<activity
-			android:name=".view.Main"
-			android:configChanges="orientation|screenSize"
-			android:launchMode="singleTask"/>
-	</application>
 
 </manifest>
