@@ -231,7 +231,6 @@ public class CustomTabView extends LinearLayout {
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 			mRelLay.setBackground(drawable);
 		}else{
-			//noinspection deprecation
 			mRelLay.setBackgroundDrawable(drawable);
 		}
 	}
@@ -248,7 +247,6 @@ public class CustomTabView extends LinearLayout {
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 			mRadioGroup.setBackground(drawable);
 		}else{
-			//noinspection deprecation
 			mRadioGroup.setBackgroundDrawable(drawable);
 		}
 	}
@@ -277,7 +275,6 @@ public class CustomTabView extends LinearLayout {
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 			mViewPager.setBackground(drawable);
 		}else{
-			//noinspection deprecation
 			mViewPager.setBackgroundDrawable(drawable);
 		}
 	}
@@ -323,21 +320,18 @@ public class CustomTabView extends LinearLayout {
 					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 						view.setBackground(mLeftDrawable);
 					}else{
-						//noinspection deprecation
 						view.setBackgroundDrawable(mLeftDrawable);
 					}
 				}else if(i == size-1){
 					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 						view.setBackground(mRightDrawable);
 					}else{
-						//noinspection deprecation
 						view.setBackgroundDrawable(mRightDrawable);
 					}
 				}else{
 					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 						view.setBackground(mMiddleDrawable);
 					}else{
-						//noinspection deprecation
 						view.setBackgroundDrawable(mMiddleDrawable);
 					}
 				}
@@ -346,7 +340,6 @@ public class CustomTabView extends LinearLayout {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 				mList.get(0)[0].setBackground(mMiddleDrawable);
 			}else{
-				//noinspection deprecation
 				mList.get(0)[0].setBackgroundDrawable(mMiddleDrawable);
 			}
 		}
@@ -415,21 +408,18 @@ public class CustomTabView extends LinearLayout {
 				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 					view.setBackground(mLeftDrawable);
 				}else{
-					//noinspection deprecation
 					view.setBackgroundDrawable(mLeftDrawable);
 				}
 			}else if(i == size-1){
 				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 					view.setBackground(mRightDrawable);
 				}else{
-					//noinspection deprecation
 					view.setBackgroundDrawable(mRightDrawable);
 				}
 			}else{
 				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 					view.setBackground(mMiddleDrawable);
 				}else{
-					//noinspection deprecation
 					view.setBackgroundDrawable(mMiddleDrawable);
 				}
 			}

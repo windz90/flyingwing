@@ -298,7 +298,6 @@ public class WindowService extends Service {
 				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 					contentView.getViewTreeObserver().removeOnGlobalLayoutListener(onGlobalLayoutListener);
 				}else{
-					//noinspection deprecation
 					contentView.getViewTreeObserver().removeGlobalOnLayoutListener(onGlobalLayoutListener);
 				}
 				mRelLayMask.setVisibility(View.INVISIBLE);

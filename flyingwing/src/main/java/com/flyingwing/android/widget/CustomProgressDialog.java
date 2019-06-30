@@ -32,10 +32,25 @@ public class CustomProgressDialog {
 		private static final CustomProgressDialog INSTANCE = new CustomProgressDialog();
 	}
 
+	public static CustomProgressDialog getInstance(Context context, String message){
+		if(StaticNestedClass.INSTANCE.getDialog() == null){
+			StaticNestedClass.INSTANCE.createDialog(context, message);
+		}else{
+			StaticNestedClass.INSTANCE.setMessage(message);
+		}
+		return StaticNestedClass.INSTANCE;
+	}
+
+	public static CustomProgressDialog getInstance(Context context){
+		return getInstance(context, null);
+	}
+
 	private Context mContext;
 	private Dialog mDialog;
 	private RelativeLayout mRelativeLayout;
 	private TextView mTextView;
+
+	public CustomProgressDialog(){}
 
 	public void createDialog(Context context, String message){
 		mContext = context;
@@ -219,19 +234,6 @@ public class CustomProgressDialog {
 			mDialog = null;
 			mContext = null;
 		}
-	}
-
-	public static CustomProgressDialog getInstance(Context context, String message){
-		if(StaticNestedClass.INSTANCE.getDialog() == null){
-			StaticNestedClass.INSTANCE.createDialog(context, message);
-		}else{
-			StaticNestedClass.INSTANCE.setMessage(message);
-		}
-		return StaticNestedClass.INSTANCE;
-	}
-
-	public static CustomProgressDialog getInstance(Context context){
-		return getInstance(context, null);
 	}
 
 	public static boolean hasInstanceDialog(){

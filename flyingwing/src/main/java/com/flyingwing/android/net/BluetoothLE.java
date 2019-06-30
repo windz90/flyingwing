@@ -34,10 +34,6 @@ import java.util.UUID;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BluetoothLE {
 
-	private static final class StaticNestedClass {
-		private static final BluetoothLE INSTANCE = new BluetoothLE();
-	}
-
 	public static final int STATE_NOT_SUPPORTED = -5300;
 	public static final int STATE_NOT_ENABLED = -5200;
 	public static final int STATE_DISCONNECTED = -5100;
@@ -72,6 +68,14 @@ public class BluetoothLE {
 	public static final int GATT_ON_READ_REMOTE_RSSI = 9;
 	public static final int GATT_ON_MTU_CHANGED = 10;
 
+	private static final class StaticNestedClass {
+		private static final BluetoothLE INSTANCE = new BluetoothLE();
+	}
+
+	public static BluetoothLE getInstance(){
+		return BluetoothLE.StaticNestedClass.INSTANCE;
+	}
+
 	private final String CONNECTION_TAG_DEFAULT = "put";
 
 	private ArrayMap<String, ArrayMap<String, BLEConnection>> mArrayMap2Connection;
@@ -80,10 +84,6 @@ public class BluetoothLE {
 	private BluetoothGattCallback mBluetoothGattCallbackInternal;
 	private int mReconnectCountMax = 2;
 	private int mRetryPeriodSeconds = 300;
-
-	public static BluetoothLE getInstance(){
-		return BluetoothLE.StaticNestedClass.INSTANCE;
-	}
 
 	public BluetoothLE(){}
 

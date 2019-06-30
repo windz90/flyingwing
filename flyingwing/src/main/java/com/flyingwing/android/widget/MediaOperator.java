@@ -272,7 +272,6 @@ public class MediaOperator {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 				((ImageButton)field.get(mMediaController)).setBackground(drawable);
 			}else{
-				//noinspection deprecation
 				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
 			}
 			field.setAccessible(false);
@@ -301,7 +300,6 @@ public class MediaOperator {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 				((ImageButton)field.get(mMediaController)).setBackground(drawable);
 			}else{
-				//noinspection deprecation
 				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
 			}
 			field.setAccessible(false);
@@ -330,7 +328,6 @@ public class MediaOperator {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 				((ImageButton)field.get(mMediaController)).setBackground(drawable);
 			}else{
-				//noinspection deprecation
 				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
 			}
 			field.setAccessible(false);
@@ -359,7 +356,6 @@ public class MediaOperator {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 				((ImageButton)field.get(mMediaController)).setBackground(drawable);
 			}else{
-				//noinspection deprecation
 				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
 			}
 			field.setAccessible(false);
@@ -388,7 +384,6 @@ public class MediaOperator {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 				((ImageButton)field.get(mMediaController)).setBackground(drawable);
 			}else{
-				//noinspection deprecation
 				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
 			}
 			field.setAccessible(false);
