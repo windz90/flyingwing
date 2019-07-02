@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.0.0
+ * @version 3.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -25,6 +25,17 @@ public class TransformationGestureDetector {
 		void onRotate(MotionEvent motionEvent, float angleDifference);
 
 		void onScale(MotionEvent motionEvent, float scaleFactor);
+	}
+
+	public static class SimpleOnTransformationGestureListener implements OnTransformationGestureListener {
+
+		public void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate){}
+
+		public void onTranslate(MotionEvent motionEvent, float xDifference, float yDifference, boolean isFling){}
+
+		public void onRotate(MotionEvent motionEvent, float angleDifference){}
+
+		public void onScale(MotionEvent motionEvent, float scaleFactor){}
 	}
 
 	private OnTransformationGestureListener mOnTransformationGestureListener;

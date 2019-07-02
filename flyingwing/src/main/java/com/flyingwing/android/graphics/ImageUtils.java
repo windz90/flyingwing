@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.0
+ * @version 4.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -8,6 +8,7 @@
 package com.flyingwing.android.graphics;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -38,6 +39,8 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,19 +49,46 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "WeakerAccess", "TryFinallyCanBeTryWithResources"})
 public class ImageUtils {
 
-	public static void writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, OutputStream outputStream){
-		bitmap.compress(compressFormat, quality, outputStream);
+	public static boolean writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, OutputStream outputStream){
+		return bitmap.compress(compressFormat, quality, outputStream);
 	}
 
-	public static void writeBitmapEncodeToPNG(Bitmap bitmap, int quality, OutputStream outputStream){
-		bitmap.compress(Bitmap.CompressFormat.PNG, quality, outputStream);
+	public static boolean writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, File file){
+		try {
+			return writeBitmapEncode(bitmap, compressFormat, quality, new FileOutputStream(file));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
-	public static void writeBitmapEncodeToJPEG(Bitmap bitmap, int quality, OutputStream outputStream){
-		bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+	public static boolean writeBitmapEncodeToPNG(Bitmap bitmap, int quality, OutputStream outputStream){
+		return bitmap.compress(Bitmap.CompressFormat.PNG, quality, outputStream);
+	}
+
+	public static boolean writeBitmapEncodeToPNG(Bitmap bitmap, int quality, File file){
+		try {
+			return writeBitmapEncodeToPNG(bitmap, quality, new FileOutputStream(file));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean writeBitmapEncodeToJPEG(Bitmap bitmap, int quality, OutputStream outputStream){
+		return bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+	}
+
+	public static boolean writeBitmapEncodeToJPEG(Bitmap bitmap, int quality, File file){
+		try {
+			return writeBitmapEncodeToJPEG(bitmap, quality, new FileOutputStream(file));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	/**
@@ -75,6 +105,25 @@ public class ImageUtils {
 	 */
 	public static @Nullable Bitmap readRawBitmap(Resources resources, int resourceId, int inSampleSize){
 		return readBitmapByNative(resources.openRawResource(resourceId), inSampleSize, Bitmap.Config.ARGB_8888);
+	}
+
+	/**
+	 * The file is located at APK [/res/raw/], file cannot exist in subdirectory.
+	 * In the past, maximum file size of raw directory was limited to 1MB.
+	 */
+	public static @Nullable Bitmap readRawBitmap(Resources resources, int resourceId, float targetSize){
+		int scale = 1;
+		try {
+			InputStream inputStream = resources.openRawResource(resourceId);
+			try {
+				scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
+			} finally {
+				inputStream.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return readBitmapByNative(resources.openRawResource(resourceId), scale, Bitmap.Config.ARGB_8888);
 	}
 
 	/**
@@ -97,6 +146,26 @@ public class ImageUtils {
 	 */
 	public static @Nullable Bitmap readAssetsBitmap(Context context, String imageName, int inSampleSize){
 		return readAssetsBitmap(context, imageName, inSampleSize, Bitmap.Config.ARGB_8888);
+	}
+
+	/**
+	 * The file is located at APK [/assets/], file can exist in subdirectory.
+	 * In the past, maximum file size of assets directory was limited to 1MB.
+	 */
+	public static @Nullable Bitmap readAssetsBitmap(Context context, String imageName, float targetSize){
+		AssetManager assetManager = context.getApplicationContext().getAssets();
+		int scale = 1;
+		try {
+			InputStream inputStream = assetManager.open(imageName);
+			try {
+				scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
+			} finally {
+				inputStream.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return readAssetsBitmap(context, imageName, scale, Bitmap.Config.ARGB_8888);
 	}
 
 	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream, int inSampleSize, Bitmap.Config config){
@@ -140,6 +209,18 @@ public class ImageUtils {
 			}
 		}
 		return bitmap;
+	}
+
+	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream, int inSampleSize){
+		return readBitmapByNative(inputStream, inSampleSize, Bitmap.Config.ARGB_8888);
+	}
+
+	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream, Bitmap.Config config){
+		return readBitmapByNative(inputStream, 1, config);
+	}
+
+	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream){
+		return readBitmapByNative(inputStream, 1, Bitmap.Config.ARGB_8888);
 	}
 
 	public static float[] readImageSize(InputStream inputStream){

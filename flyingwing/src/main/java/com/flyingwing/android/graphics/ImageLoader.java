@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.0
+ * @version 4.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -30,6 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -46,7 +47,7 @@ public class ImageLoader {
 	public interface OnLoadImageListener {
 		byte[] onHaveToRead(int flag, String strUrl);
 		void onHaveToWrite(String strUrl, Bitmap bitmap);
-		Bitmap onGenerateImage(byte[] bytes, float targetSize);
+		Bitmap onGenerateImage(InputStream inputStream, int inSampleSize);
 		void onObtainImage(int flag, String strUrl, Bitmap bitmap);
 	}
 
@@ -140,6 +141,11 @@ public class ImageLoader {
 		if(name == null || name.trim().length() == 0){
 			return;
 		}
+		try {
+			name = new String(MessageDigest.getInstance("MD5").digest(name.getBytes()));
+		} catch (NoSuchAlgorithmException e) {
+			if(mIsPrintException){e.printStackTrace();}
+		}
 		mImageBufferMap.put(name + IMAGE_SCALE_PREFIX + inSampleSize, new SoftReference<Bitmap>(bitmap));
 		String scale = mImageScaleMap.get(name);
 		if(TextUtils.isEmpty(scale)){
@@ -152,6 +158,11 @@ public class ImageLoader {
 	public Bitmap getBufferBitmap(String name, int inSampleSize){
 		if(name == null || name.trim().length() == 0){
 			return null;
+		}
+		try {
+			name = new String(MessageDigest.getInstance("MD5").digest(name.getBytes()));
+		} catch (NoSuchAlgorithmException e) {
+			if(mIsPrintException){e.printStackTrace();}
 		}
 		if(inSampleSize != -1 && mImageBufferMap.containsKey(name + IMAGE_SCALE_PREFIX + inSampleSize)){
 			// 取得Map暫存於記憶體中的圖片
@@ -166,6 +177,11 @@ public class ImageLoader {
 	public void deleteBufferBitmap(String name){
 		if(name == null || name.trim().length() == 0){
 			return;
+		}
+		try {
+			name = new String(MessageDigest.getInstance("MD5").digest(name.getBytes()));
+		} catch (NoSuchAlgorithmException e) {
+			if(mIsPrintException){e.printStackTrace();}
 		}
 		String scale = mImageScaleMap.get(name);
 		mImageScaleMap.remove(name);
@@ -200,6 +216,11 @@ public class ImageLoader {
 		if(name == null || name.trim().length() == 0){
 			return -1;
 		}
+		try {
+			name = new String(MessageDigest.getInstance("MD5").digest(name.getBytes()));
+		} catch (NoSuchAlgorithmException e) {
+			if(mIsPrintException){e.printStackTrace();}
+		}
 		String scale = mImageScaleMap.get(name);
 		if(scale == null || scale.trim().length() == 0){
 			return -1;
@@ -224,10 +245,11 @@ public class ImageLoader {
 		return -1;
 	}
 
-	public Bitmap getImageAsync(final String strUrl, final float targetSize, final ThreadPoolExecutor threadPoolExecutor){
+	public Bitmap getImageAsync(final String strUrl, final float targetSize, final ThreadPoolExecutor threadPoolExecutor, OnLoadImageListener onLoadImageListenerCase){
+		final OnLoadImageListener onLoadImageListener = onLoadImageListenerCase == null ? mOnLoadImageListener : onLoadImageListenerCase;
 		if(strUrl == null || strUrl.trim().length() == 0){
-			if(mOnLoadImageListener != null){
-				mOnLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
+			if(onLoadImageListener != null){
+				onLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
 			}
 			return null;
 		}
@@ -236,13 +258,10 @@ public class ImageLoader {
 
 			@Override
 			public boolean handleMessage(Message msg) {
-				if(mOnLoadImageListener == null){
-					return false;
-				}
 				if(msg.what == 0){
-					mOnLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
+					onLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
 				}else if(msg.what == 1){
-					mOnLoadImageListener.onObtainImage(FLAG_REMOTE, strUrl, (Bitmap) msg.obj);
+					onLoadImageListener.onObtainImage(FLAG_REMOTE, strUrl, (Bitmap) msg.obj);
 				}
 				return false;
 			}
@@ -253,16 +272,24 @@ public class ImageLoader {
 			public void run() {
 				Bitmap bitmap = null;
 				try {
-					byte[] bytes = mOnLoadImageListener.onHaveToRead(FLAG_REMOTE, strUrl);
+					byte[] bytes = onLoadImageListener.onHaveToRead(FLAG_REMOTE, strUrl);
 					InputStream inputStream = new ByteArrayInputStream(bytes);
 					int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
-					bitmap = mOnLoadImageListener.onGenerateImage(bytes, mBufferSize);
+					try {
+						inputStream.reset();
+					} catch (IOException e1) {
+						try {
+							inputStream.close();
+						} catch (Exception ignored) {}
+						inputStream = new ByteArrayInputStream(bytes);
+						e1.printStackTrace();
+					}
+					bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
 
 					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
-					String name = new String(MessageDigest.getInstance("MD5").digest(strUrl.getBytes()));
-					setBufferBitmap(bitmap, name, scale);
+					setBufferBitmap(bitmap, strUrl, scale);
 					// 將下載的圖片儲存於本地端
-					mOnLoadImageListener.onHaveToWrite(strUrl, bitmap);
+					onLoadImageListener.onHaveToWrite(strUrl, bitmap);
 				} catch (Exception e) {
 					if(mIsPrintException){e.printStackTrace();}
 				}
@@ -280,7 +307,6 @@ public class ImageLoader {
 
 		Handler handlerNeedConnection = new Handler(new Handler.Callback() {
 
-			@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 			@Override
 			public boolean handleMessage(Message msg) {
 				if(threadPoolExecutor == null){
@@ -291,42 +317,47 @@ public class ImageLoader {
 				return false;
 			}
 		});
-		return getImageAsyncLocalOnly(strUrl, targetSize, handlerNeedConnection);
+		return getImageAsyncLocalOnly(strUrl, targetSize, handlerNeedConnection, onLoadImageListenerCase);
+	}
+
+	public Bitmap getImageAsync(String strUrl, float targetSize, OnLoadImageListener onLoadImageListener){
+		return getImageAsync(strUrl, targetSize, null, onLoadImageListener);
+	}
+
+	public Bitmap getImageAsync(final String strUrl, final float targetSize, final ThreadPoolExecutor threadPoolExecutor){
+		return getImageAsync(strUrl, targetSize, threadPoolExecutor, null);
 	}
 
 	public Bitmap getImageAsync(String strUrl, float targetSize){
-		return getImageAsync(strUrl, targetSize, null);
+		return getImageAsync(strUrl, targetSize, null, null);
 	}
 
-	public Bitmap getImageAsyncLocalOnly(final String strUrl, final float targetSize, final Handler handlerNotFound){
-		if(strUrl == null || strUrl.trim().length() == 0){
-			if(mOnLoadImageListener != null){
-				mOnLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
+	public Bitmap getImageAsyncLocalOnly(final String imageName, final float targetSize, final Handler handlerNotFound, OnLoadImageListener onLoadImageListenerCase){
+		final OnLoadImageListener onLoadImageListener = onLoadImageListenerCase == null ? mOnLoadImageListener : onLoadImageListenerCase;
+		if(imageName == null || imageName.trim().length() == 0){
+			if(onLoadImageListener != null){
+				onLoadImageListener.onObtainImage(FLAG_FAIL, imageName, null);
 			}
 			return null;
 		}
 
-		try {
-			String name = new String(MessageDigest.getInstance("MD5").digest(strUrl.getBytes()));
-			Bitmap bitmap = getBufferBitmap(name, getBufferSample(name, targetSize));
-			// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
-			if(bitmap != null){
-				if(mOnLoadImageListener != null){
-					mOnLoadImageListener.onObtainImage(FLAG_CACHE, strUrl, bitmap);
-				}
-				return bitmap;
+		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
+		Bitmap bitmap = getBufferBitmap(imageName, getBufferSample(imageName, targetSize));
+		if(bitmap != null){
+			if(onLoadImageListener != null){
+				onLoadImageListener.onObtainImage(FLAG_CACHE, imageName, bitmap);
 			}
-		} catch (Exception e) {
-			if(mIsPrintException){e.printStackTrace();}
+			return bitmap;
+		}
+		if(onLoadImageListener == null){
+			return null;
 		}
 
 		final Handler handlerStorageRead = new Handler(new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(Message msg) {
-				if(mOnLoadImageListener != null){
-					mOnLoadImageListener.onObtainImage(FLAG_LOCAL, strUrl, (Bitmap) msg.obj);
-				}
+				onLoadImageListener.onObtainImage(FLAG_LOCAL, imageName, (Bitmap) msg.obj);
 				return false;
 			}
 		});
@@ -334,17 +365,21 @@ public class ImageLoader {
 
 			@Override
 			public void run() {
-				byte[] bytes = mOnLoadImageListener.onHaveToRead(FLAG_LOCAL, strUrl);
+				byte[] bytes = onLoadImageListener.onHaveToRead(FLAG_LOCAL, imageName);
 				InputStream inputStream = new ByteArrayInputStream(bytes);
 				int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
-				Bitmap bitmap = mOnLoadImageListener.onGenerateImage(bytes, targetSize);
-				try{
-					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
-					String name = new String(MessageDigest.getInstance("MD5").digest(strUrl.getBytes()));
-					setBufferBitmap(bitmap, name, scale);
-				} catch (Exception e) {
-					if(mIsPrintException){e.printStackTrace();}
+				try {
+					inputStream.reset();
+				} catch (IOException e1) {
+					try {
+						inputStream.close();
+					} catch (Exception ignored) {}
+					inputStream = new ByteArrayInputStream(bytes);
+					e1.printStackTrace();
 				}
+				Bitmap bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
+				// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
+				setBufferBitmap(bitmap, imageName, scale);
 
 				// 若此圖片已儲存在本地端，則回傳圖片
 				if(bitmap != null){
@@ -360,36 +395,39 @@ public class ImageLoader {
 		return null;
 	}
 
-	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
-	public Bitmap getImageAsyncRemoteOnly(final String strUrl, final float targetSize, final ThreadPoolExecutor threadPoolExecutor){
+	public Bitmap getImageAsyncLocalOnly(final String strUrl, final float targetSize, final Handler handlerNotFound){
+		return getImageAsyncLocalOnly(strUrl, targetSize, handlerNotFound, null);
+	}
+
+	public Bitmap getImageAsyncRemoteOnly(final String strUrl, final float targetSize, ThreadPoolExecutor threadPoolExecutor, OnLoadImageListener onLoadImageListenerCase){
+		final OnLoadImageListener onLoadImageListener = onLoadImageListenerCase == null ? mOnLoadImageListener : onLoadImageListenerCase;
 		if(strUrl == null || strUrl.trim().length() == 0){
-			if(mOnLoadImageListener != null){
-				mOnLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
+			if(onLoadImageListener != null){
+				onLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
 			}
 			return null;
 		}
 
-		Bitmap bitmap = getBufferBitmap(strUrl, getBufferSample(strUrl, targetSize));
 		// 若軟引用內的圖片尚未被GC回收，則直接回傳圖片
+		Bitmap bitmap = getBufferBitmap(strUrl, getBufferSample(strUrl, targetSize));
 		if(bitmap != null){
-			if(mOnLoadImageListener != null){
-				mOnLoadImageListener.onObtainImage(FLAG_CACHE, strUrl, bitmap);
+			if(onLoadImageListener != null){
+				onLoadImageListener.onObtainImage(FLAG_CACHE, strUrl, bitmap);
 			}
 			return bitmap;
+		}
+		if(onLoadImageListener == null){
+			return null;
 		}
 
 		final Handler handlerConnectionRead = new Handler(new Handler.Callback() {
 
-			@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
 			@Override
 			public boolean handleMessage(Message msg) {
-				if(mOnLoadImageListener == null){
-					return false;
-				}
 				if(msg.what == 0){
-					mOnLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
+					onLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
 				}else if(msg.what == 1){
-					mOnLoadImageListener.onObtainImage(FLAG_REMOTE, strUrl, (Bitmap) msg.obj);
+					onLoadImageListener.onObtainImage(FLAG_REMOTE, strUrl, (Bitmap) msg.obj);
 				}
 				return false;
 			}
@@ -400,13 +438,21 @@ public class ImageLoader {
 			public void run() {
 				Bitmap bitmap = null;
 				try {
-					byte[] bytes = mOnLoadImageListener.onHaveToRead(FLAG_REMOTE, strUrl);
+					byte[] bytes = onLoadImageListener.onHaveToRead(FLAG_REMOTE, strUrl);
 					InputStream inputStream = new ByteArrayInputStream(bytes);
 					int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
-					bitmap = mOnLoadImageListener.onGenerateImage(bytes, mBufferSize);
+					try {
+						inputStream.reset();
+					} catch (IOException e1) {
+						try {
+							inputStream.close();
+						} catch (Exception ignored) {}
+						inputStream = new ByteArrayInputStream(bytes);
+						e1.printStackTrace();
+					}
+					bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
 
 					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
-					String name = new String(MessageDigest.getInstance("MD5").digest(strUrl.getBytes()));
 					setBufferBitmap(bitmap, strUrl, scale);
 				} catch (Exception e) {
 					if(mIsPrintException){e.printStackTrace();}
@@ -431,9 +477,16 @@ public class ImageLoader {
 		return null;
 	}
 
-	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
+	public Bitmap getImageAsyncRemoteOnly(String strUrl, float targetSize, OnLoadImageListener onLoadImageListener){
+		return getImageAsyncRemoteOnly(strUrl, targetSize, null, onLoadImageListener);
+	}
+
+	public Bitmap getImageAsyncRemoteOnly(final String strUrl, final float targetSize, final ThreadPoolExecutor threadPoolExecutor){
+		return getImageAsyncRemoteOnly(strUrl, targetSize, threadPoolExecutor, null);
+	}
+
 	public Bitmap getImageAsyncRemoteOnly(String strUrl, float targetSize){
-		return getImageAsyncRemoteOnly(strUrl, targetSize, null);
+		return getImageAsyncRemoteOnly(strUrl, targetSize, null, null);
 	}
 
 	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)

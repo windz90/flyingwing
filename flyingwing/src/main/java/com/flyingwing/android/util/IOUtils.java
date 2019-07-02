@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.0
+ * @version 4.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -447,7 +447,14 @@ public class IOUtils {
 	/**
 	 * The file is located at [/data/data/packageName/files/], file cannot exist in subdirectory.
 	 */
-	public static @Nullable InputStream getReadFileFromInternalAppOperatingMode(Context context, String fileName){
+	public static @Nullable OutputStream getWriteFileFromInternalAppPrivateMode(Context context, String fileName){
+		return getWriteFileFromInternalAppOperatingMode(context, fileName, Context.MODE_PRIVATE);
+	}
+
+	/**
+	 * The file is located at [/data/data/packageName/files/], file cannot exist in subdirectory.
+	 */
+	public static @Nullable InputStream getReadFileFromInternalApp(Context context, String fileName){
 		fileName = fileName.replace(File.separator, "_");
 		try {
 			return context.getApplicationContext().openFileInput(fileName);
@@ -478,22 +485,22 @@ public class IOUtils {
 	/**
 	 * The file is located at [/data/data/packageName/files/], file cannot exist in subdirectory.
 	 */
-	public static boolean writeFileFromInternalAppPrivate(Context context, InputStream inputStream, String fileName, int bufferSize){
+	public static boolean writeFileFromInternalAppPrivateMode(Context context, InputStream inputStream, String fileName, int bufferSize){
 		return writeFileFromInternalAppOperatingMode(context, inputStream, fileName, Context.MODE_PRIVATE, bufferSize);
 	}
 
 	/**
 	 * The file is located at [/data/data/packageName/files/], file cannot exist in subdirectory.
 	 */
-	public static boolean writeFileFromInternalAppPrivate(Context context, InputStream inputStream, String fileName){
+	public static boolean writeFileFromInternalAppPrivateMode(Context context, InputStream inputStream, String fileName){
 		return writeFileFromInternalAppOperatingMode(context, inputStream, fileName, Context.MODE_PRIVATE, IO_BUFFER_SIZE);
 	}
 
 	/**
 	 * The file is located at [/data/data/packageName/files/], file cannot exist in subdirectory.
 	 */
-	public static @Nullable byte[] readFileFromInternalAppOperatingMode(Context context, String fileName, int bufferSize){
-		InputStream inputStream = getReadFileFromInternalAppOperatingMode(context, fileName);
+	public static @Nullable byte[] readFileFromInternalApp(Context context, String fileName, int bufferSize){
+		InputStream inputStream = getReadFileFromInternalApp(context, fileName);
 		if(inputStream == null){
 			return null;
 		}
@@ -503,14 +510,14 @@ public class IOUtils {
 	/**
 	 * The file is located at [/data/data/packageName/files/], file cannot exist in subdirectory.
 	 */
-	public static @Nullable byte[] readFileFromInternalAppOperatingMode(Context context, String fileName){
-		return readFileFromInternalAppOperatingMode(context, fileName, IO_BUFFER_SIZE);
+	public static @Nullable byte[] readFileFromInternalApp(Context context, String fileName){
+		return readFileFromInternalApp(context, fileName, IO_BUFFER_SIZE);
 	}
 
 	/**
 	 * The file is located at [/data/data/packageName/files/], file cannot exist in subdirectory.
 	 */
-	public static boolean deleteFileFromInternalAppOperatingMode(Context context, String fileName){
+	public static boolean deleteFileFromInternalApp(Context context, String fileName){
 		return context.getApplicationContext().deleteFile(fileName);
 	}
 
@@ -681,6 +688,13 @@ public class IOUtils {
 	/**
 	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
 	 */
+	public static @Nullable File getWriteFileFromInternalAppDirectoryPrivateMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName){
+		return getWriteFileFromInternalAppDirectoryOperatingMode(context, firstLayerDirectoryName, directoryPath, fileName, Context.MODE_PRIVATE);
+	}
+
+	/**
+	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
+	 */
 	public static File getReadFileFromInternalAppDirectoryOperatingMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName
 			, int operatingMode){
 		String internalPath = context.getApplicationContext().getDir(firstLayerDirectoryName, operatingMode).getPath();
@@ -688,6 +702,13 @@ public class IOUtils {
 			directoryPath = File.separator + directoryPath;
 		}
 		return new File(internalPath + directoryPath + fileName);
+	}
+
+	/**
+	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
+	 */
+	public static File getReadFileFromInternalAppDirectoryPrivateMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName){
+		return getReadFileFromInternalAppDirectoryOperatingMode(context, firstLayerDirectoryName, directoryPath, fileName, Context.MODE_PRIVATE);
 	}
 
 	/**
@@ -727,7 +748,7 @@ public class IOUtils {
 	/**
 	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
 	 */
-	public static boolean writeFileFromInternalAppDirectoryPrivate(Context context, InputStream inputStream, String firstLayerDirectoryName, String directoryPath
+	public static boolean writeFileFromInternalAppDirectoryPrivateMode(Context context, InputStream inputStream, String firstLayerDirectoryName, String directoryPath
 			, String fileName, boolean isAppend){
 		return writeFileFromInternalAppDirectoryOperatingMode(context, inputStream, firstLayerDirectoryName, directoryPath, fileName, Context.MODE_PRIVATE, isAppend
 				, IO_BUFFER_SIZE);
@@ -736,7 +757,7 @@ public class IOUtils {
 	/**
 	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
 	 */
-	public static boolean writeFileFromInternalAppDirectoryPrivate(Context context, InputStream inputStream, String firstLayerDirectoryName, String directoryPath
+	public static boolean writeFileFromInternalAppDirectoryPrivateMode(Context context, InputStream inputStream, String firstLayerDirectoryName, String directoryPath
 			, String fileName){
 		return writeFileFromInternalAppDirectoryOperatingMode(context, inputStream, firstLayerDirectoryName, directoryPath, fileName, Context.MODE_PRIVATE, false
 				, IO_BUFFER_SIZE);
@@ -754,10 +775,24 @@ public class IOUtils {
 	/**
 	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
 	 */
+	public static byte[] readFileFromInternalAppDirectoryPrivateMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName){
+		return readFileFromInternalAppDirectoryOperatingMode(context, firstLayerDirectoryName, directoryPath, fileName, Context.MODE_PRIVATE);
+	}
+
+	/**
+	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
+	 */
 	public static boolean deleteFileFromInternalAppDirectoryOperatingMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName
 			, int operatingMode){
 		File file = getReadFileFromInternalAppDirectoryOperatingMode(context, firstLayerDirectoryName, directoryPath, fileName, operatingMode);
 		return file.delete();
+	}
+
+	/**
+	 * The file path is located in [/data/data/packageName/(Prefix)app_ + directoryName/], file must have at least one level of directory.
+	 */
+	public static boolean deleteFileFromInternalAppDirectoryPrivateMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName){
+		return deleteFileFromInternalAppDirectoryOperatingMode(context, firstLayerDirectoryName, directoryPath, fileName, Context.MODE_PRIVATE);
 	}
 
 	/**
