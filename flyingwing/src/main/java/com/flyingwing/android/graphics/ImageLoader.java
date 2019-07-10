@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.1
+ * @version 4.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -270,9 +270,12 @@ public class ImageLoader {
 
 			@Override
 			public void run() {
-				Bitmap bitmap = null;
 				try {
 					byte[] bytes = onLoadImageListener.onHaveToRead(FLAG_REMOTE, strUrl);
+					if(bytes == null){
+						handlerConnectionRead.sendEmptyMessage(0);
+						return;
+					}
 					InputStream inputStream = new ByteArrayInputStream(bytes);
 					int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
 					try {
@@ -282,26 +285,26 @@ public class ImageLoader {
 							inputStream.close();
 						} catch (Exception ignored) {}
 						inputStream = new ByteArrayInputStream(bytes);
-						e1.printStackTrace();
+						if(mIsPrintException){e1.printStackTrace();}
 					}
-					bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
+					Bitmap bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
+					if(bitmap == null){
+						handlerConnectionRead.sendEmptyMessage(0);
+						return;
+					}
 
 					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
 					setBufferBitmap(bitmap, strUrl, scale);
-					// 將下載的圖片儲存於本地端
-					onLoadImageListener.onHaveToWrite(strUrl, bitmap);
-				} catch (Exception e) {
-					if(mIsPrintException){e.printStackTrace();}
-				}
 
-				if(bitmap != null){
-					Message msg = new Message();
+					onLoadImageListener.onHaveToWrite(strUrl, bitmap);
+
+					Message msg = Message.obtain();
 					msg.what = 1;
 					msg.obj = bitmap;
 					handlerConnectionRead.sendMessage(msg);
-					return;
+				} catch (Exception e) {
+					if(mIsPrintException){e.printStackTrace();}
 				}
-				handlerConnectionRead.sendEmptyMessage(0);
 			}
 		};
 
@@ -320,8 +323,8 @@ public class ImageLoader {
 		return getImageAsyncLocalOnly(strUrl, targetSize, handlerNeedConnection, onLoadImageListenerCase);
 	}
 
-	public Bitmap getImageAsync(String strUrl, float targetSize, OnLoadImageListener onLoadImageListener){
-		return getImageAsync(strUrl, targetSize, null, onLoadImageListener);
+	public Bitmap getImageAsync(String strUrl, float targetSize, OnLoadImageListener onLoadImageListenerCase){
+		return getImageAsync(strUrl, targetSize, null, onLoadImageListenerCase);
 	}
 
 	public Bitmap getImageAsync(final String strUrl, final float targetSize, final ThreadPoolExecutor threadPoolExecutor){
@@ -365,30 +368,39 @@ public class ImageLoader {
 
 			@Override
 			public void run() {
-				byte[] bytes = onLoadImageListener.onHaveToRead(FLAG_LOCAL, imageName);
-				InputStream inputStream = new ByteArrayInputStream(bytes);
-				int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
 				try {
-					inputStream.reset();
-				} catch (IOException e1) {
+					byte[] bytes = onLoadImageListener.onHaveToRead(FLAG_LOCAL, imageName);
+					if(bytes == null){
+						handlerNotFound.sendEmptyMessage(0);
+						return;
+					}
+					InputStream inputStream = new ByteArrayInputStream(bytes);
+					int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
 					try {
-						inputStream.close();
-					} catch (Exception ignored) {}
-					inputStream = new ByteArrayInputStream(bytes);
-					e1.printStackTrace();
-				}
-				Bitmap bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
-				// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
-				setBufferBitmap(bitmap, imageName, scale);
+						inputStream.reset();
+					} catch (IOException e1) {
+						try {
+							inputStream.close();
+						} catch (Exception ignored) {}
+						inputStream = new ByteArrayInputStream(bytes);
+						if(mIsPrintException){e1.printStackTrace();}
+					}
+					Bitmap bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
+					if(bitmap == null){
+						handlerNotFound.sendEmptyMessage(0);
+						return;
+					}
 
-				// 若此圖片已儲存在本地端，則回傳圖片
-				if(bitmap != null){
-					Message msg = new Message();
+					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
+					setBufferBitmap(bitmap, imageName, scale);
+
+					Message msg = Message.obtain();
 					msg.obj = bitmap;
 					handlerStorageRead.sendMessage(msg);
-					return;
+				} catch (Exception e) {
+					if(mIsPrintException){e.printStackTrace();}
 				}
-				handlerNotFound.sendEmptyMessage(0);
+
 			}
 		});
 		threadStorageRead.start();
@@ -436,9 +448,12 @@ public class ImageLoader {
 
 			@Override
 			public void run() {
-				Bitmap bitmap = null;
 				try {
 					byte[] bytes = onLoadImageListener.onHaveToRead(FLAG_REMOTE, strUrl);
+					if(bytes == null){
+						handlerConnectionRead.sendEmptyMessage(0);
+						return;
+					}
 					InputStream inputStream = new ByteArrayInputStream(bytes);
 					int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
 					try {
@@ -448,24 +463,25 @@ public class ImageLoader {
 							inputStream.close();
 						} catch (Exception ignored) {}
 						inputStream = new ByteArrayInputStream(bytes);
-						e1.printStackTrace();
+						if(mIsPrintException){e1.printStackTrace();}
 					}
-					bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
+					Bitmap bitmap = onLoadImageListener.onGenerateImage(inputStream, scale);
+					if(bitmap == null){
+						handlerConnectionRead.sendEmptyMessage(0);
+						return;
+					}
 
 					// 使用Map暫存已下載的圖片，並透過軟引用保存圖片，GC在系統發生OutOfMemory之前會回收軟引用來釋放記憶體
 					setBufferBitmap(bitmap, strUrl, scale);
+
+					Message msg = Message.obtain();
+					msg.what = 1;
+					msg.obj = bitmap;
+					handlerConnectionRead.sendMessage(msg);
 				} catch (Exception e) {
 					if(mIsPrintException){e.printStackTrace();}
 				}
 
-				if(bitmap != null){
-					Message msg = new Message();
-					msg.what = 1;
-					msg.obj = bitmap;
-					handlerConnectionRead.sendMessage(msg);
-					return;
-				}
-				handlerConnectionRead.sendEmptyMessage(0);
 			}
 		};
 
@@ -477,8 +493,8 @@ public class ImageLoader {
 		return null;
 	}
 
-	public Bitmap getImageAsyncRemoteOnly(String strUrl, float targetSize, OnLoadImageListener onLoadImageListener){
-		return getImageAsyncRemoteOnly(strUrl, targetSize, null, onLoadImageListener);
+	public Bitmap getImageAsyncRemoteOnly(String strUrl, float targetSize, OnLoadImageListener onLoadImageListenerCase){
+		return getImageAsyncRemoteOnly(strUrl, targetSize, null, onLoadImageListenerCase);
 	}
 
 	public Bitmap getImageAsyncRemoteOnly(final String strUrl, final float targetSize, final ThreadPoolExecutor threadPoolExecutor){

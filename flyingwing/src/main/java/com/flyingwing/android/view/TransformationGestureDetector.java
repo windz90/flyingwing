@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.0.1
+ * @version 3.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -13,10 +13,12 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class TransformationGestureDetector {
 
 	public interface OnTransformationGestureListener {
+
+		void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate);
 
 		void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate);
 
@@ -28,6 +30,9 @@ public class TransformationGestureDetector {
 	}
 
 	public static class SimpleOnTransformationGestureListener implements OnTransformationGestureListener {
+
+		@Override
+		public void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate) {}
 
 		public void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate){}
 
@@ -45,22 +50,51 @@ public class TransformationGestureDetector {
 	private final int[] mLocationOnScreen = new int[2];
 	private float mScale;
 
-	private int mMinGapDistance, mMinimumFlingVelocity, mMaximumFlingVelocity;
+	private int mDurationTap, mGapDistanceTap, mMinimumFlingVelocity, mMaximumFlingVelocity;
 
 	public TransformationGestureDetector(Context context, OnTransformationGestureListener onTransformationGestureListener) {
 		mOnTransformationGestureListener = onTransformationGestureListener;
+		setTapDuration(ViewConfiguration.getTapTimeout() * 2);
 		if(context == null){
-			mMinGapDistance = ViewConfiguration.getTouchSlop();
-			mMinGapDistance *= mMinGapDistance;
+			setTapGap(ViewConfiguration.getTouchSlop() * 2);
 			mMinimumFlingVelocity = ViewConfiguration.getMinimumFlingVelocity();
 			mMaximumFlingVelocity = ViewConfiguration.getMaximumFlingVelocity();
 		}else{
 			ViewConfiguration viewConfiguration = ViewConfiguration.get(context);
-			mMinGapDistance = viewConfiguration.getScaledTouchSlop();
-			mMinGapDistance *= mMinGapDistance;
+			setTapGap(viewConfiguration.getScaledTouchSlop() * 2);
 			mMinimumFlingVelocity = viewConfiguration.getScaledMinimumFlingVelocity();
 			mMaximumFlingVelocity = viewConfiguration.getScaledMaximumFlingVelocity();
 		}
+	}
+
+	public TransformationGestureDetector(Context context, int durationTap, int gapTap, OnTransformationGestureListener onTransformationGestureListener) {
+		this(context, onTransformationGestureListener);
+		setTapDuration(durationTap);
+		setTapGap(gapTap);
+
+	}
+
+	public void setTapDuration(int durationTap){
+		mDurationTap = durationTap;
+		if(mDurationTap < 200){
+			mDurationTap = 200;
+		}
+	}
+
+	public int getTapDuration() {
+		return mDurationTap;
+	}
+
+	public void setTapGap(int gapTap){
+		mGapDistanceTap = gapTap * gapTap;
+	}
+
+	public void setTapDistance(int gapDistanceTap){
+		mGapDistanceTap = gapDistanceTap;
+	}
+
+	public int getTapDistance() {
+		return mGapDistanceTap;
 	}
 
 	public boolean onTouchEvent(View view, MotionEvent motionEvent) {
@@ -131,10 +165,11 @@ public class TransformationGestureDetector {
 		}else if(action == MotionEvent.ACTION_UP){
 			float x1 = motionEvent.getX(0) + mLocationOnScreen[0];
 			float y1 = motionEvent.getY(0) + mLocationOnScreen[1];
-			if(motionEvent.getEventTime() - motionEvent.getDownTime() <= ViewConfiguration.getTapTimeout()){
+			mOnTransformationGestureListener.onClick(motionEvent, x1, y1);
+			if(motionEvent.getEventTime() - motionEvent.getDownTime() <= mDurationTap){
 				float dx = x1 - mPointFirstDown[0];
 				float dy = y1 - mPointFirstDown[1];
-				if(dx * dx + dy * dy <= mMinGapDistance){
+				if(dx * dx + dy * dy <= mGapDistanceTap){
 					mOnTransformationGestureListener.onTap(motionEvent, x1, y1);
 				}
 			}else{
