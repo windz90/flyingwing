@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.1
+ * @version 4.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -53,12 +53,20 @@ import java.nio.channels.FileChannel;
 public class ImageUtils {
 
 	public static boolean writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, OutputStream outputStream){
-		return bitmap.compress(compressFormat, quality, outputStream);
+		boolean isSuccess = bitmap.compress(compressFormat, quality, outputStream);
+		try {
+			outputStream.flush();
+			outputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return isSuccess;
 	}
 
 	public static boolean writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, File file){
 		try {
-			return writeBitmapEncode(bitmap, compressFormat, quality, new FileOutputStream(file));
+			OutputStream outputStream = new FileOutputStream(file);
+			return writeBitmapEncode(bitmap, compressFormat, quality, outputStream);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -66,12 +74,20 @@ public class ImageUtils {
 	}
 
 	public static boolean writeBitmapEncodeToPNG(Bitmap bitmap, int quality, OutputStream outputStream){
-		return bitmap.compress(Bitmap.CompressFormat.PNG, quality, outputStream);
+		boolean isSuccess = bitmap.compress(Bitmap.CompressFormat.PNG, quality, outputStream);
+		try {
+			outputStream.flush();
+			outputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return isSuccess;
 	}
 
 	public static boolean writeBitmapEncodeToPNG(Bitmap bitmap, int quality, File file){
 		try {
-			return writeBitmapEncodeToPNG(bitmap, quality, new FileOutputStream(file));
+			OutputStream outputStream = new FileOutputStream(file);
+			return writeBitmapEncodeToPNG(bitmap, quality, outputStream);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
@@ -79,12 +95,20 @@ public class ImageUtils {
 	}
 
 	public static boolean writeBitmapEncodeToJPEG(Bitmap bitmap, int quality, OutputStream outputStream){
-		return bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+		boolean isSuccess = bitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream);
+		try {
+			outputStream.flush();
+			outputStream.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return isSuccess;
 	}
 
 	public static boolean writeBitmapEncodeToJPEG(Bitmap bitmap, int quality, File file){
 		try {
-			return writeBitmapEncodeToJPEG(bitmap, quality, new FileOutputStream(file));
+			OutputStream outputStream = new FileOutputStream(file);
+			return writeBitmapEncodeToJPEG(bitmap, quality, outputStream);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}

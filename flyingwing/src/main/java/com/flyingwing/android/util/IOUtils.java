@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.1
+ * @version 4.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -525,10 +525,18 @@ public class IOUtils {
 	 * The file path is located in [/data/data/packageName/files/].
 	 */
 	public static @Nullable File getWriteFileFromInternalAppFilesDir(Context context, String directoryPath, String fileName){
-		String internalPath = context.getApplicationContext().getFilesDir().getPath();
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
+		String internalPath = context.getApplicationContext().getFilesDir().getPath();
 		File file = new File(internalPath + directoryPath);
 		if(!file.exists() && !file.mkdirs()){
 			System.out.println("Directory create failed, path:\n" + file.getPath());
@@ -541,10 +549,18 @@ public class IOUtils {
 	 * The file path is located in [/data/data/packageName/files/].
 	 */
 	public static File getReadFileFromInternalAppFilesDir(Context context, String directoryPath, String fileName){
-		String internalPath = context.getApplicationContext().getFilesDir().getPath();
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
+		String internalPath = context.getApplicationContext().getFilesDir().getPath();
 		return new File(internalPath + directoryPath + fileName);
 	}
 
@@ -598,10 +614,18 @@ public class IOUtils {
 	 * The file path is located in [/data/data/packageName/cache/].
 	 */
 	public static @Nullable File getWriteFileFromInternalAppCacheDir(Context context, String directoryPath, String fileName){
-		String internalPath = context.getApplicationContext().getCacheDir().getPath();
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
+		String internalPath = context.getApplicationContext().getCacheDir().getPath();
 		File file = new File(internalPath + directoryPath);
 		if(!file.exists() && !file.mkdirs()){
 			System.out.println("Directory create failed, path:\n" + file.getPath());
@@ -614,10 +638,18 @@ public class IOUtils {
 	 * The file path is located in [/data/data/packageName/cache/].
 	 */
 	public static File getReadFileFromInternalAppCacheDir(Context context, String directoryPath, String fileName){
-		String internalPath = context.getApplicationContext().getCacheDir().getPath();
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
+		String internalPath = context.getApplicationContext().getCacheDir().getPath();
 		return new File(internalPath + directoryPath + fileName);
 	}
 
@@ -673,10 +705,18 @@ public class IOUtils {
 	 */
 	public static @Nullable File getWriteFileFromInternalAppDirectoryOperatingMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName
 			, int operatingMode){
-		String internalPath = context.getApplicationContext().getDir(firstLayerDirectoryName, operatingMode).getPath();
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
+		String internalPath = context.getApplicationContext().getDir(firstLayerDirectoryName, operatingMode).getPath();
 		File file = new File(internalPath + directoryPath);
 		if(!file.exists() && !file.mkdirs()){
 			System.out.println("Directory create failed, path:\n" + file.getPath());
@@ -697,10 +737,18 @@ public class IOUtils {
 	 */
 	public static File getReadFileFromInternalAppDirectoryOperatingMode(Context context, String firstLayerDirectoryName, String directoryPath, String fileName
 			, int operatingMode){
-		String internalPath = context.getApplicationContext().getDir(firstLayerDirectoryName, operatingMode).getPath();
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
+		String internalPath = context.getApplicationContext().getDir(firstLayerDirectoryName, operatingMode).getPath();
 		return new File(internalPath + directoryPath + fileName);
 	}
 
@@ -810,11 +858,19 @@ public class IOUtils {
 			return null;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath);
 		if(!file.exists() && !file.mkdirs()){
@@ -840,11 +896,19 @@ public class IOUtils {
 			return null;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		return new File(externalPath + directoryPath + fileName);
 	}
@@ -945,11 +1009,19 @@ public class IOUtils {
 			return false;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath + fileName);
 		return file.delete();
@@ -987,11 +1059,19 @@ public class IOUtils {
 			return null;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath);
 		if(!file.exists() && !file.mkdirs()){
@@ -1017,11 +1097,19 @@ public class IOUtils {
 			return null;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		return new File(externalPath + directoryPath + fileName);
 	}
@@ -1121,11 +1209,19 @@ public class IOUtils {
 			return false;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath + fileName);
 		return file.delete();
@@ -1171,11 +1267,19 @@ public class IOUtils {
 			return null;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath);
 		if(!file.exists() && !file.mkdirs()){
@@ -1210,11 +1314,19 @@ public class IOUtils {
 			return null;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		return new File(externalPath + directoryPath + fileName);
 	}
@@ -1291,11 +1403,19 @@ public class IOUtils {
 			return false;
 		}
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath + fileName);
 		return file.delete();
@@ -1321,11 +1441,19 @@ public class IOUtils {
 		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 		File file = Environment.getExternalStorageDirectory();
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath);
 		if(!file.exists() && !file.mkdirs()){
@@ -1357,11 +1485,19 @@ public class IOUtils {
 		// If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN, require <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 		File file = Environment.getExternalStorageDirectory();
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		return new File(externalPath + directoryPath + fileName);
 	}
@@ -1433,11 +1569,19 @@ public class IOUtils {
 		// <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 		File file = Environment.getExternalStorageDirectory();
 		String externalPath = file.toString();
-		if(directoryPath.indexOf(externalPath) == 0){
-			externalPath = "";
-		}
-		if(TextUtils.isEmpty(directoryPath) || directoryPath.charAt(0) != File.separatorChar){
-			directoryPath = File.separator + directoryPath;
+		boolean isNamePrefixContainSeparator = fileName.charAt(0) == File.separatorChar;
+		if(TextUtils.isEmpty(directoryPath)){
+			directoryPath = isNamePrefixContainSeparator ? "" : File.separator;
+		}else{
+			if(directoryPath.charAt(0) != File.separatorChar){
+				directoryPath = File.separator + directoryPath;
+			}
+			if(directoryPath.indexOf(externalPath) == 0){
+				externalPath = "";
+			}
+			if(!isNamePrefixContainSeparator && directoryPath.charAt(directoryPath.length() - 1) != File.separatorChar){
+				directoryPath = directoryPath + File.separator;
+			}
 		}
 		file = new File(externalPath + directoryPath + fileName);
 		return file.delete();

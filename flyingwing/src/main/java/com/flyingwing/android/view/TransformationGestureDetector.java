@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.0.2
+ * @version 3.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -18,11 +18,11 @@ public class TransformationGestureDetector {
 
 	public interface OnTransformationGestureListener {
 
-		void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate);
+		void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate, float xDistance, float yDistance);
 
 		void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate);
 
-		void onTranslate(MotionEvent motionEvent, float xDifference, float yDifference, boolean isFling);
+		void onTranslate(MotionEvent motionEvent, float xDistance, float yDistance, boolean isFling);
 
 		void onRotate(MotionEvent motionEvent, float angleDifference);
 
@@ -32,11 +32,11 @@ public class TransformationGestureDetector {
 	public static class SimpleOnTransformationGestureListener implements OnTransformationGestureListener {
 
 		@Override
-		public void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate) {}
+		public void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate, float xDistance, float yDistance) {}
 
 		public void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate){}
 
-		public void onTranslate(MotionEvent motionEvent, float xDifference, float yDifference, boolean isFling){}
+		public void onTranslate(MotionEvent motionEvent, float xDistance, float yDistance, boolean isFling){}
 
 		public void onRotate(MotionEvent motionEvent, float angleDifference){}
 
@@ -54,14 +54,14 @@ public class TransformationGestureDetector {
 
 	public TransformationGestureDetector(Context context, OnTransformationGestureListener onTransformationGestureListener) {
 		mOnTransformationGestureListener = onTransformationGestureListener;
-		setTapDuration(ViewConfiguration.getTapTimeout() * 2);
+		setTapDuration(ViewConfiguration.getTapTimeout());
 		if(context == null){
-			setTapGap(ViewConfiguration.getTouchSlop() * 2);
+			setTapGap(ViewConfiguration.getTouchSlop());
 			mMinimumFlingVelocity = ViewConfiguration.getMinimumFlingVelocity();
 			mMaximumFlingVelocity = ViewConfiguration.getMaximumFlingVelocity();
 		}else{
 			ViewConfiguration viewConfiguration = ViewConfiguration.get(context);
-			setTapGap(viewConfiguration.getScaledTouchSlop() * 2);
+			setTapGap(viewConfiguration.getScaledTouchSlop());
 			mMinimumFlingVelocity = viewConfiguration.getScaledMinimumFlingVelocity();
 			mMaximumFlingVelocity = viewConfiguration.getScaledMaximumFlingVelocity();
 		}
@@ -103,7 +103,7 @@ public class TransformationGestureDetector {
 		if(mVelocityTracker == null){
 			mVelocityTracker = VelocityTracker.obtain();
 		}
-		mVelocityTracker .addMovement(motionEvent);
+		mVelocityTracker.addMovement(motionEvent);
 		boolean handled = false;
 
 		if(action == MotionEvent.ACTION_DOWN){
@@ -129,22 +129,22 @@ public class TransformationGestureDetector {
 			mPointsExisted[1][0] = motionEvent.getX(targetIndex) + mLocationOnScreen[0];
 			mPointsExisted[1][1] = motionEvent.getY(targetIndex) + mLocationOnScreen[1];
 		}else if(action == MotionEvent.ACTION_MOVE){
-			float x1 = motionEvent.getX(0) + mLocationOnScreen[0];
-			float y1 = motionEvent.getY(0) + mLocationOnScreen[1];
-			float dx = x1 - mPointsExisted[0][0];
-			float dy = y1 - mPointsExisted[0][1];
-			mOnTransformationGestureListener.onTranslate(motionEvent, dx, dy, false);
+			float xPointer0 = motionEvent.getX(0) + mLocationOnScreen[0];
+			float yPointer0 = motionEvent.getY(0) + mLocationOnScreen[1];
+			float xDistance = xPointer0 - mPointsExisted[0][0];
+			float yDistance = yPointer0 - mPointsExisted[0][1];
+			mOnTransformationGestureListener.onTranslate(motionEvent, xDistance, yDistance, false);
 			if(motionEvent.getPointerCount() > 1){
-				float x2 = motionEvent.getX(1) + mLocationOnScreen[0];
-				float y2 = motionEvent.getY(1) + mLocationOnScreen[1];
-				float ax = mPointsExisted[1][0] - mPointsExisted[0][0];
-				float ay = mPointsExisted[1][1] - mPointsExisted[0][1];
-				float bx = x2 - x1;
-				float by = y2 - y1;
-				float dot = ax * bx + ay * by;
-				float cross = ax * by - bx * ay;
-				float distance1 = (float) Math.sqrt(ax * ax + ay * ay);
-				float distance2 = (float) Math.sqrt(bx * bx + by * by);
+				float xPointer1 = motionEvent.getX(1) + mLocationOnScreen[0];
+				float yPointer1 = motionEvent.getY(1) + mLocationOnScreen[1];
+				float xVectorPrevious = mPointsExisted[1][0] - mPointsExisted[0][0];
+				float yVectorPrevious = mPointsExisted[1][1] - mPointsExisted[0][1];
+				float xVectorNext = xPointer1 - xPointer0;
+				float yVectorNext = yPointer1 - yPointer0;
+				float dot = xVectorPrevious * xVectorNext + yVectorPrevious * yVectorNext;
+				float cross = xVectorPrevious * yVectorNext - xVectorNext * yVectorPrevious;
+				float distance1 = (float) Math.sqrt(xVectorPrevious * xVectorPrevious + yVectorPrevious * yVectorPrevious);
+				float distance2 = (float) Math.sqrt(xVectorNext * xVectorNext + yVectorNext * yVectorNext);
 				if(cross != 0){
 					float angle = (cross > 0 ? 1 : -1) * (float) (Math.acos(dot / (distance1 * distance2)) / Math.PI * 180);
 					// Avoid data gap caused by missing motion events
@@ -157,20 +157,20 @@ public class TransformationGestureDetector {
 				if(scale < 1.2f && scale > -0.8f && scale != 0){
 					mOnTransformationGestureListener.onScale(motionEvent, scale);
 				}
-				mPointsExisted[1][0] = x2;
-				mPointsExisted[1][1] = y2;
+				mPointsExisted[1][0] = xPointer1;
+				mPointsExisted[1][1] = yPointer1;
 			}
-			mPointsExisted[0][0] = x1;
-			mPointsExisted[0][1] = y1;
+			mPointsExisted[0][0] = xPointer0;
+			mPointsExisted[0][1] = yPointer0;
 		}else if(action == MotionEvent.ACTION_UP){
-			float x1 = motionEvent.getX(0) + mLocationOnScreen[0];
-			float y1 = motionEvent.getY(0) + mLocationOnScreen[1];
-			mOnTransformationGestureListener.onClick(motionEvent, x1, y1);
+			float xPointer0 = motionEvent.getX(0) + mLocationOnScreen[0];
+			float yPointer0 = motionEvent.getY(0) + mLocationOnScreen[1];
+			float xDistance = xPointer0 - mPointFirstDown[0];
+			float yDistance = yPointer0 - mPointFirstDown[1];
+			mOnTransformationGestureListener.onClick(motionEvent, xPointer0, yPointer0, xDistance, yDistance);
 			if(motionEvent.getEventTime() - motionEvent.getDownTime() <= mDurationTap){
-				float dx = x1 - mPointFirstDown[0];
-				float dy = y1 - mPointFirstDown[1];
-				if(dx * dx + dy * dy <= mGapDistanceTap){
-					mOnTransformationGestureListener.onTap(motionEvent, x1, y1);
+				if(xDistance * xDistance + yDistance * yDistance <= mGapDistanceTap){
+					mOnTransformationGestureListener.onTap(motionEvent, xPointer0, yPointer0);
 				}
 			}else{
 				mVelocityTracker.computeCurrentVelocity(1000, mMaximumFlingVelocity);

@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.1.0
+ * @version 1.1.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -71,7 +71,7 @@ public class NetworkUtils {
 				return false;
 			}
 			NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
-			return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+			return networkCapabilities != null && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
 		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
@@ -89,7 +89,7 @@ public class NetworkUtils {
 			return false;
 		}
 		NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
-		return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+		return networkCapabilities != null && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
 	}
 
 	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
@@ -103,7 +103,7 @@ public class NetworkUtils {
 			NetworkCapabilities networkCapabilities;
 			for(int i=0; i<networks.length; i++){
 				networkCapabilities = connectivityManager.getNetworkCapabilities(networks[i]);
-				if(networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)){
+				if(networkCapabilities != null && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)){
 					return true;
 				}
 			}
@@ -138,7 +138,7 @@ public class NetworkUtils {
 		NetworkCapabilities networkCapabilities;
 		for(int i=0; i<networks.length; i++){
 			networkCapabilities = connectivityManager.getNetworkCapabilities(networks[i]);
-			if(networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)){
+			if(networkCapabilities != null && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)){
 				return true;
 			}
 		}
@@ -157,10 +157,10 @@ public class NetworkUtils {
 				return false;
 			}
 			NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
-			return networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+			return networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
 					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
 					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
-					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN);
+					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN));
 		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected();
@@ -177,10 +177,10 @@ public class NetworkUtils {
 		Network[] networks = connectivityManager.getAllNetworks();
 		for(int i=0; i<networks.length; i++){
 			networkCapabilities = connectivityManager.getNetworkCapabilities(networks[i]);
-			if(networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
+			if(networkCapabilities != null && (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
 					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
 					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
-					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)){
+					|| networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN))){
 				return true;
 			}
 		}
@@ -199,7 +199,7 @@ public class NetworkUtils {
 				return false;
 			}
 			NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
-			return networkCapabilities.hasTransport(networkType);
+			return networkCapabilities != null && networkCapabilities.hasTransport(networkType);
 		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isConnected() && networkInfo.getType() == networkType;
@@ -226,7 +226,7 @@ public class NetworkUtils {
 		Network[] networks = connectivityManager.getAllNetworks();
 		for(int i=0; i<networks.length; i++){
 			networkCapabilities = connectivityManager.getNetworkCapabilities(networks[i]);
-			if(networkCapabilities.hasTransport(networkType)){
+			if(networkCapabilities != null && networkCapabilities.hasTransport(networkType)){
 				return true;
 			}
 		}
@@ -261,6 +261,9 @@ public class NetworkUtils {
 				return false;
 			}
 			NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
+			if(networkCapabilities == null){
+				return false;
+			}
 			if(networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) || networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)){
 				return true;
 			}

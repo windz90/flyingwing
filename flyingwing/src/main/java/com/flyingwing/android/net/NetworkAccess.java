@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.6.4
+ * @version 3.6.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -172,7 +172,7 @@ public class NetworkAccess {
 				return false;
 			}
 			NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(network);
-			return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+			return networkCapabilities != null && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
 		}
 		NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
 		return networkInfo != null && networkInfo.isAvailable();
