@@ -2,14 +2,13 @@ apply plugin: 'com.android.library'
 
 android {
 	compileSdkVersion 28
-	buildToolsVersion "28.0.3"
-
 	defaultConfig {
 		minSdkVersion 9 // Android Support Library 24.2.0 removes support for Android 2.2 (API level 8) and lower.
 		targetSdkVersion 28
 		versionCode 1
 		versionName "1.1.3"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+		setProperty("archivesBaseName", "app-$versionName")// Set output file name
 		multiDexEnabled true
 		consumerProguardFiles 'proguard-rules.pro'
 	}
@@ -20,6 +19,14 @@ android {
 			proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 		}
 	}
+
+	// Rename output file name
+//	libraryVariants.all { variant ->
+//		variant.outputs.all { output ->
+//			def fileNameOriginal = output.outputFileName
+//			output.outputFileName = "flyingwing-${defaultConfig.versionName}" + fileNameOriginal.substring(fileNameOriginal.lastIndexOf("."))
+//		}
+//	}
 }
 
 dependencies {

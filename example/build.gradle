@@ -2,6 +2,17 @@ apply plugin: 'com.android.application'
 
 android {
 	compileSdkVersion 28
+	defaultConfig {
+		applicationId "com.flyingwing.android.example"
+		minSdkVersion 19
+		targetSdkVersion 28
+		versionCode 1
+		versionName "1.0"
+		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+		manifestPlaceholders = [appName:"@string/app_name", appIcon:"@mipmap/ic_launcher", appIconRound:"@mipmap/ic_launcher_round"]
+		setProperty("archivesBaseName", "app-$versionName")// Set output file name
+	}
+
 	signingConfigs {
 		release {
 			System.println("\n＊＊　　　　　～喝杯水休息一下～　　　　　＊＊")
@@ -12,16 +23,6 @@ android {
 //			keyAlias KEYSTORE_ALIAS
 //			keyPassword KEYSTORE_ALIAS_PASSWORD
 		}
-	}
-
-	defaultConfig {
-		applicationId "com.flyingwing.android.example"
-		manifestPlaceholders = [appName:"@string/app_name", appIcon:"@mipmap/ic_launcher", appIconRound:"@mipmap/ic_launcher_round"]
-		minSdkVersion 19
-		targetSdkVersion 28
-		versionCode 1
-		versionName "1.0"
-		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 	}
 
 	buildTypes {
@@ -51,6 +52,14 @@ android {
 		}
 	}
 
+	// Rename output file name
+//	applicationVariants.all { variant ->
+//		variant.outputs.all { output ->
+//			def fileNameOriginal = output.outputFileName
+//			output.outputFileName = "app-${defaultConfig.versionName}" + fileNameOriginal.substring(fileNameOriginal.lastIndexOf("."))
+//		}
+//	}
+
 //	lintOptions {
 //		abortOnError false
 //		checkReleaseBuilds false
@@ -78,19 +87,15 @@ configurations.all {
 }
 
 // Keystore properties are set in module directory file
-def keystorePropertiesFile = file('<keystore.properties>')
+def keystorePropertiesFile = file('keystore.properties')
 def properties = new Properties()
-if (keystorePropertiesFile.canRead()) {
+if (keystorePropertiesFile.exists()) {
 	properties.load(new FileInputStream(keystorePropertiesFile))
-	if (properties != null) {
-		android.signingConfigs.release {
-			storeFile file(properties['KEYSTORE_FILE'])
-			storePassword properties['KEYSTORE_PASSWORD']
-			keyAlias properties['KEYSTORE_ALIAS']
-			keyPassword properties['KEYSTORE_ALIAS_PASSWORD']
-		}
-	} else {
-		println 'Properties in file \'keystore.properties\' not found!'
+	android.signingConfigs.release {
+		storeFile file(properties['KEYSTORE_FILE'])
+		storePassword properties['KEYSTORE_PASSWORD']
+		keyAlias properties['KEYSTORE_ALIAS']
+		keyPassword properties['KEYSTORE_ALIAS_PASSWORD']
 	}
 } else {
 	println 'File \'keystore.properties\' not found!'

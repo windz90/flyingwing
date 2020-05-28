@@ -2,27 +2,15 @@ apply plugin: 'com.android.application'
 
 android {
 	compileSdkVersion 28
-	buildToolsVersion "28.0.3"
-	signingConfigs {
-		release {
-			System.println("\n＊＊　　　　　～喝杯水休息一下～　　　　　＊＊")
-			System.println("＊＊　正在強迫懶惰的Ｇｒａｄｌｅ市民工作　＊＊\n")
-			// Keystore properties are set in gradle.properties
-//			storeFile file(KEYSTORE_FILE)
-//			storePassword KEYSTORE_PASSWORD
-//			keyAlias KEYSTORE_ALIAS
-//			keyPassword KEYSTORE_ALIAS_PASSWORD
-		}
-	}
-
 	defaultConfig {
 		applicationId "com.flyingwing.android.example"
-		manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/ic_launcher", appIconRound:"@drawable/ic_launcher_round"]
 		minSdkVersion 19
 		targetSdkVersion 28
 		versionCode 1
 		versionName "1.0"
 		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+		manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/ic_launcher", appIconRound:"@drawable/ic_launcher_round"]
+		setProperty("archivesBaseName", "app-$versionName")// Set output file name
 //		ndk {
 //			abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
 //		}
@@ -34,6 +22,18 @@ android {
 						"-DANDROID_ARM_NEON=TRUE"
 				abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'//'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64', NDK r17 remove 'armeabi', 'mips', 'mips64'
 			}
+		}
+	}
+
+	signingConfigs {
+		release {
+			System.println("\n＊＊　　　　　～喝杯水休息一下～　　　　　＊＊")
+			System.println("＊＊　正在強迫懶惰的Ｇｒａｄｌｅ市民工作　＊＊\n")
+			// Keystore properties are set in gradle.properties
+//			storeFile file(KEYSTORE_FILE)
+//			storePassword KEYSTORE_PASSWORD
+//			keyAlias KEYSTORE_ALIAS
+//			keyPassword KEYSTORE_ALIAS_PASSWORD
 		}
 	}
 
@@ -79,6 +79,14 @@ android {
 		}
 	}
 
+	// Rename output file name
+//	applicationVariants.all { variant ->
+//		variant.outputs.all { output ->
+//			def fileNameOriginal = output.outputFileName
+//			output.outputFileName = "app-${defaultConfig.versionName}" + fileNameOriginal.substring(fileNameOriginal.lastIndexOf("."))
+//		}
+//	}
+
 //	lintOptions {
 //		abortOnError false
 //		checkReleaseBuilds false
@@ -105,19 +113,16 @@ configurations.all {
 	}
 }
 
-def keystorePropertiesFile = file('<keystore.properties>')
+// Keystore properties are set in module directory file
+def keystorePropertiesFile = file('keystore.properties')
 def properties = new Properties()
-if (keystorePropertiesFile.canRead()) {
+if (keystorePropertiesFile.exists()) {
 	properties.load(new FileInputStream(keystorePropertiesFile))
-	if (properties != null) {
-		android.signingConfigs.release {
-			storeFile file(properties['KEYSTORE_FILE'])
-			storePassword properties['KEYSTORE_PASSWORD']
-			keyAlias properties['KEYSTORE_ALIAS']
-			keyPassword properties['KEYSTORE_ALIAS_PASSWORD']
-		}
-	} else {
-		println 'Properties in file \'keystore.properties\' not found!'
+	android.signingConfigs.release {
+		storeFile file(properties['KEYSTORE_FILE'])
+		storePassword properties['KEYSTORE_PASSWORD']
+		keyAlias properties['KEYSTORE_ALIAS']
+		keyPassword properties['KEYSTORE_ALIAS_PASSWORD']
 	}
 } else {
 	println 'File \'keystore.properties\' not found!'
