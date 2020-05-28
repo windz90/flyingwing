@@ -40,7 +40,7 @@ public class Main extends AppCompatActivity {
 				getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
 			} catch (Exception e) {
 				if(getClass().getName().equals(First.class.getName())){
-					Toast.makeText(this, "No support material design some setting, " + e.toString(), Toast.LENGTH_LONG).show();
+					Toast.makeText(this, "Some UI settings are not supported.", Toast.LENGTH_LONG).show();
 				}
 			}
 //		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){

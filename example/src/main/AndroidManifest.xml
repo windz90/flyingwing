@@ -4,12 +4,12 @@
 
 	<application
 		android:name="com.flyingwing.android.example.Global"
-		android:allowBackup="false"
 		android:icon="${appIcon}"
-		android:label="${appName}"
 		android:roundIcon="${appIconRound}"
+		android:label="${appName}"
 		android:supportsRtl="true"
-		android:theme="@style/AppTheme">
+		android:theme="@style/AppTheme"
+		android:allowBackup="false">
 		<activity
 			android:name=".view.First"
 			android:configChanges="orientation|screenSize">
