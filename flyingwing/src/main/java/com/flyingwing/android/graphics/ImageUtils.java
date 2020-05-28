@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.2
+ * @version 4.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -10,20 +10,7 @@ package com.flyingwing.android.graphics;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.BlurMaskFilter;
-import android.graphics.Canvas;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.EmbossMaskFilter;
-import android.graphics.Paint;
-import android.graphics.PaintFlagsDrawFilter;
-import android.graphics.PixelFormat;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.graphics.RectF;
+import android.graphics.*;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
@@ -38,18 +25,12 @@ import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-@SuppressWarnings({"unused", "WeakerAccess", "TryFinallyCanBeTryWithResources"})
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class ImageUtils {
 
 	public static boolean writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, OutputStream outputStream){
@@ -135,19 +116,24 @@ public class ImageUtils {
 	 * The file is located at APK [/res/raw/], file cannot exist in subdirectory.
 	 * In the past, maximum file size of raw directory was limited to 1MB.
 	 */
-	public static @Nullable Bitmap readRawBitmap(Resources resources, int resourceId, float targetSize){
+	public static @Nullable Bitmap readRawBitmap(Resources resources, int resourceId, float targetSize, Bitmap.Config config){
 		int scale = 1;
 		try {
 			InputStream inputStream = resources.openRawResource(resourceId);
-			try {
-				scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
-			} finally {
-				inputStream.close();
-			}
+			scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
+			inputStream.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return readBitmapByNative(resources.openRawResource(resourceId), scale, Bitmap.Config.ARGB_8888);
+		return readBitmapByNative(resources.openRawResource(resourceId), scale, config);
+	}
+
+	/**
+	 * The file is located at APK [/res/raw/], file cannot exist in subdirectory.
+	 * In the past, maximum file size of raw directory was limited to 1MB.
+	 */
+	public static @Nullable Bitmap readRawBitmap(Resources resources, int resourceId, float targetSize){
+		return readRawBitmap(resources, resourceId, targetSize, Bitmap.Config.ARGB_8888);
 	}
 
 	/**
@@ -176,20 +162,107 @@ public class ImageUtils {
 	 * The file is located at APK [/assets/], file can exist in subdirectory.
 	 * In the past, maximum file size of assets directory was limited to 1MB.
 	 */
-	public static @Nullable Bitmap readAssetsBitmap(Context context, String imageName, float targetSize){
-		AssetManager assetManager = context.getApplicationContext().getAssets();
-		int scale = 1;
+	public static @Nullable Bitmap readAssetsBitmap(Context context, String imageName, float targetSize, Bitmap.Config config){
 		try {
+			AssetManager assetManager = context.getApplicationContext().getAssets();
 			InputStream inputStream = assetManager.open(imageName);
+			int scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
+			// AssetInputStream support reset method
 			try {
-				scale = calculateImageTargetSizeMinimumScale(inputStream, targetSize);
-			} finally {
-				inputStream.close();
+				inputStream.reset();
+			} catch (IOException e1) {
+				try {
+					inputStream.close();
+				} catch (Exception ignored) {}
+				inputStream = assetManager.open(imageName);
+				e1.printStackTrace();
 			}
+			return readBitmapByNative(inputStream, scale, config);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return readAssetsBitmap(context, imageName, scale, Bitmap.Config.ARGB_8888);
+		return null;
+	}
+
+	/**
+	 * The file is located at APK [/assets/], file can exist in subdirectory.
+	 * In the past, maximum file size of assets directory was limited to 1MB.
+	 */
+	public static @Nullable Bitmap readAssetsBitmap(Context context, String imageName, float targetSize){
+		return readAssetsBitmap(context, imageName, targetSize, Bitmap.Config.ARGB_8888);
+	}
+
+	public static @Nullable Bitmap readFileBitmap(Context context, File file, int inSampleSize, Bitmap.Config config){
+		try {
+			InputStream inputStream = new FileInputStream(file);
+			return readBitmapByNative(inputStream, inSampleSize, config);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static @Nullable Bitmap readFileBitmap(Context context, File file, int inSampleSize){
+		return readFileBitmap(context, file, inSampleSize, Bitmap.Config.ARGB_8888);
+	}
+
+	public static @Nullable Bitmap readFileBitmap(Context context, File file, float targetSize, Bitmap.Config config){
+		try {
+			FileInputStream fileInputStream = new FileInputStream(file);
+			FileChannel fileChannel = fileInputStream.getChannel();
+			int scale = calculateImageTargetSizeMinimumScale(fileInputStream, targetSize);
+			try {
+				fileChannel.position(0);
+			} catch (IOException e1) {
+				try {
+					fileInputStream.close();
+				} catch (Exception ignored) {}
+				fileInputStream = new FileInputStream(file);
+				e1.printStackTrace();
+			}
+			return readBitmapByNative(fileInputStream, scale, config);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static @Nullable Bitmap readFileBitmap(Context context, File file, float targetSize){
+		return readFileBitmap(context, file, targetSize, Bitmap.Config.ARGB_8888);
+	}
+
+	public static @Nullable Bitmap readFileDescriptorBitmap(Context context, FileDescriptor fileDescriptor, int inSampleSize, Bitmap.Config config){
+		InputStream inputStream = new FileInputStream(fileDescriptor);
+		return readBitmapByNative(inputStream, inSampleSize, config);
+	}
+
+	public static @Nullable Bitmap readFileDescriptorBitmap(Context context, FileDescriptor fileDescriptor, int inSampleSize){
+		return readFileDescriptorBitmap(context, fileDescriptor, inSampleSize, Bitmap.Config.ARGB_8888);
+	}
+
+	public static @Nullable Bitmap readFileDescriptorBitmap(Context context, FileDescriptor fileDescriptor, float targetSize, Bitmap.Config config){
+		try {
+			FileInputStream fileInputStream = new FileInputStream(fileDescriptor);
+			FileChannel fileChannel = fileInputStream.getChannel();
+			int scale = calculateImageTargetSizeMinimumScale(fileInputStream, targetSize);
+			try {
+				fileChannel.position(0);
+			} catch (IOException e1) {
+				try {
+					fileInputStream.close();
+				} catch (Exception ignored) {}
+				fileInputStream = new FileInputStream(fileDescriptor);
+				e1.printStackTrace();
+			}
+			return readBitmapByNative(fileInputStream, scale, config);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static @Nullable Bitmap readFileDescriptorBitmap(Context context, FileDescriptor fileDescriptor, float targetSize){
+		return readFileDescriptorBitmap(context, fileDescriptor, targetSize, Bitmap.Config.ARGB_8888);
 	}
 
 	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream, int inSampleSize, Bitmap.Config config){
@@ -292,7 +365,7 @@ public class ImageUtils {
 				int bufferWidth = newWidth > bitmap.getWidth() ? newWidth : bitmap.getWidth();
 				int bufferHeight = newHeight > bitmap.getHeight() ? newHeight : bitmap.getHeight();
 				int pixelByte = (bitmap.getRowBytes() * bitmap.getHeight()) / bitmap.getWidth() / bitmap.getHeight();
-				size = pixelByte * (long)bufferWidth * (long)bufferHeight;
+				size = pixelByte * (long) bufferWidth * (long) bufferHeight;
 			}
 			try {
 				MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, size);

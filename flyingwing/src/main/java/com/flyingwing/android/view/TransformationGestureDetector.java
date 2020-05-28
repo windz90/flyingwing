@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.0.3
+ * @version 3.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -16,31 +16,17 @@ import android.view.ViewConfiguration;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class TransformationGestureDetector {
 
-	public interface OnTransformationGestureListener {
+	public static abstract class OnTransformationGestureListener {
 
-		void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate, float xDistance, float yDistance);
+		void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate, float xDistance, float yDistance){}
 
-		void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate);
+		void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate){}
 
-		void onTranslate(MotionEvent motionEvent, float xDistance, float yDistance, boolean isFling);
+		void onTranslate(MotionEvent motionEvent, float xDistance, float yDistance, boolean isFling){}
 
-		void onRotate(MotionEvent motionEvent, float angleDifference);
+		void onRotate(MotionEvent motionEvent, float angleDifference){}
 
-		void onScale(MotionEvent motionEvent, float scaleFactor);
-	}
-
-	public static class SimpleOnTransformationGestureListener implements OnTransformationGestureListener {
-
-		@Override
-		public void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate, float xDistance, float yDistance) {}
-
-		public void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate){}
-
-		public void onTranslate(MotionEvent motionEvent, float xDistance, float yDistance, boolean isFling){}
-
-		public void onRotate(MotionEvent motionEvent, float angleDifference){}
-
-		public void onScale(MotionEvent motionEvent, float scaleFactor){}
+		void onScale(MotionEvent motionEvent, float scaleFactor){}
 	}
 
 	private OnTransformationGestureListener mOnTransformationGestureListener;

@@ -1,22 +1,20 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.2
+ * @version 4.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
 
 package com.flyingwing.android.util;
 
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.annotation.SuppressLint;
+import android.content.*;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.os.Build;
-import android.os.Bundle;
-import android.os.Environment;
-import android.os.Handler;
-import android.os.MemoryFile;
-import android.os.Message;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.*;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.content.ContextCompat;
@@ -881,10 +879,10 @@ public class IOUtils {
 	}
 
 	/**
-	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
+	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN < Build.VERSION_CODES.KITKAT, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
 	 */
-	public static File getReadFileFromExternalAppFilesDir(Context context, String type, String directoryPath, String fileName){
+	public static @Nullable File getReadFileFromExternalAppFilesDir(Context context, String type, String directoryPath, String fileName){
 		String externalStorageState = Environment.getExternalStorageState();
 		boolean externalMounted = externalStorageState.equals(Environment.MEDIA_MOUNTED) || externalStorageState.equals(Environment.MEDIA_MOUNTED_READ_ONLY);
 		if(!externalMounted){
@@ -935,11 +933,26 @@ public class IOUtils {
 	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
 	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+	public static boolean writeFileFromExternalAppFilesDir(Context context, InputStream inputStream, String type, String directoryPath, String fileName, boolean isAppend){
+		return writeFileFromExternalAppFilesDir(context, inputStream, type, directoryPath, fileName, isAppend, IO_BUFFER_SIZE);
+	}
+
+	/**
+	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
+	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
+	 */
+	public static boolean writeFileFromExternalAppFilesDir(Context context, InputStream inputStream, String type, String directoryPath, String fileName){
+		return writeFileFromExternalAppFilesDir(context, inputStream, type, directoryPath, fileName, false, IO_BUFFER_SIZE);
+	}
+
+	/**
+	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
+	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
+	 */
 	public static boolean writeFileFromExternalAppFilesDir(Context context, InputStream inputStream, String type, String directoryPath, String fileName, boolean isAppend
-			, int bufferSize
-			, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+			, int bufferSize, Handler handlerNoPermissions){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT &&
+				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -951,28 +964,10 @@ public class IOUtils {
 	}
 
 	/**
-	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
-	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
-	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternalAppFilesDir(Context context, InputStream inputStream, String type, String directoryPath, String fileName, boolean isAppend){
-		return writeFileFromExternalAppFilesDir(context, inputStream, type, directoryPath, fileName, isAppend, IO_BUFFER_SIZE);
-	}
-
-	/**
-	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
-	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
-	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternalAppFilesDir(Context context, InputStream inputStream, String type, String directoryPath, String fileName){
-		return writeFileFromExternalAppFilesDir(context, inputStream, type, directoryPath, fileName, false, IO_BUFFER_SIZE);
-	}
-
-	/**
 	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN < Build.VERSION_CODES.KITKAT, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
 	 */
-	public static byte[] readFileFromExternalAppFilesDir(Context context, String type, String directoryPath, String fileName){
+	public static @Nullable byte[] readFileFromExternalAppFilesDir(Context context, String type, String directoryPath, String fileName){
 		File file = getReadFileFromExternalAppFilesDir(context, type, directoryPath, fileName);
 		return fileToByteArray(file);
 	}
@@ -981,8 +976,8 @@ public class IOUtils {
 	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN < Build.VERSION_CODES.KITKAT, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
 	 */
-	public static byte[] readFileFromExternalAppFilesDir(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN &&
+	public static @Nullable byte[] readFileFromExternalAppFilesDir(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT &&
 				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
@@ -1031,9 +1026,9 @@ public class IOUtils {
 	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/files/type/].
 	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 	public static boolean deleteFileFromExternalAppFilesDir(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT &&
+				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -1082,10 +1077,10 @@ public class IOUtils {
 	}
 
 	/**
-	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
+	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN < Build.VERSION_CODES.KITKAT, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
 	 */
-	public static File getReadFileFromExternalAppCacheDir(Context context, String directoryPath, String fileName){
+	public static @Nullable File getReadFileFromExternalAppCacheDir(Context context, String directoryPath, String fileName){
 		String externalStorageState = Environment.getExternalStorageState();
 		boolean externalMounted = externalStorageState.equals(Environment.MEDIA_MOUNTED) || externalStorageState.equals(Environment.MEDIA_MOUNTED_READ_ONLY);
 		if(!externalMounted){
@@ -1136,10 +1131,26 @@ public class IOUtils {
 	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
 	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+	public static boolean writeFileFromExternalAppCacheDir(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend){
+		return writeFileFromExternalAppCacheDir(context, inputStream, directoryPath, fileName, isAppend, IO_BUFFER_SIZE);
+	}
+
+	/**
+	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
+	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
+	 */
+	public static boolean writeFileFromExternalAppCacheDir(Context context, InputStream inputStream, String directoryPath, String fileName){
+		return writeFileFromExternalAppCacheDir(context, inputStream, directoryPath, fileName, false, IO_BUFFER_SIZE);
+	}
+
+	/**
+	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
+	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
+	 */
 	public static boolean writeFileFromExternalAppCacheDir(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend
 			, int bufferSize, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT &&
+				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -1151,28 +1162,10 @@ public class IOUtils {
 	}
 
 	/**
-	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
-	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
-	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternalAppCacheDir(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend){
-		return writeFileFromExternalAppCacheDir(context, inputStream, directoryPath, fileName, isAppend, IO_BUFFER_SIZE);
-	}
-
-	/**
-	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
-	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
-	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternalAppCacheDir(Context context, InputStream inputStream, String directoryPath, String fileName){
-		return writeFileFromExternalAppCacheDir(context, inputStream, directoryPath, fileName, false, IO_BUFFER_SIZE);
-	}
-
-	/**
 	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN < Build.VERSION_CODES.KITKAT, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
 	 */
-	public static byte[] readFileFromExternalAppCacheDir(Context context, String directoryPath, String fileName){
+	public static @Nullable byte[] readFileFromExternalAppCacheDir(Context context, String directoryPath, String fileName){
 		File file = getReadFileFromExternalAppCacheDir(context, directoryPath, fileName);
 		return fileToByteArray(file);
 	}
@@ -1181,8 +1174,8 @@ public class IOUtils {
 	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN < Build.VERSION_CODES.KITKAT, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
 	 */
-	public static byte[] readFileFromExternalAppCacheDir(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN &&
+	public static @Nullable byte[] readFileFromExternalAppCacheDir(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT &&
 				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
@@ -1231,9 +1224,9 @@ public class IOUtils {
 	 * If Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT, require android.permission.WRITE_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/Android/data/packageName/cache/].
 	 */
-	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 	public static boolean deleteFileFromExternalAppCacheDir(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
-		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT &&
+				ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
 				Message message = handlerNoPermissions.obtainMessage();
 				message.obj = new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
@@ -1248,6 +1241,7 @@ public class IOUtils {
 	 * android.permission.WRITE_EXTERNAL_STORAGE<br>
 	 * The file path is located in [/externalPath/type/].
 	 */
+	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 	public static @Nullable File getWriteFileFromExternalPublic(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
 		boolean externalMounted = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		if(!externalMounted){
@@ -1290,10 +1284,12 @@ public class IOUtils {
 	}
 
 	/**
-	 * android.permission.WRITE_EXTERNAL_STORAGE<br>
+	 * Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN, require android.permission.READ_EXTERNAL_STORAGE<br>
 	 * The file path is located in [/externalPath/type/].
 	 */
-	public static File getReadFileFromExternalPublic(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
+	@SuppressLint("InlinedApi")
+	@RequiresPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+	public static @Nullable File getReadFileFromExternalPublic(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
 		String externalStorageState = Environment.getExternalStorageState();
 		boolean externalMounted = externalStorageState.equals(Environment.MEDIA_MOUNTED) || externalStorageState.equals(Environment.MEDIA_MOUNTED_READ_ONLY);
 		if(!externalMounted){
@@ -1374,7 +1370,9 @@ public class IOUtils {
 	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/type/].
 	 */
-	public static byte[] readFileFromExternalPublic(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
+	@SuppressLint("InlinedApi")
+	@RequiresPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+	public static @Nullable byte[] readFileFromExternalPublic(Context context, String type, String directoryPath, String fileName, Handler handlerNoPermissions){
 		File file = getReadFileFromExternalPublic(context, type, directoryPath, fileName, handlerNoPermissions);
 		return fileToByteArray(file);
 	}
@@ -1425,7 +1423,8 @@ public class IOUtils {
 	 * android.permission.WRITE_EXTERNAL_STORAGE<br>
 	 * The file path is located in [/externalPath/].
 	 */
-	public static @Nullable File getWriteFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+	public static @Nullable File getWriteFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
 		boolean externalMounted = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		if(!externalMounted){
 			return null;
@@ -1464,10 +1463,12 @@ public class IOUtils {
 	}
 
 	/**
-	 * android.permission.WRITE_EXTERNAL_STORAGE<br>
+	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN, require android.permission.READ_EXTERNAL_STORAGE<br>
 	 * The file path is located in [/externalPath/].
 	 */
-	public static File getReadFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+	@SuppressLint("InlinedApi")
+	@RequiresPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+	public static @Nullable File getReadFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
 		String externalStorageState = Environment.getExternalStorageState();
 		boolean externalMounted = externalStorageState.equals(Environment.MEDIA_MOUNTED) || externalStorageState.equals(Environment.MEDIA_MOUNTED_READ_ONLY);
 		if(!externalMounted){
@@ -1507,9 +1508,9 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternal(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend, int bufferSize
+	public static boolean writeFileFromExternalStorage(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend, int bufferSize
 			, Handler handlerNoPermissions){
-		File file = getWriteFileFromExternal(context, directoryPath, fileName, handlerNoPermissions);
+		File file = getWriteFileFromExternalStorage(context, directoryPath, fileName, handlerNoPermissions);
 		if(file == null){
 			return false;
 		}
@@ -1526,9 +1527,9 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternal(Context context, InputStream inputStream, String directoryPath, String fileName
-			, boolean isAppend, Handler handlerNoPermissions){
-		return writeFileFromExternal(context, inputStream, directoryPath, fileName, isAppend, IO_BUFFER_SIZE, handlerNoPermissions);
+	public static boolean writeFileFromExternalStorage(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend
+			, Handler handlerNoPermissions){
+		return writeFileFromExternalStorage(context, inputStream, directoryPath, fileName, isAppend, IO_BUFFER_SIZE, handlerNoPermissions);
 	}
 
 	/**
@@ -1536,16 +1537,18 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternal(Context context, InputStream inputStream, String directoryPath, String fileName, Handler handlerNoPermissions){
-		return writeFileFromExternal(context, inputStream, directoryPath, fileName, false, IO_BUFFER_SIZE, handlerNoPermissions);
+	public static boolean writeFileFromExternalStorage(Context context, InputStream inputStream, String directoryPath, String fileName, Handler handlerNoPermissions){
+		return writeFileFromExternalStorage(context, inputStream, directoryPath, fileName, false, IO_BUFFER_SIZE, handlerNoPermissions);
 	}
 
 	/**
 	 * If Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN, require android.permission.READ_EXTERNAL_STORAGE.<br>
 	 * The file path is located in [/externalPath/].
 	 */
-	public static byte[] readFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
-		File file = getReadFileFromExternal(context, directoryPath, fileName, handlerNoPermissions);
+	@SuppressLint("InlinedApi")
+	@RequiresPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+	public static @Nullable byte[] readFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+		File file = getReadFileFromExternalStorage(context, directoryPath, fileName, handlerNoPermissions);
 		return fileToByteArray(file);
 	}
 
@@ -1553,7 +1556,8 @@ public class IOUtils {
 	 * android.permission.WRITE_EXTERNAL_STORAGE<br>
 	 * The file path is located in [/externalPath/].
 	 */
-	public static boolean deleteFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+	public static boolean deleteFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
 		boolean externalMounted = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		if(!externalMounted){
 			return false;

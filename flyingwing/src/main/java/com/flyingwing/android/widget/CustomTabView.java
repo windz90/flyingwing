@@ -571,7 +571,7 @@ public class CustomTabView extends LinearLayout {
 	/**
 	 * 
 	 * @param isClickDismiss must implements OnDismissListener
-	 * @param isDismissSelf<br>
+	 * @param isDismissSelf <br>
 	 * true : Dismiss all contain self<br>
 	 * false : Only dismiss inside tab, self hidden
 	 */

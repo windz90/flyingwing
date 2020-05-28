@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.0
+ * @version 4.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -8,14 +8,9 @@
 package com.flyingwing.android.util;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.ActivityManager;
+import android.app.*;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManager.RunningServiceInfo;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.ContentProviderOperation;
@@ -659,8 +654,8 @@ public class Utils {
 
 	/**
 	 * Can also be use API {@link Location#distanceBetween(double, double, double, double, float[])} like:<br>
-	 * Location.distanceBetween(latitude1, longitude1, latitude2, longitude2, results);<br>
-	 * return results[0];
+	 * Location.distanceBetween(latitude1, longitude1, latitude2, longitude2, results)<br>
+	 * return results[0]
 	 */
 	public static double getDistanceSimpleFromLatitudeAndLongitude(double latitude1, double longitude1, double latitude2, double longitude2) {
 		double theta = longitude1 - longitude2;
@@ -1141,7 +1136,8 @@ public class Utils {
 	 * @param streamUri Uri.fromFile(file)
 	 */
 	public static Intent getActionSendIntent(String intentType, String subject, String text, Uri streamUri){
-		Intent intent = new Intent(Intent.ACTION_SEND);
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_SEND);
 		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		if(!TextUtils.isEmpty(intentType)){
 			intent.setType(intentType);
@@ -1158,17 +1154,18 @@ public class Utils {
 		return intent;
 	}
 
-	public static Intent getActionSendIntentForAPP(Context context, String packageName, String className, String intentType, String subject
-			, String text, Uri streamUri){
+	public static Intent getActionSendIntentForAPP(Context context, String packageName, String className, String intentType, String subject, String text, Uri streamUri){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo == null || listResolveInfo.size() == 0){
-			Uri uri = Uri.parse("market://details?id=" + packageName);
-			intent = new Intent(Intent.ACTION_VIEW, uri);
+			intent = new Intent();
+			intent.setAction(Intent.ACTION_VIEW);
+			intent.setData(Uri.parse("market://details?id=" + packageName));
 			return intent;
 		}
-		intent = new Intent(Intent.ACTION_SEND);
+		intent = new Intent();
+		intent.setAction(Intent.ACTION_SEND);
 		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		intent.setType(intentType);
 		// intent.setClassName("com.facebook.katana", "com.facebook.katana.ShareLinkActivity");
@@ -1180,12 +1177,18 @@ public class Utils {
 		return intent;
 	}
 
-	public static Intent getActionSendToIntentForEmail(String mailToUri, String subject, String text){
-		if(!TextUtils.isEmpty(mailToUri)){
-			return null;
+	public static Intent getActionSendToIntentForEmail(String[] email, String[] cc, String[] bcc, String subject, String text){
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_SENDTO);// No attachment
+		if(email != null && email.length > 0){
+			intent.putExtra(Intent.EXTRA_EMAIL, email);
 		}
-		Intent intent = new Intent(Intent.ACTION_SENDTO);
-		intent.setData(Uri.parse(mailToUri));
+		if(cc != null && cc.length > 0){
+			intent.putExtra(Intent.EXTRA_CC, cc);
+		}
+		if(bcc != null && bcc.length > 0){
+			intent.putExtra(Intent.EXTRA_BCC, bcc);
+		}
 		if(!TextUtils.isEmpty(subject)){
 			intent.putExtra(Intent.EXTRA_SUBJECT, subject);
 		}
@@ -1195,9 +1198,9 @@ public class Utils {
 		return intent;
 	}
 
-	public static Intent getActionSendIntentForEmail(String intentType, String[] email, String[] cc, String[] bcc, String subject, String text
-			, Uri streamUri){
-		Intent intent = new Intent(Intent.ACTION_SEND);
+	public static Intent getActionSendIntentForEmail(String intentType, String[] email, String[] cc, String[] bcc, String subject, String text, Uri streamUri){
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_SEND);// Single attachment
 		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		if(!TextUtils.isEmpty(intentType)){
 			intent.setType(intentType);
@@ -1225,7 +1228,8 @@ public class Utils {
 
 	public static Intent getActionSendMultipleIntentForEmail(String intentType, String[] email, String[] cc, String[] bcc, String subject, String text
 			, ArrayList<Uri> streamUriList){
-		Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_SEND_MULTIPLE);// Multiple attachments
 		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		if(!TextUtils.isEmpty(intentType)){
 			intent.setType(intentType);
@@ -1319,6 +1323,40 @@ public class Utils {
 		return getBackDifferentTaskIntent(new Intent(context, targetClass));
 	}
 
+	/**
+	 * Storage Access Framework (SAF)<br>
+	 * Call startActivityForResult<br>
+	 * Uri uri = resultIntent.getData()<br>
+	 * Write<br>
+	 * getContentResolver().openFileDescriptor(Uri, String)<br>
+	 * getContentResolver().openOutputStream(Uri)<br>
+	 * Delete<br>
+	 * DocumentsContract.deleteDocument(ContentResolver, Uri)
+	 */
+	@RequiresApi(api = Build.VERSION_CODES.KITKAT)
+	public static Intent getContentCreateIntent(String intentType, String fileName){
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_CREATE_DOCUMENT);
+		// Filter to only show results that can be "opened", such as a file (as opposed to a list of contacts or timezones).
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		intent.setType(intentType);
+		intent.putExtra(Intent.EXTRA_TITLE, fileName);
+		return intent;
+	}
+
+	/**
+	 * Storage Access Framework (SAF)<br>
+	 * Call startActivityForResult<br>
+	 * Uri uri = resultIntent.getData()<br>
+	 * Write<br>
+	 * getContentResolver().openFileDescriptor(Uri, String)<br>
+	 * getContentResolver().openOutputStream(Uri)<br>
+	 * Read<br>
+	 * getContentResolver().openFileDescriptor(Uri, String)<br>
+	 * getContentResolver().openInputStream(Uri)<br>
+	 * Delete<br>
+	 * DocumentsContract.deleteDocument(ContentResolver, Uri)
+	 */
 	public static Intent getContentSelectionIntent(String intentType, boolean allowMultiple){
 		Intent intent = new Intent();
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
@@ -1326,6 +1364,8 @@ public class Utils {
 		}else{
 			intent.setAction(Intent.ACTION_GET_CONTENT);
 		}
+		// Filter to only show results that can be "opened", such as a file (as opposed to a list of contacts or timezones).
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
 		intent.setType(intentType);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
 			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
@@ -1334,11 +1374,43 @@ public class Utils {
 	}
 
 	/**
+	 * Storage Access Framework (SAF)<br>
+	 * Call startActivityForResult<br>
+	 * Uri uriTree = resultIntent.getData()<br>
+	 * DocumentFile.fromTreeUri(Context, Uri).listFiles
+	 */
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	public static Intent getDirectorySelectionIntent(String intentType){
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
+		intent.setType(intentType);
+		return intent;
+	}
+
+	/**
+	 * Storage Access Framework (SAF)<br>
+	 * Uri uri = resultIntent.getData()<br>
+	 * Get persistable uri permission (even if the device restart), you can save uri.toString() for next access.
+	 */
+	@RequiresApi(api = Build.VERSION_CODES.KITKAT)
+	public static void keepUriPermission(Context context, Intent intent){
+		Uri uri = intent.getData();
+		if(uri == null){
+			return;
+		}
+		if(DocumentsContract.isDocumentUri(context, uri)){
+			int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+			context.getApplicationContext().getContentResolver().takePersistableUriPermission(uri, takeFlags);
+		}
+	}
+
+	/**
 	 * Call startActivityForResult
 	 */
 	public static Intent getImageCropIntent(Uri uriSrc, Uri uriDst, int aspectX, int aspectY, int outputX, int outputY, String outputFormat
 			, boolean circleCrop, boolean noFaceDetection, boolean returnData){
-		Intent intent = new Intent("com.android.camera.action.CROP");
+		Intent intent = new Intent();
+		intent.setAction("com.android.camera.action.CROP");
 		intent.putExtra("crop", "true");
 		// 設置剪裁圖片來源
 		intent.setDataAndType(uriSrc, "image/*");
@@ -1423,7 +1495,8 @@ public class Utils {
 //		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
 //			activity.finishAffinity();
 //		}
-		Intent intent = new Intent(Intent.ACTION_MAIN);
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_MAIN);
 		intent.addCategory(Intent.CATEGORY_HOME);
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		activity.startActivity(intent);
@@ -1445,14 +1518,14 @@ public class Utils {
 		return listResolveInfo.size();
 	}
 
-	private static int callMatchAppWaitResult(Object objectThis, Intent intent, int onActivityResultRequestCode){
+	private static int callMatchAppWaitResult(Object objectThis, Intent intent, int onRequestCodeForActivity){
 		int count;
 		Activity activity;
 		if(objectThis instanceof Activity){
 			activity = (Activity) objectThis;
 			count = intentMatchAppCount(activity, intent);
 			if(count > 0){
-				activity.startActivityForResult(intent, onActivityResultRequestCode);
+				activity.startActivityForResult(intent, onRequestCodeForActivity);
 				return count;
 			}
 		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && objectThis instanceof android.app.Fragment){
@@ -1461,7 +1534,7 @@ public class Utils {
 			if(activity != null){
 				count = intentMatchAppCount(activity, intent);
 				if(count > 0){
-					fragment.startActivityForResult(intent, onActivityResultRequestCode);
+					fragment.startActivityForResult(intent, onRequestCodeForActivity);
 					return count;
 				}
 			}
@@ -1471,7 +1544,7 @@ public class Utils {
 			if(fragmentActivity != null){
 				count = intentMatchAppCount(fragmentActivity, intent);
 				if(count > 0){
-					fragment.startActivityForResult(intent, onActivityResultRequestCode);
+					fragment.startActivityForResult(intent, onRequestCodeForActivity);
 					return count;
 				}
 			}
@@ -1480,7 +1553,7 @@ public class Utils {
 			if(activity != null){
 				count = intentMatchAppCount(activity, intent);
 				if(count > 0){
-					activity.startActivityForResult(intent, onActivityResultRequestCode);
+					activity.startActivityForResult(intent, onRequestCodeForActivity);
 					return count;
 				}
 			}
@@ -1488,77 +1561,78 @@ public class Utils {
 		return -1;
 	}
 
-	public static int callMatchAppWaitResult(Activity activity, Intent intent, int onActivityResultRequestCode){
-		return callMatchAppWaitResult((Object) activity, intent, onActivityResultRequestCode);
+	public static int callMatchAppWaitResult(Activity activity, Intent intent, int onRequestCodeForActivity){
+		return callMatchAppWaitResult((Object) activity, intent, onRequestCodeForActivity);
 	}
 
-	public static int callMatchAppWaitResult(android.app.Fragment fragment, Intent intent, int onActivityResultRequestCode){
-		return callMatchAppWaitResult((Object) fragment, intent, onActivityResultRequestCode);
+	public static int callMatchAppWaitResult(android.app.Fragment fragment, Intent intent, int onRequestCodeForActivity){
+		return callMatchAppWaitResult((Object) fragment, intent, onRequestCodeForActivity);
 	}
 
-	public static int callMatchAppWaitResult(android.support.v4.app.Fragment fragment, Intent intent, int onActivityResultRequestCode){
-		return callMatchAppWaitResult((Object) fragment, intent, onActivityResultRequestCode);
+	public static int callMatchAppWaitResult(android.support.v4.app.Fragment fragment, Intent intent, int onRequestCodeForActivity){
+		return callMatchAppWaitResult((Object) fragment, intent, onRequestCodeForActivity);
 	}
 
-	public static int callMatchAppWaitResult(Context contextFromView, Intent intent, int onActivityResultRequestCode){
-		return callMatchAppWaitResult((Object) contextFromView, intent, onActivityResultRequestCode);
+	public static int callMatchAppWaitResult(Context contextFromView, Intent intent, int onRequestCodeForActivity){
+		return callMatchAppWaitResult((Object) contextFromView, intent, onRequestCodeForActivity);
 	}
 
-	private static void callContentSelectionWaitResult(final Object objectThis, String intentType, boolean allowMultiple, final int onActivityResultRequestCode
+	private static void callContentSelectionWaitResult(final Object objectThis, String intentType, boolean allowMultiple, final int onRequestCodeForActivity
 			, final String title){
 		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
-				callMatchAppWaitResult(objectThis, title == null ? intent : Intent.createChooser(intent, title), onActivityResultRequestCode);
+				callMatchAppWaitResult(objectThis, title == null ? intent : Intent.createChooser(intent, title), onRequestCodeForActivity);
 			}
 		}).start();
 	}
 
-	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onActivityResultRequestCode, String title){
-		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, title);
+	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onRequestCodeForActivity, String title){
+		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode
+	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity
 			, String title){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title);
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onActivityResultRequestCode
+	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onRequestCodeForActivity, String title){
+		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onRequestCodeForActivity, title);
+	}
+
+	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity
 			, String title){
-		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onActivityResultRequestCode, title);
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode
-			, String title){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, title);
+	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
+		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onRequestCodeForActivity, null);
 	}
 
-	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onActivityResultRequestCode, null);
+	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, null);
 	}
 
-	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null);
+	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
+		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, null);
 	}
 
-	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onActivityResultRequestCode, null);
-	}
-
-	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onActivityResultRequestCode){
-		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onActivityResultRequestCode, null);
+	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
+		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onRequestCodeForActivity, null);
 	}
 
 	public static int callAppStore(Context context, String packageName){
-		Uri uri = Uri.parse("market://details?id=" + packageName);
-		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_VIEW);
+		intent.setData(Uri.parse("market://details?id=" + packageName));
 		return callMatchApp(context, intent);
 	}
 
 	public static void callGoogleMapsNavigation(Context context, String sLatit, String sLongit, String dLatit, String dLongit){
-		Intent intent = new Intent(Intent.ACTION_VIEW);
+		Intent intent = new Intent();
+		intent.setAction(Intent.ACTION_VIEW);
 		intent.setData(Uri.parse("http://maps.google.com/maps?f=d&saddr=" + sLatit + "," + sLongit +
 				"&daddr=" + dLatit + "," + dLongit + "&hl=zh-TW"));
 		intent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
@@ -1567,14 +1641,15 @@ public class Utils {
 
 	@RequiresApi(api = Build.VERSION_CODES.GINGERBREAD)
 	public static void callAppSettings(Context context){
-		Uri packageUri = Uri.fromParts("package", context.getApplicationContext().getPackageName(), null);
 		/*
 		 * Mobile網路設定頁
 		 * Settings.ACTION_WIRELESS_SETTINGS
 		 * WIFI網路設定頁
 		 * Settings.ACTION_WIFI_SETTINGS
 		 */
-		Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, packageUri);
+		Intent intent = new Intent();
+		intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+		intent.setData(Uri.fromParts("package", context.getApplicationContext().getPackageName(), null));
 		context.startActivity(intent);
 	}
 
@@ -1597,6 +1672,38 @@ public class Utils {
 			}
 		}
 		return path;
+	}
+
+	public static Uri[] getIntentUris(Intent intent){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
+			return new Uri[]{intent.getData()};
+		}
+		ClipData clipData = intent.getClipData();
+		if(clipData == null || clipData.getItemCount() == 0){
+			return new Uri[]{intent.getData()};
+		}
+		Uri[] uris = new Uri[clipData.getItemCount()];
+		for(int i=0; i<uris.length; i++){
+			uris[i] = clipData.getItemAt(i).getUri();
+		}
+		return uris;
+	}
+
+	@SuppressWarnings("ResourceType")
+	public static Uri[] getIntentUrisWithPath(Context context, Intent intent){
+		Uri[] uris = getIntentUris(intent);
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
+			return uris;
+		}
+
+		for(int i=0; i<uris.length; i++){
+			if(DocumentsContract.isDocumentUri(context, uris[i])){
+				// Get persistable uri permission, you can keep uri reference or save uri.toString() for next access.
+				int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+				context.getApplicationContext().getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
+			}
+		}
+		return uris;
 	}
 
 	public static String[] getFilesPathFromIntentUri(Context context, Intent intent){
@@ -1650,46 +1757,15 @@ public class Utils {
 		return paths;
 	}
 
-	@SuppressWarnings("ResourceType")
-	public static Uri[] getIntentUrisWithPath(Context context, Intent intent){
-		Uri[] uris = getIntentUris(intent);
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
-			return uris;
-		}
-
-		for(int i=0; i<uris.length; i++){
-			if(DocumentsContract.isDocumentUri(context, uris[i])){
-				int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-				context.getApplicationContext().getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
-			}
-		}
-		return uris;
-	}
-
-	public static Uri[] getIntentUris(Intent intent){
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
-			return new Uri[]{intent.getData()};
-		}
-		ClipData clipData = intent.getClipData();
-		if(clipData == null || clipData.getItemCount() == 0){
-			return new Uri[]{intent.getData()};
-		}
-		Uri[] uris = new Uri[clipData.getItemCount()];
-		for(int i=0; i<uris.length; i++){
-			uris[i] = clipData.getItemAt(i).getUri();
-		}
-		return uris;
-	}
-
 	// 設定螢幕亮度模式
 	/**
 	 * SCREEN_BRIGHTNESS_MODE_MANUAL = 0　為手動調節螢幕亮度
 	 * SCREEN_BRIGHTNESS_MODE_AUTOMATIC = 1　為自動調節螢幕亮度
 	 * android.permission.WRITE_SETTINGS
 	 */
-	public static void setScreenBrightnessMode(Context context, int screenBrightnessMode, int onActivityResultRequestCode){
+	public static void setScreenBrightnessMode(Context context, int screenBrightnessMode, int onRequestCodeForActivity){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onActivityResultRequestCode)){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onRequestCodeForActivity)){
 			Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, screenBrightnessMode);
 		}
 	}
@@ -1699,9 +1775,9 @@ public class Utils {
 	 * brightness = 0 - 255
 	 * android.permission.WRITE_SETTINGS
 	 */
-	public static void setScreenBrightnessForSystem(Context context, int screenBrightness, int onActivityResultRequestCode){
+	public static void setScreenBrightnessForSystem(Context context, int screenBrightness, int onRequestCodeForActivity){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onActivityResultRequestCode)){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onRequestCodeForActivity)){
 			Settings.System.putInt(context.getApplicationContext().getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, screenBrightness);
 		}
 	}
@@ -1722,9 +1798,9 @@ public class Utils {
 	 * show_touches = 1 為顯示觸摸點
 	 * android.permission.WRITE_SETTINGS
 	 */
-	public static void setTouchPointState(Context context, boolean isShow, int onActivityResultRequestCode){
+	public static void setTouchPointState(Context context, boolean isShow, int onRequestCodeForActivity){
 		// <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onActivityResultRequestCode)){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || checkWriteSettingsPermissionWaitResult(context, onRequestCodeForActivity)){
 			Settings.System.putInt(context.getApplicationContext().getContentResolver(), "show_touches", isShow ? 1 : 0);
 		}
 	}
@@ -1768,16 +1844,18 @@ public class Utils {
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	private static boolean checkWriteSettingsPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
+	private static boolean checkWriteSettingsPermissionWaitResult(Object objectThis, int onRequestCodeForActivity){
 		Activity activity;
 		if(objectThis instanceof Activity){
 			activity = (Activity) objectThis;
 			if(Settings.System.canWrite(activity)){
 				return true;
 			}
-			Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+			Intent intent = new Intent();
+			intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+			intent.setData(Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			activity.startActivityForResult(intent, onActivityResultRequestCode);
+			activity.startActivityForResult(intent, onRequestCodeForActivity);
 		}else if(objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			activity = fragment.getActivity();
@@ -1785,9 +1863,11 @@ public class Utils {
 				if(Settings.System.canWrite(activity)){
 					return true;
 				}
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+				Intent intent = new Intent();
+				intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+				intent.setData(Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				fragment.startActivityForResult(intent, onActivityResultRequestCode);
+				fragment.startActivityForResult(intent, onRequestCodeForActivity);
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
@@ -1796,9 +1876,11 @@ public class Utils {
 				if(Settings.System.canWrite(fragmentActivity)){
 					return true;
 				}
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
+				Intent intent = new Intent();
+				intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+				intent.setData(Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				fragment.startActivityForResult(intent, onActivityResultRequestCode);
+				fragment.startActivityForResult(intent, onRequestCodeForActivity);
 			}
 		}else if(objectThis instanceof Context){
 			activity = getActivityFromViewContext((Context) objectThis);
@@ -1806,44 +1888,48 @@ public class Utils {
 				if(Settings.System.canWrite(activity)){
 					return true;
 				}
-				Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+				Intent intent = new Intent();
+				intent.setAction(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+				intent.setData(Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				activity.startActivityForResult(intent, onActivityResultRequestCode);
+				activity.startActivityForResult(intent, onRequestCodeForActivity);
 			}
 		}
 		return false;
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkWriteSettingsPermissionWaitResult(Activity activity, int onActivityResultRequestCode){
-		return checkWriteSettingsPermissionWaitResult((Object) activity, onActivityResultRequestCode);
+	public static boolean checkWriteSettingsPermissionWaitResult(Activity activity, int onRequestCodeForActivity){
+		return checkWriteSettingsPermissionWaitResult((Object) activity, onRequestCodeForActivity);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkWriteSettingsPermissionWaitResult(android.app.Fragment fragment, int onActivityResultRequestCode){
-		return checkWriteSettingsPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	public static boolean checkWriteSettingsPermissionWaitResult(android.app.Fragment fragment, int onRequestCodeForActivity){
+		return checkWriteSettingsPermissionWaitResult((Object) fragment, onRequestCodeForActivity);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkWriteSettingsPermissionWaitResult(android.support.v4.app.Fragment fragment, int onActivityResultRequestCode){
-		return checkWriteSettingsPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	public static boolean checkWriteSettingsPermissionWaitResult(android.support.v4.app.Fragment fragment, int onRequestCodeForActivity){
+		return checkWriteSettingsPermissionWaitResult((Object) fragment, onRequestCodeForActivity);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkWriteSettingsPermissionWaitResult(Context contextFromView, int onActivityResultRequestCode){
-		return checkWriteSettingsPermissionWaitResult((Object) contextFromView, onActivityResultRequestCode);
+	public static boolean checkWriteSettingsPermissionWaitResult(Context contextFromView, int onRequestCodeForActivity){
+		return checkWriteSettingsPermissionWaitResult((Object) contextFromView, onRequestCodeForActivity);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	private static boolean checkSystemAlertOverlayPermissionWaitResult(Object objectThis, int onActivityResultRequestCode){
+	private static boolean checkSystemAlertOverlayPermissionWaitResult(Object objectThis, int onRequestCodeForActivity){
 		Activity activity;
 		if(objectThis instanceof Activity){
 			activity = (Activity) objectThis;
 			if(Settings.canDrawOverlays(activity)){
 				return true;
 			}
-			Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
-			activity.startActivityForResult(intent, onActivityResultRequestCode);
+			Intent intent = new Intent();
+			intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+			intent.setData(Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+			activity.startActivityForResult(intent, onRequestCodeForActivity);
 		}else if(objectThis instanceof android.app.Fragment){
 			android.app.Fragment fragment = (android.app.Fragment) objectThis;
 			activity = fragment.getActivity();
@@ -1851,8 +1937,10 @@ public class Utils {
 				if(Settings.canDrawOverlays(activity)){
 					return true;
 				}
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
-				fragment.startActivityForResult(intent, onActivityResultRequestCode);
+				Intent intent = new Intent();
+				intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+				intent.setData(Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+				fragment.startActivityForResult(intent, onRequestCodeForActivity);
 			}
 		}else if(objectThis instanceof android.support.v4.app.Fragment){
 			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
@@ -1861,8 +1949,10 @@ public class Utils {
 				if(Settings.canDrawOverlays(fragmentActivity)){
 					return true;
 				}
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
-				fragment.startActivityForResult(intent, onActivityResultRequestCode);
+				Intent intent = new Intent();
+				intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+				intent.setData(Uri.parse("package:" + fragmentActivity.getApplicationContext().getPackageName()));
+				fragment.startActivityForResult(intent, onRequestCodeForActivity);
 			}
 		}else if(objectThis instanceof Context){
 			activity = getActivityFromViewContext((Context) objectThis);
@@ -1870,31 +1960,33 @@ public class Utils {
 				if(Settings.canDrawOverlays(activity)){
 					return true;
 				}
-				Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
-				activity.startActivityForResult(intent, onActivityResultRequestCode);
+				Intent intent = new Intent();
+				intent.setAction(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+				intent.setData(Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
+				activity.startActivityForResult(intent, onRequestCodeForActivity);
 			}
 		}
 		return false;
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkSystemAlertOverlayPermissionWaitResult(Activity activity, int onActivityResultRequestCode){
-		return checkSystemAlertOverlayPermissionWaitResult((Object) activity, onActivityResultRequestCode);
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(Activity activity, int onRequestCodeForActivity){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) activity, onRequestCodeForActivity);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.app.Fragment fragment, int onActivityResultRequestCode){
-		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.app.Fragment fragment, int onRequestCodeForActivity){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onRequestCodeForActivity);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.support.v4.app.Fragment fragment, int onActivityResultRequestCode){
-		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onActivityResultRequestCode);
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.support.v4.app.Fragment fragment, int onRequestCodeForActivity){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onRequestCodeForActivity);
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkSystemAlertOverlayPermissionWaitResult(Context contextFromView, int onActivityResultRequestCode){
-		return checkSystemAlertOverlayPermissionWaitResult((Object) contextFromView, onActivityResultRequestCode);
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(Context contextFromView, int onRequestCodeForActivity){
+		return checkSystemAlertOverlayPermissionWaitResult((Object) contextFromView, onRequestCodeForActivity);
 	}
 
 	// 控制鍵盤開關
@@ -1934,70 +2026,139 @@ public class Utils {
 		inputMethodManager.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
 	}
 
-	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
-			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
-			, boolean isAutoCancel, boolean isOngoing, int notificationDefault, int notificationPriority, int notificationVisibility, Notification notificationPublic){
+	public static NotificationCompat.Builder createNotificationCompatBuilder(Context context, String channelId, String ticker, String contentTitle, String contentText
+			, String contentInfo, String subText, Integer color, int smallIcon, Bitmap bitmapLargeIcon, Long when, PendingIntent pendingIntent){
 		NotificationCompat.Builder notificationCompatBuilder = new NotificationCompat.Builder(context, channelId);
+		// According to high notification priority or channel importance, Android 3.0 to 4.4 use ticker, Android 5.0 and higher use head up.
 		notificationCompatBuilder.setTicker(ticker);
 		notificationCompatBuilder.setContentTitle(contentTitle);
 		notificationCompatBuilder.setContentText(contentText);
 		notificationCompatBuilder.setContentInfo(contentInfo);
-		notificationCompatBuilder.setColor(color);
-		notificationCompatBuilder.setSmallIcon(smallIcon);
-		if(bitmapLargeIcon != null){
-			notificationCompatBuilder.setLargeIcon(bitmapLargeIcon);
+		notificationCompatBuilder.setSubText(subText);
+		if(color != null){
+			notificationCompatBuilder.setColor(color);
 		}
+		notificationCompatBuilder.setSmallIcon(smallIcon);
+		notificationCompatBuilder.setLargeIcon(bitmapLargeIcon);
 		if(when != null){
 			notificationCompatBuilder.setWhen(when);
 		}
-		if(style != null){
-			notificationCompatBuilder.setStyle(style);
+		if(pendingIntent == null && Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1){
+			pendingIntent = PendingIntent.getActivity(context, 0, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
 		}
-		if(intent == null){
-			intent = new Intent();
-		}
-		PendingIntent pendingIntent = PendingIntent.getActivity(context, onActivityResultRequestCode, intent, pendingIntentFlag);
 		notificationCompatBuilder.setContentIntent(pendingIntent);
-		notificationCompatBuilder.setAutoCancel(isAutoCancel);
-		notificationCompatBuilder.setOngoing(isOngoing);
-		notificationCompatBuilder.setDefaults(notificationDefault);
-		notificationCompatBuilder.setPriority(notificationPriority);
-		notificationCompatBuilder.setVisibility(notificationVisibility);
+		return notificationCompatBuilder;
+	}
+
+	public static NotificationCompat.Builder createNotificationCompatBuilder(Context context, String channelId, String contentTitle, String contentText
+			, String contentInfo, String subText, Integer color, int smallIcon, Bitmap bitmapLargeIcon, Long when, PendingIntent pendingIntent){
+		return createNotificationCompatBuilder(context, channelId, null, contentTitle, contentText, contentInfo, subText, color, smallIcon, bitmapLargeIcon, when
+				, pendingIntent);
+	}
+
+	public static NotificationCompat.Builder configureNotificationCompatBuilder(NotificationCompat.Builder notificationCompatBuilder, String groupKey
+			, Boolean isGroupSummary, @NotificationCompat.GroupAlertBehavior Integer groupAlertBehavior, String category, Boolean isAutoCancel, Boolean isOngoing
+			, Boolean colorize, Boolean isOnlyAlertOnce, Integer notificationVisibility, Notification notificationPublic){
+		notificationCompatBuilder.setGroup(groupKey);
+		if(isGroupSummary != null){
+			notificationCompatBuilder.setGroupSummary(isGroupSummary);
+		}
+		if(groupAlertBehavior != null){
+			notificationCompatBuilder.setGroupAlertBehavior(groupAlertBehavior);
+		}
+		notificationCompatBuilder.setCategory(category);
+		if(isAutoCancel != null){
+			notificationCompatBuilder.setAutoCancel(isAutoCancel);
+		}
+		if(isOngoing != null){
+			notificationCompatBuilder.setOngoing(isOngoing);
+		}
+		if(colorize != null){
+			notificationCompatBuilder.setColorized(colorize);
+		}
+		if(isOnlyAlertOnce != null){
+			notificationCompatBuilder.setOnlyAlertOnce(isOnlyAlertOnce);
+		}
+		if(notificationVisibility != null){
+			notificationCompatBuilder.setVisibility(notificationVisibility);
+		}
 		notificationCompatBuilder.setPublicVersion(notificationPublic);
-
-		return notificationCompatBuilder.build();
+		return notificationCompatBuilder;
 	}
 
-	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
-			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
-			, boolean isAutoCancel, boolean isOngoing, int notificationDefault, int notificationVisibility, Notification notificationPublic){
-		return getNotification(context, channelId, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
-				, pendingIntentFlag, isAutoCancel, isOngoing, notificationDefault, NotificationCompat.PRIORITY_DEFAULT, notificationVisibility, notificationPublic);
+	public static NotificationCompat.Builder configureNotificationCompatBuilder(NotificationCompat.Builder notificationCompatBuilder, NotificationCompat.Style style
+			, NotificationCompat.Action notificationCompatAction1, NotificationCompat.Action notificationCompatAction2, NotificationCompat.Action notificationCompatAction3){
+		notificationCompatBuilder.setStyle(style);
+		if(notificationCompatAction1 != null){
+			notificationCompatBuilder.addAction(notificationCompatAction1);
+		}
+		if(notificationCompatAction2 != null){
+			notificationCompatBuilder.addAction(notificationCompatAction2);
+		}
+		if(notificationCompatAction3 != null){
+			notificationCompatBuilder.addAction(notificationCompatAction3);
+		}
+		return notificationCompatBuilder;
 	}
 
-	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
-			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
-			, boolean isAutoCancel, boolean isOngoing, int notificationDefault, int notificationPriority){
-		return getNotification(context, channelId, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
-				, pendingIntentFlag, isAutoCancel, isOngoing, notificationDefault, notificationPriority, NotificationCompat.VISIBILITY_PUBLIC, null);
+	public static NotificationCompat.Builder configureNotificationCompatBuilder(NotificationCompat.Builder notificationCompatBuilder, Integer notificationDefault
+			, Integer notificationPriority){
+		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.O){
+			if(notificationDefault != null){
+				notificationCompatBuilder.setDefaults(notificationDefault);
+			}
+			if(notificationPriority != null){
+				notificationCompatBuilder.setPriority(notificationPriority);
+			}
+		}
+		return notificationCompatBuilder;
 	}
 
-	public static Notification getNotification(Context context, String channelId, String ticker, String contentTitle, String contentText, String contentInfo, int color
-			, int smallIcon, Bitmap bitmapLargeIcon, Long when, NotificationCompat.Style style, Intent intent, int onActivityResultRequestCode, int pendingIntentFlag
-			, boolean isAutoCancel, boolean isOngoing, int notificationDefault){
-		return getNotification(context, channelId, ticker, contentTitle, contentText, contentInfo, color, smallIcon, bitmapLargeIcon, when, style, intent, onActivityResultRequestCode
-				, pendingIntentFlag, isAutoCancel, isOngoing, notificationDefault, NotificationCompat.PRIORITY_DEFAULT, NotificationCompat.VISIBILITY_PUBLIC, null);
+	@RequiresApi(api = Build.VERSION_CODES.O)
+	public static NotificationChannelGroup createNotificationChannelGroup(String groupId, String groupName, String groupDescription){
+		NotificationChannelGroup notificationChannelGroup = new NotificationChannelGroup(groupId, groupName);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P){
+			notificationChannelGroup.setDescription(groupDescription);
+		}
+		return notificationChannelGroup;
 	}
 
-	public static void sendNotification(Context context, String tag, int id, Notification notification, boolean isCancelExisted){
+	@RequiresApi(api = Build.VERSION_CODES.O)
+	public static void setCreatedNotificationChannelGroups(Context context, List<NotificationChannelGroup> listNotificationChannelGroup){
 		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
-		if(notificationManager == null){
-			return;
+		notificationManager.createNotificationChannelGroups(listNotificationChannelGroup);
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.O)
+	public static NotificationChannel createNotificationChannel(String channelId, String channelName, String channelDescription, int channelImportance, String channelGroupId
+			, Boolean isShowBadge){
+		NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, channelImportance);
+		notificationChannel.setDescription(channelDescription);
+		notificationChannel.setGroup(channelGroupId);
+		if(isShowBadge != null){
+			notificationChannel.setShowBadge(isShowBadge);
 		}
-		if(isCancelExisted){
-			notificationManager.cancel(tag, id);
-		}
+		return notificationChannel;
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.O)
+	public static void setCreatedNotificationChannels(Context context, List<NotificationChannel> listNotificationChannel){
+		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
+		notificationManager.createNotificationChannels(listNotificationChannel);
+	}
+
+	public static void notifyNotification(Context context, String tag, int id, Notification notification){
+		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
 		notificationManager.notify(tag, id, notification);
+	}
+
+	public static void notifyNotification(Context context, String tag, int id, NotificationCompat.Builder notificationCompatBuilder){
+		notifyNotification(context, tag, id, notificationCompatBuilder.build());
+	}
+
+	public static void cancelNotification(Context context, String tag, int id){
+		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
+		notificationManager.cancel(tag, id);
 	}
 
 	public static String[] checkNeedRequestPermissions(Context context, String...permissions){
@@ -2036,7 +2197,7 @@ public class Utils {
 	 * android.app.Fragment reported to<br>
 	 * {@link android.app.Fragment#onRequestPermissionsResult(int, String[], int[])}
 	 */
-	private static boolean requestPermissionsWaitResult(Object objectThis, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
+	private static boolean requestPermissionsWaitResult(Object objectThis, int onRequestCodeForPermissions, boolean isCheckRequest, String...permissions){
 		Activity activity;
 		if(objectThis instanceof Activity){
 			activity = (Activity) objectThis;
@@ -2044,7 +2205,7 @@ public class Utils {
 				permissions = checkNeedRequestPermissions(activity, permissions);
 			}
 			if(permissions != null && permissions.length > 0){
-				ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+				ActivityCompat.requestPermissions(activity, permissions, onRequestCodeForPermissions);
 				return true;
 			}
 		}else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB && objectThis instanceof android.app.Fragment){
@@ -2056,9 +2217,9 @@ public class Utils {
 				}
 				if(permissions != null && permissions.length > 0){
 					if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-						fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+						fragment.requestPermissions(permissions, onRequestCodeForPermissions);
 					}else{
-						ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+						ActivityCompat.requestPermissions(activity, permissions, onRequestCodeForPermissions);
 					}
 					return true;
 				}
@@ -2071,7 +2232,7 @@ public class Utils {
 					permissions = checkNeedRequestPermissions(fragmentActivity, permissions);
 				}
 				if(permissions != null && permissions.length > 0){
-					fragment.requestPermissions(permissions, onRequestPermissionsResultRequestCode);
+					fragment.requestPermissions(permissions, onRequestCodeForPermissions);
 					return true;
 				}
 			}
@@ -2082,7 +2243,7 @@ public class Utils {
 					permissions = checkNeedRequestPermissions(activity, permissions);
 				}
 				if(permissions != null && permissions.length > 0){
-					ActivityCompat.requestPermissions(activity, permissions, onRequestPermissionsResultRequestCode);
+					ActivityCompat.requestPermissions(activity, permissions, onRequestCodeForPermissions);
 					return true;
 				}
 			}
@@ -2090,21 +2251,21 @@ public class Utils {
 		return false;
 	}
 
-	public static boolean requestPermissionsWaitResult(Activity activity, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
-		return requestPermissionsWaitResult((Object) activity, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+	public static boolean requestPermissionsWaitResult(Activity activity, int onRequestCodeForPermissions, boolean isCheckRequest, String...permissions){
+		return requestPermissionsWaitResult((Object) activity, onRequestCodeForPermissions, isCheckRequest, permissions);
 	}
 
-	public static boolean requestPermissionsWaitResult(android.app.Fragment fragment, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
-		return requestPermissionsWaitResult((Object) fragment, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+	public static boolean requestPermissionsWaitResult(android.app.Fragment fragment, int onRequestCodeForPermissions, boolean isCheckRequest, String...permissions){
+		return requestPermissionsWaitResult((Object) fragment, onRequestCodeForPermissions, isCheckRequest, permissions);
 	}
 
-	public static boolean requestPermissionsWaitResult(android.support.v4.app.Fragment fragment, int onRequestPermissionsResultRequestCode, boolean isCheckRequest
+	public static boolean requestPermissionsWaitResult(android.support.v4.app.Fragment fragment, int onRequestCodeForPermissions, boolean isCheckRequest
 			, String...permissions){
-		return requestPermissionsWaitResult((Object) fragment, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+		return requestPermissionsWaitResult((Object) fragment, onRequestCodeForPermissions, isCheckRequest, permissions);
 	}
 
-	public static boolean requestPermissionsWaitResult(Context contextFromView, int onRequestPermissionsResultRequestCode, boolean isCheckRequest, String...permissions){
-		return requestPermissionsWaitResult((Object) contextFromView, onRequestPermissionsResultRequestCode, isCheckRequest, permissions);
+	public static boolean requestPermissionsWaitResult(Context contextFromView, int onRequestCodeForPermissions, boolean isCheckRequest, String...permissions){
+		return requestPermissionsWaitResult((Object) contextFromView, onRequestCodeForPermissions, isCheckRequest, permissions);
 	}
 
 	public static boolean isMainThread(){

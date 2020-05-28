@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.1.1
+ * @version 1.1.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -451,9 +451,9 @@ public class NetworkUtils {
 	}
 
 	/**
-	 * android.permission.ACCESS_WIFI_STATE (WifiManager.getScanResults();)<br>
+	 * android.permission.ACCESS_WIFI_STATE (WifiManager.getScanResults())<br>
 	 * android.permission.CHANGE_WIFI_STATE<br>
-	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (WifiManager.getScanResults();)<br>
+	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (WifiManager.getScanResults())<br>
 	 * {@link IntentFilter#addAction(String)} {@link WifiManager#SCAN_RESULTS_AVAILABLE_ACTION}<br>
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
@@ -510,7 +510,7 @@ public class NetworkUtils {
 	 * android.permission.ACCESS_WIFI_STATE<br>
 	 * android.permission.CHANGE_WIFI_STATE<br>
 	 * {@link IntentFilter#addAction(String)} {@link WifiManager#NETWORK_STATE_CHANGED_ACTION} {@link ConnectivityManager#CONNECTIVITY_ACTION}<br>
-	 * NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
+	 * NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO)
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
 	public static boolean wifiConnect(@NonNull Context context, @NonNull String ssId, String bssId, String password, boolean isUseExistWifiConfiguration
@@ -650,7 +650,7 @@ public class NetworkUtils {
 
 	/**
 	 * android.permission.BLUETOOTH<br>
-	 * android.permission.BLUETOOTH_ADMIN (BluetoothAdapter.disable();)<br>
+	 * android.permission.BLUETOOTH_ADMIN (BluetoothAdapter.disable())<br>
 	 * {@link IntentFilter#addAction(String)} {@link BluetoothAdapter#ACTION_STATE_CHANGED}<br>
 	 * {@link BluetoothAdapter#EXTRA_STATE}<br>
 	 * {@link BluetoothAdapter#EXTRA_PREVIOUS_STATE}
@@ -688,7 +688,8 @@ public class NetworkUtils {
 			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 		}
 		if(isEnable){
-			Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			Intent intent = new Intent();
+			intent.setAction(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 			if(requestCode != null && context instanceof Activity){
 				((Activity)context).startActivityForResult(intent, requestCode);
 			}else{
@@ -708,7 +709,7 @@ public class NetworkUtils {
 
 	/**
 	 * android.permission.BLUETOOTH<br>
-	 * android.permission.BLUETOOTH_ADMIN (BluetoothAdapter.disable();)<br>
+	 * android.permission.BLUETOOTH_ADMIN (BluetoothAdapter.disable())<br>
 	 * {@link BluetoothAdapter#EXTRA_STATE}<br>
 	 * {@link BluetoothAdapter#EXTRA_PREVIOUS_STATE}
 	 */
@@ -719,7 +720,7 @@ public class NetworkUtils {
 
 	/**
 	 * android.permission.BLUETOOTH<br>
-	 * android.permission.BLUETOOTH_ADMIN (BluetoothAdapter.disable();)<br>
+	 * android.permission.BLUETOOTH_ADMIN (BluetoothAdapter.disable())<br>
 	 * {@link BluetoothAdapter#EXTRA_STATE}<br>
 	 * {@link BluetoothAdapter#EXTRA_PREVIOUS_STATE}
 	 */
@@ -780,9 +781,9 @@ public class NetworkUtils {
 	 * For Android 5.0 and higher<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback);)<br>
-	 * BluetoothDevice bluetoothDevice = result.getDevice();<br>
-	 * BluetoothLeScanner.stopScan(scanCallback);
+	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback))<br>
+	 * BluetoothDevice bluetoothDevice = result.getDevice()<br>
+	 * BluetoothLeScanner.stopScan(scanCallback)
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
@@ -862,7 +863,7 @@ public class NetworkUtils {
 	 * For Android 4.3 and higher to 5.0 below<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * BluetoothAdapter.stopLeScan(leScanCallback);
+	 * BluetoothAdapter.stopLeScan(leScanCallback)
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
@@ -906,10 +907,10 @@ public class NetworkUtils {
 	 * For Android 4.3 and higher<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback);)<br>
-	 * BluetoothDevice bluetoothDevice = result.getDevice();<br>
+	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback))<br>
+	 * BluetoothDevice bluetoothDevice = result.getDevice()<br>
 	 * BluetoothLeScanner.stopScan(scanCallback);
-	 * BluetoothAdapter.stopLeScan(leScanCallback);
+	 * BluetoothAdapter.stopLeScan(leScanCallback)
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
@@ -967,7 +968,7 @@ public class NetworkUtils {
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * android.permission.ACCESS_COARSE_LOCATION<br>
 	 * {@link IntentFilter#addAction(String)} {@link BluetoothDevice#ACTION_FOUND}<br>
-	 * BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);<br>
+	 * BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)<br>
 	 * BluetoothAdapter.cancelDiscovery(); (android.permission.BLUETOOTH_ADMIN)
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN
@@ -1058,7 +1059,8 @@ public class NetworkUtils {
 			}
 		};
 		*/
-		Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+		Intent intent = new Intent();
+		intent.setAction(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 		intent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, seconds);
 		if(isActivityForResult && context instanceof Activity){
 			((Activity)context).startActivityForResult(intent, activityForResultRequestCode);
@@ -1099,7 +1101,7 @@ public class NetworkUtils {
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * {@link IntentFilter#addAction(String)} {@link BluetoothDevice#ACTION_FOUND}<br>
 	 * {@link BluetoothDevice#EXTRA_BOND_STATE}<br>
-	 * BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+	 * BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 	 */
 	@RequiresPermission(android.Manifest.permission.BLUETOOTH_ADMIN)
 	public static boolean bluetoothPairCreate(@NonNull Context context, BluetoothDevice bluetoothDevice, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){

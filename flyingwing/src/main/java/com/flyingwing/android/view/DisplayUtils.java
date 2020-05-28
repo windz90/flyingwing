@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.9
+ * @version 3.3.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -158,6 +158,70 @@ public class DisplayUtils {
 
 	public static int getAbsHeight(int width, int height){
 		return width < height ? height : width;
+	}
+
+	public void setFullScreen(Activity activity, boolean isReduceStatusBarAndNavigationBar, boolean isImmersive, boolean isImmersiveAndSticky){
+		Window window = activity.getWindow();
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH){
+			int systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+				systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_FULLSCREEN;
+			}
+			if(isReduceStatusBarAndNavigationBar){
+				systemUiVisibility |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+			}
+			if(isImmersive && !isImmersiveAndSticky && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+				systemUiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE;
+			}
+			if(isImmersiveAndSticky && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+				systemUiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+			}
+			window.getDecorView().setSystemUiVisibility(systemUiVisibility);
+		}else{
+			window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+	public void setLayoutExtendAndFuse(Activity activity, boolean isUseLightThemeStatusBar, int statusBarColor, int navigationBarColor){
+		int systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+				| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+				| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+		if(isUseLightThemeStatusBar && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+			systemUiVisibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+		}
+		Window window = activity.getWindow();
+		window.getDecorView().setSystemUiVisibility(systemUiVisibility);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP){
+			window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+			window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+
+			window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+			window.setStatusBarColor(statusBarColor);
+			window.setNavigationBarColor(navigationBarColor);
+		}else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.KITKAT){
+			window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+			window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+		}
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	public void setStatusBarColor(Activity activity, int statusBarColor){
+		Window window = activity.getWindow();
+		window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+		window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+		window.setStatusBarColor(statusBarColor);
+	}
+
+	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+	public void setNavigationBarColor(Activity activity, int navigationBarColor){
+		Window window = activity.getWindow();
+		window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+		window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+		window.setNavigationBarColor(navigationBarColor);
 	}
 
 	/**
