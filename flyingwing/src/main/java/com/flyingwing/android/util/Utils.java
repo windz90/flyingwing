@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.2
+ * @version 4.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -1345,15 +1345,22 @@ public class Utils {
 	 * getContentResolver().openOutputStream(Uri)<br>
 	 * Delete<br>
 	 * DocumentsContract.deleteDocument(ContentResolver, Uri)
+	 *
+	 * @param isOnlyShowOpenable Filter to only show results that can be "opened", such as a file (as opposed to a virtual file, list of contacts or timezones).
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.KITKAT)
-	public static Intent getContentCreateIntent(String intentType, String fileName){
+	public static Intent getFileCreateIntent(String intentType, String fileName, Uri uriInitialPath, boolean isOnlyShowOpenable){
 		Intent intent = new Intent();
 		intent.setAction(Intent.ACTION_CREATE_DOCUMENT);
-		// Filter to only show results that can be "opened", such as a file (as opposed to a list of contacts or timezones).
-		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		if(isOnlyShowOpenable){
+			// Filter to only show results that can be "opened", such as a file (as opposed to a virtual file, list of contacts or timezones).
+			intent.addCategory(Intent.CATEGORY_OPENABLE);
+		}
 		intent.setType(intentType);
 		intent.putExtra(Intent.EXTRA_TITLE, fileName);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriInitialPath);
+		}
 		return intent;
 	}
 
@@ -1369,19 +1376,26 @@ public class Utils {
 	 * getContentResolver().openInputStream(Uri)<br>
 	 * Delete<br>
 	 * DocumentsContract.deleteDocument(ContentResolver, Uri)
+	 *
+	 * @param isOnlyShowOpenable Filter to only show results that can be "opened", such as a file (as opposed to a virtual file, list of contacts or timezones).
 	 */
-	public static Intent getContentSelectionIntent(String intentType, boolean allowMultiple){
+	public static Intent getFileSelectorIntent(String intentType, Uri uriInitialPath, boolean isOnlyShowOpenable, boolean allowMultiple){
 		Intent intent = new Intent();
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 			intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
 		}else{
 			intent.setAction(Intent.ACTION_GET_CONTENT);
 		}
-		// Filter to only show results that can be "opened", such as a file (as opposed to a list of contacts or timezones).
-		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		if(isOnlyShowOpenable){
+			// Filter to only show results that can be "opened", such as a file (as opposed to a virtual file, list of contacts or timezones).
+			intent.addCategory(Intent.CATEGORY_OPENABLE);
+		}
 		intent.setType(intentType);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
 			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
+		}
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriInitialPath);
 		}
 		return intent;
 	}
@@ -1393,10 +1407,14 @@ public class Utils {
 	 * DocumentFile.fromTreeUri(Context, Uri).listFiles
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-	public static Intent getDirectorySelectionIntent(String intentType){
+	public static Intent getDirectorySelectorIntent(String intentType, Uri uriInitialPath){
 		Intent intent = new Intent();
 		intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
+		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		intent.setType(intentType);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriInitialPath);
+		}
 		return intent;
 	}
 
@@ -1590,9 +1608,9 @@ public class Utils {
 		return callMatchAppWaitResult((Object) contextFromView, intent, onRequestCodeForActivity);
 	}
 
-	private static void callContentSelectionWaitResult(final Object objectThis, String intentType, boolean allowMultiple, final int onRequestCodeForActivity
-			, final String title){
-		final Intent intent = getContentSelectionIntent(intentType, allowMultiple);
+	private static void callFileSelectorWaitResult(final Object objectThis, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable, boolean allowMultiple
+			, final int onRequestCodeForActivity, final String title){
+		final Intent intent = getFileSelectorIntent(intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple);
 		new Thread(new Runnable() {
 
 			@Override
@@ -1602,38 +1620,44 @@ public class Utils {
 		}).start();
 	}
 
-	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onRequestCodeForActivity, String title){
-		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onRequestCodeForActivity, title);
+	public static void callFileSelectorWaitResult(Activity activity, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable, boolean allowMultiple
+			, int onRequestCodeForActivity, String title){
+		callFileSelectorWaitResult((Object) activity, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity
-			, String title){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, title);
+	public static void callFileSelectorWaitResult(android.app.Fragment fragment, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable, boolean allowMultiple
+			, int onRequestCodeForActivity, String title){
+		callFileSelectorWaitResult((Object) fragment, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onRequestCodeForActivity, String title){
-		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onRequestCodeForActivity, title);
+	public static void callFileSelectorWaitResult(androidx.fragment.app.Fragment fragment, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable
+			, boolean allowMultiple, int onRequestCodeForActivity, String title){
+		callFileSelectorWaitResult((Object) fragment, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(androidx.fragment.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity
-			, String title){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, title);
+	public static void callFileSelectorWaitResult(Context contextFromView, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable, boolean allowMultiple
+			, int onRequestCodeForActivity, String title){
+		callFileSelectorWaitResult((Object) contextFromView, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(Activity activity, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
-		callContentSelectionWaitResult((Object) activity, intentType, allowMultiple, onRequestCodeForActivity, null);
+	public static void callFileSelectorWaitResult(Activity activity, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable, boolean allowMultiple
+			, int onRequestCodeForActivity){
+		callFileSelectorWaitResult((Object) activity, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, null);
 	}
 
-	public static void callContentSelectionWaitResult(android.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, null);
+	public static void callFileSelectorWaitResult(android.app.Fragment fragment, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable, boolean allowMultiple
+			, int onRequestCodeForActivity){
+		callFileSelectorWaitResult((Object) fragment, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, null);
 	}
 
-	public static void callContentSelectionWaitResult(androidx.fragment.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
-		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, null);
+	public static void callFileSelectorWaitResult(androidx.fragment.app.Fragment fragment, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable
+			, boolean allowMultiple, int onRequestCodeForActivity){
+		callFileSelectorWaitResult((Object) fragment, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, null);
 	}
 
-	public static void callContentSelectionWaitResult(Context contextFromView, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
-		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onRequestCodeForActivity, null);
+	public static void callFileSelectorWaitResult(Context contextFromView, String intentType, Uri uriPickerInitial, boolean isOnlyShowOpenable, boolean allowMultiple
+			, int onRequestCodeForActivity){
+		callFileSelectorWaitResult((Object) contextFromView, intentType, uriPickerInitial, isOnlyShowOpenable, allowMultiple, onRequestCodeForActivity, null);
 	}
 
 	public static int callAppStore(Context context, String packageName){

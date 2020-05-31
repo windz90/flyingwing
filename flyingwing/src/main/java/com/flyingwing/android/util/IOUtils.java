@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.4
+ * @version 4.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -408,7 +408,7 @@ public class IOUtils {
 	// Java block end -----
 
 	/**
-	 * The file is located at APK [/res/raw/], file cannot exist in subdirectory.
+	 * The file is located at APK [/res/raw/], file cannot exist in subdirectory.<br>
 	 * In the past, maximum file size of raw directory was limited to 1MB.
 	 */
 	public static byte[] readFileFromRawResource(Resources resources, int resourceId){
@@ -416,7 +416,7 @@ public class IOUtils {
 	}
 
 	/**
-	 * The file is located at APK [/assets/], file can exist in subdirectory.
+	 * The file is located at APK [/assets/], file can exist in subdirectory.<br>
 	 * In the past, maximum file size of assets directory was limited to 1MB.
 	 */
 	public static byte[] readFileFromAssets(Context context, String fileName){
@@ -429,7 +429,7 @@ public class IOUtils {
 	}
 
 	/**
-	 * The file is located at APK [/assets/], file can exist in subdirectory.
+	 * The file is located at APK [/assets/], file can exist in subdirectory.<br>
 	 * In the past, maximum file size of assets directory was limited to 1MB.
 	 */
 	public static byte[] readFileFromAssets(Resources resources, String fileName){
@@ -1436,7 +1436,7 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static @Nullable File getWriteFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+	public static @Nullable File getWriteFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
 		boolean externalMounted = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		if(!externalMounted){
 			return null;
@@ -1480,7 +1480,7 @@ public class IOUtils {
 	 */
 	@SuppressLint("InlinedApi")
 	@RequiresPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-	public static @Nullable File getReadFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+	public static @Nullable File getReadFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
 		String externalStorageState = Environment.getExternalStorageState();
 		boolean externalMounted = externalStorageState.equals(Environment.MEDIA_MOUNTED) || externalStorageState.equals(Environment.MEDIA_MOUNTED_READ_ONLY);
 		if(!externalMounted){
@@ -1520,9 +1520,9 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternalStorage(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend, int bufferSize
+	public static boolean writeFileFromExternal(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend, int bufferSize
 			, Handler handlerNoPermissions){
-		File file = getWriteFileFromExternalStorage(context, directoryPath, fileName, handlerNoPermissions);
+		File file = getWriteFileFromExternal(context, directoryPath, fileName, handlerNoPermissions);
 		if(file == null){
 			return false;
 		}
@@ -1539,9 +1539,9 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternalStorage(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend
+	public static boolean writeFileFromExternal(Context context, InputStream inputStream, String directoryPath, String fileName, boolean isAppend
 			, Handler handlerNoPermissions){
-		return writeFileFromExternalStorage(context, inputStream, directoryPath, fileName, isAppend, IO_BUFFER_SIZE, handlerNoPermissions);
+		return writeFileFromExternal(context, inputStream, directoryPath, fileName, isAppend, IO_BUFFER_SIZE, handlerNoPermissions);
 	}
 
 	/**
@@ -1549,8 +1549,8 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean writeFileFromExternalStorage(Context context, InputStream inputStream, String directoryPath, String fileName, Handler handlerNoPermissions){
-		return writeFileFromExternalStorage(context, inputStream, directoryPath, fileName, false, IO_BUFFER_SIZE, handlerNoPermissions);
+	public static boolean writeFileFromExternal(Context context, InputStream inputStream, String directoryPath, String fileName, Handler handlerNoPermissions){
+		return writeFileFromExternal(context, inputStream, directoryPath, fileName, false, IO_BUFFER_SIZE, handlerNoPermissions);
 	}
 
 	/**
@@ -1559,8 +1559,8 @@ public class IOUtils {
 	 */
 	@SuppressLint("InlinedApi")
 	@RequiresPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-	public static @Nullable byte[] readFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
-		File file = getReadFileFromExternalStorage(context, directoryPath, fileName, handlerNoPermissions);
+	public static @Nullable byte[] readFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+		File file = getReadFileFromExternal(context, directoryPath, fileName, handlerNoPermissions);
 		return fileToByteArray(file);
 	}
 
@@ -1569,7 +1569,7 @@ public class IOUtils {
 	 * The file path is located in [/externalPath/].
 	 */
 	@RequiresPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-	public static boolean deleteFileFromExternalStorage(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
+	public static boolean deleteFileFromExternal(Context context, String directoryPath, String fileName, Handler handlerNoPermissions){
 		boolean externalMounted = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
 		if(!externalMounted){
 			return false;
@@ -1605,6 +1605,29 @@ public class IOUtils {
 
 	public static @Nullable Uri getInsertUriFromMediaStore(Context context, String directoryPath, String fileName, String intentType, boolean isPending){
 		ContentValues contentValues = new ContentValues();
+		contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+		contentValues.put(MediaStore.MediaColumns.TITLE, fileName);
+		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, intentType);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+			contentValues.put(MediaStore.MediaColumns.IS_PENDING, isPending ? 1 : 0);
+			contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, directoryPath);
+		}else{
+			contentValues.put(MediaStore.MediaColumns.DATA, directoryPath);
+		}
+		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
+		if(intentType.toLowerCase().startsWith("image")){
+			return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+		}else if(intentType.toLowerCase().startsWith("audio")){
+			return contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);
+		}else if(intentType.toLowerCase().startsWith("video")){
+			return contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+		}else{
+			return contentResolver.insert(Uri.parse("content://media/external/files"), contentValues);
+		}
+	}
+
+	public static @Nullable Uri getInsertUriFromMediaStore(Context context, ContentValues contentValues, String directoryPath, String fileName, String intentType
+			, boolean isPending){
 		contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
 		contentValues.put(MediaStore.MediaColumns.TITLE, fileName);
 		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, intentType);
@@ -1675,6 +1698,20 @@ public class IOUtils {
 
 	public static boolean insertUriFromMediaStore(Context context, InputStream inputStream, String directoryPath, String fileName, String intentType, boolean isPending){
 		Uri uri = getInsertUriFromMediaStore(context, directoryPath, fileName, intentType, isPending);
+		if(uri == null){
+			return false;
+		}
+		try {
+			return inputStreamWriteOutputStream(inputStream, context.getApplicationContext().getContentResolver().openOutputStream(uri));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean insertUriFromMediaStore(Context context, ContentValues contentValues, InputStream inputStream, String directoryPath, String fileName, String intentType
+			, boolean isPending){
+		Uri uri = getInsertUriFromMediaStore(context, contentValues, directoryPath, fileName, intentType, isPending);
 		if(uri == null){
 			return false;
 		}

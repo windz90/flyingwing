@@ -10,7 +10,8 @@
 		android:supportsRtl="true"
 		android:theme="@style/AppTheme"
 		android:allowBackup="false"
-		android:hasFragileUserData="true">
+		android:hasFragileUserData="true"
+		tools:targetApi="q">
 		<activity
 			android:name=".view.First"
 			android:configChanges="orientation|screenSize">
