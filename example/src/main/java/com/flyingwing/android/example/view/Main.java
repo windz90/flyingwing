@@ -3,9 +3,6 @@ package com.flyingwing.android.example.view;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.transition.Explode;
 import android.transition.Slide;
 import android.view.Menu;
@@ -15,6 +12,10 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 
 import com.flyingwing.android.example.R;
 import com.flyingwing.android.util.Utils;

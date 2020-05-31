@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.3
+ * @version 4.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -8,17 +8,28 @@
 package com.flyingwing.android.util;
 
 import android.annotation.SuppressLint;
-import android.content.*;
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.*;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.MemoryFile;
+import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
-import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.core.content.ContextCompat;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -352,31 +363,32 @@ public class IOUtils {
 	}
 
 	public static boolean fileCreate(File file, boolean targetIsFile){
-		if(!filePathLayersCheck(file.getParentFile())){
-			return false;
-		}
-		if(file.exists()){
-			if((targetIsFile && file.isFile()) || file.isDirectory()){
+		if(targetIsFile){
+			if(file.exists() && file.isFile()){
 				return true;
 			}
-		}
-		if(targetIsFile){
+			File fileParent = file.getParentFile();
 			try {
-				return file.canWrite() && file.createNewFile();
+				return file.canWrite() && (fileParent != null && !fileParent.exists() ? fileParent.mkdirs() && file.createNewFile() : file.createNewFile());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}else{
+			if(file.exists() && file.isDirectory()){
+				return true;
+			}
 			return file.canWrite() && file.mkdirs();
 		}
 		return false;
 	}
 
-	public static boolean filePathLayersCheck(File file){
-		if(!file.getParentFile().exists()){
-			filePathLayersCheck(file.getParentFile());
+	public static boolean filePathCheck(File file){
+		File fileParent = file.getParentFile();
+		boolean isPassParent = true;
+		if(fileParent != null && !fileParent.exists()){
+			isPassParent = filePathCheck(fileParent);
 		}
-		return file.isDirectory() || (file.canWrite() && file.mkdirs());
+		return isPassParent && file.isDirectory() || (file.canWrite() && file.mkdir());
 	}
 
 	public static boolean fileDeleteAll(File file){
@@ -1591,6 +1603,142 @@ public class IOUtils {
 		return file.delete();
 	}
 
+	public static @Nullable Uri getInsertUriFromMediaStore(Context context, String directoryPath, String fileName, String intentType, boolean isPending){
+		ContentValues contentValues = new ContentValues();
+		contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+		contentValues.put(MediaStore.MediaColumns.TITLE, fileName);
+		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, intentType);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+			contentValues.put(MediaStore.MediaColumns.IS_PENDING, isPending ? 1 : 0);
+			contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, directoryPath);
+		}else{
+			contentValues.put(MediaStore.MediaColumns.DATA, directoryPath);
+		}
+		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
+		if(intentType.toLowerCase().startsWith("image")){
+			return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+		}else if(intentType.toLowerCase().startsWith("audio")){
+			return contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);
+		}else if(intentType.toLowerCase().startsWith("video")){
+			return contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+		}else{
+			return contentResolver.insert(Uri.parse("content://media/external/files"), contentValues);
+		}
+	}
+
+
+	public static @Nullable Uri getQueryUriFromMediaStore(Context context, String directoryPath, String fileName, String intentType){
+		String[] projection = new String[]{MediaStore.MediaColumns._ID};
+		String selection;
+		String[] selectionArgs;
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+			selection = MediaStore.MediaColumns.RELATIVE_PATH + "=? and " + MediaStore.MediaColumns.TITLE + "=?";
+			selectionArgs = new String[]{directoryPath, fileName};
+		}else{
+			selection = MediaStore.MediaColumns.DATA + "=?";
+			selectionArgs = new String[]{directoryPath + fileName};
+		}
+		Uri uri;
+		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
+		if(intentType.toLowerCase().startsWith("image")){
+			uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+		}else if(intentType.toLowerCase().startsWith("audio")){
+			uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+		}else if(intentType.toLowerCase().startsWith("video")){
+			uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+		}else{
+			uri = Uri.parse("content://media/external/files");
+		}
+		Cursor cursor = contentResolver.query(uri, projection, selection, selectionArgs, null);
+		if(cursor != null && cursor.moveToFirst()){
+			uri = ContentUris.withAppendedId(uri, cursor.getLong(0));
+			cursor.close();
+			return uri;
+		}
+		return null;
+	}
+
+	public static int editUriFromMediaStore(Context context, Uri uri, String directoryPathNew, String fileNameNew, String intentTypeNew, boolean isPendingNew){
+		ContentValues contentValues = new ContentValues();
+		contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileNameNew);
+		contentValues.put(MediaStore.MediaColumns.TITLE, fileNameNew);
+		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, intentTypeNew);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+			contentValues.put(MediaStore.MediaColumns.IS_PENDING, isPendingNew ? 1 : 0);
+			contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, directoryPathNew);
+		}else{
+			contentValues.put(MediaStore.MediaColumns.DATA, directoryPathNew);
+		}
+		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
+		return contentResolver.update(uri, contentValues, null, null);
+	}
+
+	public static boolean insertUriFromMediaStore(Context context, InputStream inputStream, String directoryPath, String fileName, String intentType, boolean isPending){
+		Uri uri = getInsertUriFromMediaStore(context, directoryPath, fileName, intentType, isPending);
+		if(uri == null){
+			return false;
+		}
+		try {
+			return inputStreamWriteOutputStream(inputStream, context.getApplicationContext().getContentResolver().openOutputStream(uri));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean writeUriFromMediaStore(Context context, InputStream inputStream, String directoryPath, String fileName, String intentType){
+		Uri uri = getQueryUriFromMediaStore(context, directoryPath, fileName, intentType);
+		if(uri == null){
+			return false;
+		}
+		try {
+			ParcelFileDescriptor parcelFileDescriptor = context.getApplicationContext().getContentResolver().openFileDescriptor(uri, "w");
+			if(parcelFileDescriptor != null){
+				// Native Fd
+				// parcelFileDescriptor.detachFd()
+				inputStreamWriteOutputStream(inputStream, new FileOutputStream(parcelFileDescriptor.getFileDescriptor()));
+				parcelFileDescriptor.close();
+				return true;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static @Nullable byte[] readUriFromMediaStore(Context context, String directoryPath, String fileName, String intentType){
+		Uri uri = getQueryUriFromMediaStore(context, directoryPath, fileName, intentType);
+		if(uri == null){
+			return null;
+		}
+		try {
+			ParcelFileDescriptor parcelFileDescriptor = context.getApplicationContext().getContentResolver().openFileDescriptor(uri, "r");
+			if(parcelFileDescriptor != null){
+				// Native Fd
+				// parcelFileDescriptor.detachFd()
+				byte[] bytes = inputStreamToByteArray(new FileInputStream(parcelFileDescriptor.getFileDescriptor()));
+				parcelFileDescriptor.close();
+				return bytes;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static int deleteUriFromMediaStore(Context context, InputStream inputStream, String directoryPath, String fileName, String intentType){
+		Uri uri = getQueryUriFromMediaStore(context, directoryPath, fileName, intentType);
+		if(uri == null){
+			return -1;
+		}
+		try {
+			return context.getApplicationContext().getContentResolver().delete(uri, null, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
+
 	/**
 	 * {@link MemoryFile#close()} Closes the memory file. If there are no other open references to the memory file, it will be deleted.
 	 */
@@ -1984,9 +2132,7 @@ public class IOUtils {
 		for(int i=0; i<spKeyArray.length; i++){
 			if(sp.contains(spMapHeadKey + spKeyArray[i])){
 				spValue = sp.getString(spMapHeadKey + spKeyArray[i], "");
-				if(spValue != null){
-					map.put(spKeyArray[i], spValue);
-				}
+				map.put(spKeyArray[i], spValue);
 			}
 		}
 		return map;

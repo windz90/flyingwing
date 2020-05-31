@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Andy Lin. All rights reserved.
- * @version 1.0.6
+ * @version 1.0.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -12,11 +12,6 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.text.TextUtils.TruncateAt;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
@@ -33,6 +28,12 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.RelativeLayout;
+
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager.widget.ViewPager.OnPageChangeListener;
 
 import com.flyingwing.android.R;
 
@@ -83,11 +84,13 @@ public class CustomTabView extends LinearLayout {
 	public CustomTabView(Context context){
 		super(context);
 		mRes = getResources();
-		
-		mDisplayMetrics = new DisplayMetrics();
+
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
-		
+		mDisplayMetrics = new DisplayMetrics();
+		if(windowManager != null){
+			windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
+		}
+
 		LinearLayout relLayHorizontalScrollLinLay;
 		
 		mList = new ArrayList<View[]>();

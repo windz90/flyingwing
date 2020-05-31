@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.4.2
+ * @version 3.4.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -11,7 +11,8 @@ import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Looper;
 import android.os.Message;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import java.util.concurrent.ExecutorService;
 
@@ -166,7 +167,7 @@ public class ConnectManager {
 				if(connectSetting.mIsUseHandler){
 					new Handler(looper == null ? Looper.getMainLooper() : looper, new Callback() {
 						@Override
-						public boolean handleMessage(Message msg) {
+						public boolean handleMessage(@NonNull Message msg) {
 							if(msg.obj == null){
 								return false;
 							}

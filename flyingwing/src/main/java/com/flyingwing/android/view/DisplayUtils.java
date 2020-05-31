@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.3.10
+ * @version 3.3.11
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -18,7 +18,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.RequiresApi;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Display;
@@ -26,6 +25,8 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
+
+import androidx.annotation.RequiresApi;
 
 @SuppressWarnings({"unused", "UnnecessaryLocalVariable", "WeakerAccess", "SameParameterValue"})
 public class DisplayUtils {
@@ -63,6 +64,9 @@ public class DisplayUtils {
 
 	public static Display getDisplayFromContext(Context context){
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+		if(windowManager == null){
+			return null;
+		}
 		Display display = windowManager.getDefaultDisplay();
 		return display;
 	}
@@ -70,6 +74,9 @@ public class DisplayUtils {
 	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR2)
 	public static Point getDisplaySize(Display display){
 		Point point = new Point();
+		if(display == null){
+			return point;
+		}
 		display.getSize(point);
 		return point;
 	}
@@ -77,6 +84,9 @@ public class DisplayUtils {
 	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
 	public static Point getRealDisplaySize(Display display){
 		Point point = new Point();
+		if(display == null){
+			return point;
+		}
 		display.getRealSize(point);
 		return point;
 	}
@@ -84,7 +94,9 @@ public class DisplayUtils {
 	public static DisplayMetrics getDisplayMetricsFromWindowManager(Context context){
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		if(windowManager != null){
+			windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		}
 		return displayMetrics;
 	}
 
@@ -98,7 +110,9 @@ public class DisplayUtils {
 	public static DisplayMetrics getRealDisplayMetricsFromWindowManager(Context context){
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
 		DisplayMetrics displayMetrics = new DisplayMetrics();
-		windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
+		if(windowManager != null){
+			windowManager.getDefaultDisplay().getRealMetrics(displayMetrics);
+		}
 		return displayMetrics;
 	}
 

@@ -7,8 +7,9 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.Window;
 
+import androidx.multidex.BuildConfig;
+
 import com.flyingwing.android.R;
-import com.flyingwing.android.example.BuildConfig;
 import com.flyingwing.android.example.Global;
 import com.flyingwing.android.net.NetworkAccess;
 import com.flyingwing.android.util.IOUtils;

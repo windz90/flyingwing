@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.0
+ * @version 4.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -15,7 +15,6 @@ import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -26,6 +25,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.widget.Toolbar;
 
 import com.flyingwing.android.R;
 
@@ -58,7 +59,6 @@ public class UIUtils {
 	public static final int SIZE_TAB_XL = 28;
 	public static final int SIZE_SUBJECT_XL = 29;
 
-	@SuppressLint("PrivateApi")
 	public static void setTextSizeFix(Context context, TextView textView, int unit, float textSize){
 		DisplayMetrics displayMetricsFromWindowManager = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
@@ -74,9 +74,10 @@ public class UIUtils {
 		}
 		// Reflection反射調用private方法
 		try {
-			Method method = textView.getClass().getDeclaredMethod("setRawTextSize", float.class);
+			@SuppressLint("DiscouragedPrivateApi")
+			Method method = textView.getClass().getDeclaredMethod("setRawTextSize", float.class, boolean.class);
 			method.setAccessible(true);
-			method.invoke(textView, TypedValue.applyDimension(unit, textSize, displayMetricsFromWindowManager));
+			method.invoke(textView, TypedValue.applyDimension(unit, textSize, displayMetricsFromWindowManager), true);
 			method.setAccessible(false);
 		} catch (Exception e) {
 			float sizeRaw = TypedValue.applyDimension(unit, textSize, displayMetricsFromWindowManager);
@@ -306,7 +307,6 @@ public class UIUtils {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
 				clearDrawable(view.getForeground());
 			}else if(view instanceof FrameLayout){
-				//noinspection RedundantCast
 				clearDrawable(((FrameLayout) view).getForeground());
 			}
 			if(view instanceof ImageView){

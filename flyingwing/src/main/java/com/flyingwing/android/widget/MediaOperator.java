@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.0
+ * @version 1.0.1
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -18,6 +18,8 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.MediaController;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -100,7 +102,10 @@ public class MediaOperator {
 					try {
 						Field field = mMediaController.getClass().getDeclaredField("mPauseButton");
 						field.setAccessible(true);
-						((ImageButton)field.get(mMediaController)).performClick();
+						Object objectField = field.get(mMediaController);
+						if(objectField instanceof ImageButton){
+							((ImageButton) objectField).performClick();
+						}
 						field.setAccessible(false);
 					} catch (Exception e) {
 						mMediaPlayer.start();
@@ -205,7 +210,7 @@ public class MediaOperator {
 		}
 		final Handler handler = new Handler(new Handler.Callback() {
 			@Override
-			public boolean handleMessage(Message msg) {
+			public boolean handleMessage(@NonNull Message msg) {
 				mMediaController.show();
 				return false;
 			}
@@ -245,7 +250,10 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mCurrentTime");
 			field.setAccessible(true);
-			((TextView)field.get(mMediaController)).setTextColor(colorStateList);
+			Object objectField = field.get(mMediaController);
+			if(objectField instanceof TextView){
+				((TextView) objectField).setTextColor(colorStateList);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -257,7 +265,10 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mEndTime");
 			field.setAccessible(true);
-			((TextView)field.get(mMediaController)).setTextColor(colorStateList);
+			Object objectField = field.get(mMediaController);
+			if(objectField instanceof TextView){
+				((TextView) objectField).setTextColor(colorStateList);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -269,10 +280,15 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mPauseButton");
 			field.setAccessible(true);
+			Object objectField = field.get(mMediaController);
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackground(drawable);
+				}
 			}else{
-				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackgroundDrawable(drawable);
+				}
 			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
@@ -285,7 +301,10 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mPauseButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setImageDrawable(drawable);
+			Object objectField = field.get(mMediaController);
+			if(objectField instanceof ImageButton){
+				((ImageButton) objectField).setImageDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -297,10 +316,15 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mFfwdButton");
 			field.setAccessible(true);
+			Object objectField = field.get(mMediaController);
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackground(drawable);
+				}
 			}else{
-				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackgroundDrawable(drawable);
+				}
 			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
@@ -313,7 +337,10 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mFfwdButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setImageDrawable(drawable);
+			Object objectField = field.get(mMediaController);
+			if(objectField instanceof ImageButton){
+				((ImageButton) objectField).setImageDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -325,10 +352,15 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mRewButton");
 			field.setAccessible(true);
+			Object objectField = field.get(mMediaController);
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackground(drawable);
+				}
 			}else{
-				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackgroundDrawable(drawable);
+				}
 			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
@@ -341,7 +373,10 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mRewButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setImageDrawable(drawable);
+			Object objectField = field.get(mMediaController);
+			if(objectField instanceof ImageButton){
+				((ImageButton) objectField).setImageDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -353,10 +388,15 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mNextButton");
 			field.setAccessible(true);
+			Object objectField = field.get(mMediaController);
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackground(drawable);
+				}
 			}else{
-				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackgroundDrawable(drawable);
+				}
 			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
@@ -369,7 +409,10 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mNextButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setImageDrawable(drawable);
+			Object objectField = field.get(mMediaController);
+			if(objectField instanceof ImageButton){
+				((ImageButton) objectField).setImageDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -381,10 +424,15 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mPrevButton");
 			field.setAccessible(true);
+			Object objectField = field.get(mMediaController);
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
-				((ImageButton)field.get(mMediaController)).setBackground(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackground(drawable);
+				}
 			}else{
-				((ImageButton)field.get(mMediaController)).setBackgroundDrawable(drawable);
+				if(objectField instanceof ImageButton){
+					((ImageButton) objectField).setBackgroundDrawable(drawable);
+				}
 			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
@@ -397,7 +445,10 @@ public class MediaOperator {
 		try {
 			Field field = mMediaController.getClass().getDeclaredField("mPrevButton");
 			field.setAccessible(true);
-			((ImageButton)field.get(mMediaController)).setImageDrawable(drawable);
+			Object objectField = field.get(mMediaController);
+			if(objectField instanceof ImageButton){
+				((ImageButton) objectField).setImageDrawable(drawable);
+			}
 			field.setAccessible(false);
 		} catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();

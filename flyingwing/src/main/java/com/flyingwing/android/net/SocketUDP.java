@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.6
+ * @version 1.0.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -13,10 +13,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
-import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
+
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -58,7 +59,7 @@ public class SocketUDP {
 			if(handler == null){
 				handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 					@Override
-					public boolean handleMessage(Message msg) {
+					public boolean handleMessage(@NonNull Message msg) {
 						if(what == STATE_RECEIVE_SUCCESS || what == STATE_RECEIVE_FAILED){
 							receiveForMainThread(msg);
 						}else{

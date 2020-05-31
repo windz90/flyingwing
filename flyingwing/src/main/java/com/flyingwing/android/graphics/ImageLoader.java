@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.3
+ * @version 4.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -17,9 +17,10 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresPermission;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresPermission;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -257,7 +258,7 @@ public class ImageLoader {
 		final Handler handlerConnectionRead = new Handler(new Handler.Callback() {
 
 			@Override
-			public boolean handleMessage(Message msg) {
+			public boolean handleMessage(@NonNull Message msg) {
 				if(msg.what == 0){
 					onLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
 				}else if(msg.what == 1){
@@ -311,7 +312,7 @@ public class ImageLoader {
 		Handler handlerNeedConnection = new Handler(new Handler.Callback() {
 
 			@Override
-			public boolean handleMessage(Message msg) {
+			public boolean handleMessage(@NonNull Message msg) {
 				if(threadPoolExecutor == null){
 					mThreadPoolExecutor.submit(runnableConnectionRead);
 				}else{
@@ -359,7 +360,7 @@ public class ImageLoader {
 		final Handler handlerStorageRead = new Handler(new Handler.Callback() {
 
 			@Override
-			public boolean handleMessage(Message msg) {
+			public boolean handleMessage(@NonNull Message msg) {
 				onLoadImageListener.onObtainImage(FLAG_LOCAL, imageName, (Bitmap) msg.obj);
 				return false;
 			}
@@ -435,7 +436,7 @@ public class ImageLoader {
 		final Handler handlerConnectionRead = new Handler(new Handler.Callback() {
 
 			@Override
-			public boolean handleMessage(Message msg) {
+			public boolean handleMessage(@NonNull Message msg) {
 				if(msg.what == 0){
 					onLoadImageListener.onObtainImage(FLAG_FAIL, strUrl, null);
 				}else if(msg.what == 1){

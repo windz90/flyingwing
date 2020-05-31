@@ -1,6 +1,6 @@
 /*
  * Copyright 2017 Andy Lin. All rights reserved.
- * @version 1.0.2
+ * @version 1.0.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.3
  */
@@ -19,12 +19,13 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.RequiresPermission;
-import android.support.annotation.Size;
-import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.RequiresPermission;
+import androidx.annotation.Size;
+import androidx.collection.ArrayMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,14 +88,17 @@ public class BluetoothLE {
 
 	public BluetoothLE(){}
 
-	@Nullable
-	public BluetoothAdapter getBluetoothAdapter(Context context){
+	public @Nullable BluetoothAdapter getBluetoothAdapter(Context context){
+		BluetoothAdapter bluetoothAdapter = null;
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2){
 			BluetoothManager bluetoothManager = (BluetoothManager) context.getApplicationContext().getSystemService(Context.BLUETOOTH_SERVICE);
-			return bluetoothManager.getAdapter();
+			if(bluetoothManager != null){
+				bluetoothAdapter = bluetoothManager.getAdapter();
+			}
 		}else{
-			return BluetoothAdapter.getDefaultAdapter();
+			bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		}
+		return bluetoothAdapter;
 	}
 
 	/**

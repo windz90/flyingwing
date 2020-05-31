@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Andy Lin. All rights reserved.
- * @version 1.0.4
+ * @version 1.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 4.0
  */
@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Handler.Callback;
 import android.os.Message;
-import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -36,6 +35,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -119,9 +121,11 @@ public class PullToRefresh {
 			mProgressBar.getIndeterminateDrawable().setColorFilter(progressBarDrawableColor, PorterDuff.Mode.SRC_IN);
 		}
 		
-		mDisplayMetrics = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager) mContext.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
+		mDisplayMetrics = new DisplayMetrics();
+		if(windowManager != null){
+			windowManager.getDefaultDisplay().getMetrics(mDisplayMetrics);
+		}
 	}
 	
 	public PullToRefresh(Context context, int progressViewBackgroundColor, int progressBarDrawableColor){
@@ -356,7 +360,7 @@ public class PullToRefresh {
 					Handler handler = new Handler(new Callback() {
 						
 						@Override
-						public boolean handleMessage(Message msg) {
+						public boolean handleMessage(@NonNull Message msg) {
 							if(mProgressView == null){
 								return false;
 							}

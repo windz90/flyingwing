@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.3.9
+ * @version 2.3.10
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -11,7 +11,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
@@ -23,6 +22,8 @@ import android.widget.LinearLayout.LayoutParams;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class CustomProgressDialog {
@@ -58,11 +59,13 @@ public class CustomProgressDialog {
 		int itemWi, itemHe, space;
 		RelativeLayout.LayoutParams relativeLayoutParams;
 
-		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(dm);
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		if(windowManager != null){
+			windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		}
 
-		itemWi = (int)(dm.widthPixels * 0.8f);
+		itemWi = (int) (displayMetrics.widthPixels * 0.8f);
 		relativeLayoutParams = new RelativeLayout.LayoutParams(itemWi, LayoutParams.WRAP_CONTENT);
 		mRelativeLayout = new RelativeLayout(context);
 		mRelativeLayout.setBackgroundResource(android.R.color.white);
@@ -100,7 +103,7 @@ public class CustomProgressDialog {
 
 		Window window = mDialog.getWindow();
 		if(window != null){
-			itemWi = (int)((dm.widthPixels / dm.heightPixels < 1 ? dm.widthPixels : dm.heightPixels) * 0.89f);
+			itemWi = (int)((displayMetrics.widthPixels / displayMetrics.heightPixels < 1 ? displayMetrics.widthPixels : displayMetrics.heightPixels) * 0.89f);
 			WindowManager.LayoutParams windowManagerLayoutParams = window.getAttributes();
 			windowManagerLayoutParams.x = 0;
 			windowManagerLayoutParams.y = 0;

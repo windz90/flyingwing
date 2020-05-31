@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.3
+ * @version 1.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -20,8 +20,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -31,6 +29,9 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import com.flyingwing.android.R;
 
@@ -104,9 +105,11 @@ public class WindowService extends Service {
 	private void buildUi(){
 		final Resources res = getResources();
 
-		final DisplayMetrics dm = new DisplayMetrics();
-		mWindowManager = (WindowManager)(getSystemService(Context.WINDOW_SERVICE));
-		mWindowManager.getDefaultDisplay().getMetrics(dm);
+		mWindowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+		final DisplayMetrics displayMetrics = new DisplayMetrics();
+		if(mWindowManager != null){
+			mWindowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		}
 
 		int itemWi, itemHe;
 		WindowManager.LayoutParams windowLayPar;
@@ -118,7 +121,7 @@ public class WindowService extends Service {
 		windowLayPar.width = itemWi;
 		windowLayPar.height = itemHe;
 		windowLayPar.gravity = Gravity.START | Gravity.TOP;
-		windowLayPar.x = dm.widthPixels - windowLayPar.width;
+		windowLayPar.x = displayMetrics.widthPixels - windowLayPar.width;
 		windowLayPar.y = windowLayPar.height;
 		windowLayPar.type = WindowManager.LayoutParams.TYPE_PHONE;
 		windowLayPar.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -177,13 +180,13 @@ public class WindowService extends Service {
 					windowLayPar = (WindowManager.LayoutParams)mImageView.getLayoutParams();
 					windowLayPar.x += (int) (event.getRawX() - x);
 					windowLayPar.x = windowLayPar.x < 0 ? 0 : windowLayPar.x;
-					windowLayPar.x = windowLayPar.x > dm.widthPixels ? dm.widthPixels : windowLayPar.x;
+					windowLayPar.x = windowLayPar.x > displayMetrics.widthPixels ? displayMetrics.widthPixels : windowLayPar.x;
 					windowLayPar.y += (int) (event.getRawY() - y);
 					windowLayPar.y = windowLayPar.y < 0 ? 0 : windowLayPar.y;
 					windowLayPar.y = windowLayPar.y > mRelLayMask.getHeight() ? mRelLayMask.getHeight() : windowLayPar.y;
 					x = event.getRawX();
 					x = x < 0 ? 0 : x;
-					x = x > dm.widthPixels ? dm.widthPixels : x;
+					x = x > displayMetrics.widthPixels ? displayMetrics.widthPixels : x;
 					y = event.getRawY();
 					y = y < 0 ? 0 : y;
 					y = y > mRelLayMask.getHeight() ? mRelLayMask.getHeight() : y;

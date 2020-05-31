@@ -9,7 +9,8 @@
 		android:label="${appName}"
 		android:supportsRtl="true"
 		android:theme="@style/AppTheme"
-		android:allowBackup="false">
+		android:allowBackup="false"
+		android:hasFragileUserData="true">
 		<activity
 			android:name=".view.First"
 			android:configChanges="orientation|screenSize">

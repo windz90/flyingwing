@@ -1,6 +1,6 @@
 /*
  * Copyright 2017 Andy Lin. All rights reserved.
- * @version 1.0.1
+ * @version 1.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -9,11 +9,6 @@ package com.flyingwing.android.widget.helper;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
-import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.Snackbar;
 import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -21,7 +16,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import com.flyingwing.android.R;
+import com.google.android.material.snackbar.Snackbar;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class SnackbarHelper {
@@ -38,6 +39,9 @@ public class SnackbarHelper {
 	public static void pendingMakeWindowSnackbar(final Context context, final int gravity, @NonNull final CharSequence text, @Duration final int duration
 			, final PendingMakeWindowSnackbarCallback pendingMakeWindowSnackbarCallback){
 		final WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+		if(windowManager == null){
+			return;
+		}
 
 		WindowManager.LayoutParams windowManagerLayoutParams = new WindowManager.LayoutParams();
 		windowManagerLayoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;

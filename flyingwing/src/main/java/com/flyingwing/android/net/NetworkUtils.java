@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.1.2
+ * @version 1.1.3
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -35,14 +35,15 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
-import android.support.annotation.IntRange;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.RequiresPermission;
-import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+
+import androidx.annotation.IntRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.RequiresPermission;
+import androidx.core.content.ContextCompat;
 
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -110,18 +111,16 @@ public class NetworkUtils {
 			NetworkInfo networkInfo;
 			for(int i=0; i<networks.length; i++){
 				networkInfo = connectivityManager.getNetworkInfo(networks[i]);
-				if(networkInfo.isAvailable()){
+				if(networkInfo != null && networkInfo.isAvailable()){
 					return true;
 				}
 			}
 			return false;
 		}
 		NetworkInfo[] networkInfoArray = connectivityManager.getAllNetworkInfo();
-		if(networkInfoArray != null){
-			for(int i=0; i<networkInfoArray.length; i++){
-				if(networkInfoArray[i].isAvailable()){
-					return true;
-				}
+		for(int i=0; i<networkInfoArray.length; i++){
+			if(networkInfoArray[i].isAvailable()){
+				return true;
 			}
 		}
 		return false;
@@ -927,11 +926,12 @@ public class NetworkUtils {
 		}
 	}
 
-	@SuppressLint("PrivateApi")
 	public static boolean bluetoothLeRefresh(@NonNull BluetoothGatt bluetoothGatt){
 		boolean isRefresh = false;
 		// Reflection反射調用hide方法
 		try {
+			//noinspection JavaReflectionMemberAccess
+			@SuppressLint("DiscouragedPrivateApi")
 			Method method = bluetoothGatt.getClass().getDeclaredMethod("refresh");
 			method.setAccessible(true);
 			isRefresh = (boolean) method.invoke(bluetoothGatt);
@@ -1146,6 +1146,7 @@ public class NetworkUtils {
 	public static boolean bluetoothPairRemove(BluetoothDevice bluetoothDevice){
 		// Reflection反射調用hide方法
 		try {
+			//noinspection JavaReflectionMemberAccess
 			Method method = bluetoothDevice.getClass().getMethod("removeBond");
 			return (boolean)method.invoke(bluetoothDevice);
 		} catch (Exception e) {
@@ -1157,6 +1158,7 @@ public class NetworkUtils {
 	public static boolean bluetoothPairCancelProcess(BluetoothDevice bluetoothDevice){
 		// Reflection反射調用hide方法
 		try {
+			//noinspection JavaReflectionMemberAccess
 			Method method = bluetoothDevice.getClass().getMethod("cancelBondProcess");
 			return (boolean)method.invoke(bluetoothDevice);
 		} catch (Exception e) {
@@ -1183,6 +1185,7 @@ public class NetworkUtils {
 	public static boolean bluetoothCancelPairingUserInput(BluetoothDevice bluetoothDevice){
 		// Reflection反射調用hide方法
 		try {
+			//noinspection JavaReflectionMemberAccess
 			Method method = bluetoothDevice.getClass().getMethod("cancelPairingUserInput");
 			return (boolean)method.invoke(bluetoothDevice);
 		} catch (Exception e) {

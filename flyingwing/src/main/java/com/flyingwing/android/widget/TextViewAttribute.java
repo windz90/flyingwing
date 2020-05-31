@@ -9,9 +9,10 @@ package com.flyingwing.android.widget;
 
 import android.content.res.ColorStateList;
 import android.graphics.Typeface;
-import android.support.annotation.ColorInt;
 import android.text.TextUtils;
 import android.view.Gravity;
+
+import androidx.annotation.ColorInt;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class TextViewAttribute {

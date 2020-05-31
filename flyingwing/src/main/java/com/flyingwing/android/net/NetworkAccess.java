@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.6.5
+ * @version 3.6.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -14,10 +14,11 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -1086,10 +1087,12 @@ public class NetworkAccess {
 
 		fieldStaticMethods.setAccessible(true);
 		String[] methods = (String[]) fieldStaticMethods.get(null);// static field
-		Set<String> setMethods = new LinkedHashSet<>(Arrays.asList(methods));
-		setMethods.add(httpMethod);
-		methods = setMethods.toArray(new String[0]);
-		fieldStaticMethods.set(null, methods);
+		if(methods != null){
+			Set<String> setMethods = new LinkedHashSet<>(Arrays.asList(methods));
+			setMethods.add(httpMethod);
+			methods = setMethods.toArray(new String[0]);
+			fieldStaticMethods.set(null, methods);
+		}
 		fieldStaticMethods.setAccessible(false);
 	}
 
@@ -1105,6 +1108,9 @@ public class NetworkAccess {
 			field.setAccessible(false);
 		}else{
 			object = httpURLConnection;
+		}
+		if(object == null){
+			return;
 		}
 
 		try {

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.1
+ * @version 4.0.2
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -8,9 +8,16 @@
 package com.flyingwing.android.util;
 
 import android.annotation.SuppressLint;
-import android.app.*;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManager.RunningServiceInfo;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.ContentProviderOperation;
@@ -47,13 +54,6 @@ import android.provider.ContactsContract.RawContacts;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.annotation.FloatRange;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.RequiresPermission;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NavUtils;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -66,6 +66,14 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+
+import androidx.annotation.FloatRange;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.RequiresPermission;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NavUtils;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -607,7 +615,7 @@ public class Utils {
 		}
 
 		Object[] enumConstants = class1.getEnumConstants();
-		if(enumConstants.length > 0){
+		if(enumConstants != null && enumConstants.length > 0){
 			Log.i("Reflection", "**** Enum Constant count:" + enumConstants.length + " ****");
 			for(int i=0; i<enumConstants.length; i++){
 				info = enumConstants[i].getClass().getName();
@@ -787,7 +795,7 @@ public class Utils {
 		try {
 			Field field = jsonArray.getClass().getDeclaredField("values");
 			field.setAccessible(true);
-			List<Object> list = (List<Object>)field.get(jsonArray);
+			List<Object> list = (List<Object>) field.get(jsonArray);
 			field.setAccessible(false);
 			return list;
 		} catch (Exception e) {
@@ -801,7 +809,7 @@ public class Utils {
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 				return jsonArray.remove(index);
 			}
-			List list = reflectionJSONArrayToList(jsonArray);
+			List<Object> list = reflectionJSONArrayToList(jsonArray);
 			if(list != null && list.size() > index){
 				return list.remove(index);
 			}
@@ -837,11 +845,13 @@ public class Utils {
 	public static String[][] getJSONObjectToArray(JSONObject jsonObject){
 		String key;
 		JSONArray jsonArrayKey = jsonObject.names();
-		String[][] element = new String[jsonArrayKey.length()][2];
-		for(int i=0; i<jsonArrayKey.length(); i++){
-			key = jsonArrayKey.optString(i);
-			element[i][0] = key;
-			element[i][1] = jsonObject.optString(key);
+		String[][] element = new String[jsonObject.length()][2];
+		if(jsonArrayKey != null){
+			for(int i=0; i<jsonArrayKey.length(); i++){
+				key = jsonArrayKey.optString(i);
+				element[i][0] = key;
+				element[i][1] = jsonObject.optString(key);
+			}
 		}
 		return element;
 	}
@@ -849,10 +859,12 @@ public class Utils {
 	public static Map<String, String> getJSONObjectToMap(JSONObject jsonObject){
 		String key;
 		JSONArray jsonArrayKey = jsonObject.names();
-		Map<String, String> map = new HashMap<String, String>(jsonArrayKey.length());
-		for(int i=0; i<jsonArrayKey.length(); i++){
-			key = jsonArrayKey.optString(i);
-			map.put(key, jsonObject.optString(key));
+		Map<String, String> map = new HashMap<String, String>(jsonObject.length());
+		if(jsonArrayKey != null){
+			for(int i=0; i<jsonArrayKey.length(); i++){
+				key = jsonArrayKey.optString(i);
+				map.put(key, jsonObject.optString(key));
+			}
 		}
 		return map;
 	}
@@ -863,7 +875,7 @@ public class Utils {
 		try {
 			Field field = jsonObject.getClass().getDeclaredField("nameValuePairs");
 			field.setAccessible(true);
-			Map<String, Object> map = (Map<String, Object>)field.get(jsonObject);
+			Map<String, Object> map = (Map<String, Object>) field.get(jsonObject);
 			field.setAccessible(false);
 			return map;
 		} catch (Exception e) {
@@ -983,11 +995,10 @@ public class Utils {
 			}else if(pairs[i][2].equals(JSON_ARRAY)){
 				JSONArray jsonArrayItem = jsonObject.optJSONArray((String) pairs[i][0]);
 				if(i == pairs.length - 1){
-					if(TextUtils.isEmpty((String) pairs[i][1])){
-						return jsonArrayItem != null;
-					}else{
-						return jsonArrayItem.toString().equals(pairs[i][1]);
+					if(jsonArrayItem == null){
+						return false;
 					}
+					return TextUtils.isEmpty((String) pairs[i][1]) || jsonArrayItem.toString().equals(pairs[i][1]);
 				}
 				int lengthNew = pairs.length - i - 1;
 				Object[][] pairsNew = new Object[lengthNew][];
@@ -996,11 +1007,10 @@ public class Utils {
 			}else if(pairs[i][2].equals(JSON_OBJECT)){
 				JSONObject jsonObjectItem = jsonObject.optJSONObject((String) pairs[i][0]);
 				if(i == pairs.length - 1){
-					if(TextUtils.isEmpty((String) pairs[i][1])){
-						return jsonObjectItem != null;
-					}else{
-						return jsonObjectItem.toString().equals(pairs[i][1]);
+					if(jsonObjectItem == null){
+						return false;
 					}
+					return TextUtils.isEmpty((String) pairs[i][1]) || jsonObjectItem.toString().equals(pairs[i][1]);
 				}
 				int lengthNew = pairs.length - i - 1;
 				Object[][] pairsNew = new Object[lengthNew][];
@@ -1157,8 +1167,11 @@ public class Utils {
 	public static Intent getActionSendIntentForAPP(Context context, String packageName, String className, String intentType, String subject, String text, Uri streamUri){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
+		if(intent == null){
+			intent = getLauncherIntent(packageName, className);
+		}
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		if(listResolveInfo == null || listResolveInfo.size() == 0){
+		if(listResolveInfo.size() == 0){
 			intent = new Intent();
 			intent.setAction(Intent.ACTION_VIEW);
 			intent.setData(Uri.parse("market://details?id=" + packageName));
@@ -1475,7 +1488,7 @@ public class Utils {
 
 	public static Activity getActivityFromView(View view){
 		Context contextFromView = view.getContext();
-		return Utils.getActivityFromViewContext(contextFromView);
+		return getActivityFromViewContext(contextFromView);
 	}
 
 	public static void callNavigateUpTo(Activity activity){
@@ -1505,13 +1518,13 @@ public class Utils {
 	public static int intentMatchAppCount(Context context, Intent intent){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		return listResolveInfo == null ? 0 : listResolveInfo.size();
+		return listResolveInfo.size();
 	}
 
 	public static int callMatchApp(Context context, Intent intent){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-		if(listResolveInfo == null || listResolveInfo.size() == 0){
+		if(listResolveInfo.size() == 0){
 			return 0;
 		}
 		context.startActivity(intent);
@@ -1538,9 +1551,9 @@ public class Utils {
 					return count;
 				}
 			}
-		}else if(objectThis instanceof android.support.v4.app.Fragment){
-			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+		}else if(objectThis instanceof androidx.fragment.app.Fragment){
+			androidx.fragment.app.Fragment fragment = (androidx.fragment.app.Fragment) objectThis;
+			androidx.fragment.app.FragmentActivity fragmentActivity = fragment.getActivity();
 			if(fragmentActivity != null){
 				count = intentMatchAppCount(fragmentActivity, intent);
 				if(count > 0){
@@ -1569,7 +1582,7 @@ public class Utils {
 		return callMatchAppWaitResult((Object) fragment, intent, onRequestCodeForActivity);
 	}
 
-	public static int callMatchAppWaitResult(android.support.v4.app.Fragment fragment, Intent intent, int onRequestCodeForActivity){
+	public static int callMatchAppWaitResult(androidx.fragment.app.Fragment fragment, Intent intent, int onRequestCodeForActivity){
 		return callMatchAppWaitResult((Object) fragment, intent, onRequestCodeForActivity);
 	}
 
@@ -1602,7 +1615,7 @@ public class Utils {
 		callContentSelectionWaitResult((Object) contextFromView, intentType, allowMultiple, onRequestCodeForActivity, title);
 	}
 
-	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity
+	public static void callContentSelectionWaitResult(androidx.fragment.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity
 			, String title){
 		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, title);
 	}
@@ -1615,7 +1628,7 @@ public class Utils {
 		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, null);
 	}
 
-	public static void callContentSelectionWaitResult(android.support.v4.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
+	public static void callContentSelectionWaitResult(androidx.fragment.app.Fragment fragment, String intentType, boolean allowMultiple, int onRequestCodeForActivity){
 		callContentSelectionWaitResult((Object) fragment, intentType, allowMultiple, onRequestCodeForActivity, null);
 	}
 
@@ -1869,9 +1882,9 @@ public class Utils {
 				intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				fragment.startActivityForResult(intent, onRequestCodeForActivity);
 			}
-		}else if(objectThis instanceof android.support.v4.app.Fragment){
-			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+		}else if(objectThis instanceof androidx.fragment.app.Fragment){
+			androidx.fragment.app.Fragment fragment = (androidx.fragment.app.Fragment) objectThis;
+			androidx.fragment.app.FragmentActivity fragmentActivity = fragment.getActivity();
 			if(fragmentActivity != null){
 				if(Settings.System.canWrite(fragmentActivity)){
 					return true;
@@ -1909,7 +1922,7 @@ public class Utils {
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkWriteSettingsPermissionWaitResult(android.support.v4.app.Fragment fragment, int onRequestCodeForActivity){
+	public static boolean checkWriteSettingsPermissionWaitResult(androidx.fragment.app.Fragment fragment, int onRequestCodeForActivity){
 		return checkWriteSettingsPermissionWaitResult((Object) fragment, onRequestCodeForActivity);
 	}
 
@@ -1942,9 +1955,9 @@ public class Utils {
 				intent.setData(Uri.parse("package:" + activity.getApplicationContext().getPackageName()));
 				fragment.startActivityForResult(intent, onRequestCodeForActivity);
 			}
-		}else if(objectThis instanceof android.support.v4.app.Fragment){
-			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+		}else if(objectThis instanceof androidx.fragment.app.Fragment){
+			androidx.fragment.app.Fragment fragment = (androidx.fragment.app.Fragment) objectThis;
+			androidx.fragment.app.FragmentActivity fragmentActivity = fragment.getActivity();
 			if(fragmentActivity != null){
 				if(Settings.canDrawOverlays(fragmentActivity)){
 					return true;
@@ -1980,7 +1993,7 @@ public class Utils {
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.M)
-	public static boolean checkSystemAlertOverlayPermissionWaitResult(android.support.v4.app.Fragment fragment, int onRequestCodeForActivity){
+	public static boolean checkSystemAlertOverlayPermissionWaitResult(androidx.fragment.app.Fragment fragment, int onRequestCodeForActivity){
 		return checkSystemAlertOverlayPermissionWaitResult((Object) fragment, onRequestCodeForActivity);
 	}
 
@@ -2126,7 +2139,9 @@ public class Utils {
 	@RequiresApi(api = Build.VERSION_CODES.O)
 	public static void setCreatedNotificationChannelGroups(Context context, List<NotificationChannelGroup> listNotificationChannelGroup){
 		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
-		notificationManager.createNotificationChannelGroups(listNotificationChannelGroup);
+		if(notificationManager != null){
+			notificationManager.createNotificationChannelGroups(listNotificationChannelGroup);
+		}
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.O)
@@ -2144,12 +2159,16 @@ public class Utils {
 	@RequiresApi(api = Build.VERSION_CODES.O)
 	public static void setCreatedNotificationChannels(Context context, List<NotificationChannel> listNotificationChannel){
 		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
-		notificationManager.createNotificationChannels(listNotificationChannel);
+		if(notificationManager != null){
+			notificationManager.createNotificationChannels(listNotificationChannel);
+		}
 	}
 
 	public static void notifyNotification(Context context, String tag, int id, Notification notification){
 		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
-		notificationManager.notify(tag, id, notification);
+		if(notificationManager != null){
+			notificationManager.notify(tag, id, notification);
+		}
 	}
 
 	public static void notifyNotification(Context context, String tag, int id, NotificationCompat.Builder notificationCompatBuilder){
@@ -2158,7 +2177,9 @@ public class Utils {
 
 	public static void cancelNotification(Context context, String tag, int id){
 		NotificationManager notificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Service.NOTIFICATION_SERVICE);
-		notificationManager.cancel(tag, id);
+		if(notificationManager != null){
+			notificationManager.cancel(tag, id);
+		}
 	}
 
 	public static String[] checkNeedRequestPermissions(Context context, String...permissions){
@@ -2192,8 +2213,8 @@ public class Utils {
 	/**
 	 * Activity reported to<br>
 	 * {@link ActivityCompat.OnRequestPermissionsResultCallback#onRequestPermissionsResult(int, String[], int[])}<br>
-	 * android.support.v4.app.Fragment reported to<br>
-	 * {@link android.support.v4.app.Fragment#onRequestPermissionsResult(int, String[], int[])}<br>
+	 * androidx.fragment.app.Fragment reported to<br>
+	 * {@link androidx.fragment.app.Fragment#onRequestPermissionsResult(int, String[], int[])}<br>
 	 * android.app.Fragment reported to<br>
 	 * {@link android.app.Fragment#onRequestPermissionsResult(int, String[], int[])}
 	 */
@@ -2224,9 +2245,9 @@ public class Utils {
 					return true;
 				}
 			}
-		}else if(objectThis instanceof android.support.v4.app.Fragment){
-			android.support.v4.app.Fragment fragment = (android.support.v4.app.Fragment) objectThis;
-			android.support.v4.app.FragmentActivity fragmentActivity = fragment.getActivity();
+		}else if(objectThis instanceof androidx.fragment.app.Fragment){
+			androidx.fragment.app.Fragment fragment = (androidx.fragment.app.Fragment) objectThis;
+			androidx.fragment.app.FragmentActivity fragmentActivity = fragment.getActivity();
 			if(fragmentActivity != null){
 				if(isCheckRequest){
 					permissions = checkNeedRequestPermissions(fragmentActivity, permissions);
@@ -2259,7 +2280,7 @@ public class Utils {
 		return requestPermissionsWaitResult((Object) fragment, onRequestCodeForPermissions, isCheckRequest, permissions);
 	}
 
-	public static boolean requestPermissionsWaitResult(android.support.v4.app.Fragment fragment, int onRequestCodeForPermissions, boolean isCheckRequest
+	public static boolean requestPermissionsWaitResult(androidx.fragment.app.Fragment fragment, int onRequestCodeForPermissions, boolean isCheckRequest
 			, String...permissions){
 		return requestPermissionsWaitResult((Object) fragment, onRequestCodeForPermissions, isCheckRequest, permissions);
 	}
@@ -2284,7 +2305,7 @@ public class Utils {
 
 	public static void runMainThread(Handler.Callback callback){
 		if(isMainThread()){
-			callback.handleMessage(null);
+			callback.handleMessage(Message.obtain());
 		}else{
 			new Handler(Looper.getMainLooper(), callback).sendEmptyMessage(0);
 		}
@@ -2363,7 +2384,8 @@ public class Utils {
 			return false;
 		}
 		List<ActivityManager.RunningTaskInfo> list = activityManager.getRunningTasks(1);
-		String runningClassName = list.get(0).topActivity.getClassName();
+		ComponentName componentName = list.get(0).topActivity;
+		String runningClassName = componentName == null ? null : componentName.getClassName();
 		return context.getClass().getName().equals(runningClassName);
 	}
 
@@ -2761,7 +2783,7 @@ public class Utils {
 	 * 取得手機資訊<br>
 	 * android.permission.READ_PHONE_STATE
 	 */
-	@SuppressLint({"HardwareIds", "PrivateApi"})
+	@SuppressLint("HardwareIds")
 	@RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
 	public static Map<String, String> getPhoneInfo(Context context, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
@@ -2837,6 +2859,7 @@ public class Utils {
 		// 行動網路類型
 		// Reflection反射調用hide方法
 		try {
+			@SuppressLint("DiscouragedPrivateApi")
 			Method method = telephonyManager.getClass().getDeclaredMethod("getNetworkTypeName", int.class);
 			method.setAccessible(true);
 			String networkTypeName = (String)method.invoke(telephonyManager, telephonyManager.getNetworkType());

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 2.4.12
+ * @version 2.4.13
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -20,7 +20,6 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.text.InputFilter;
 import android.text.TextUtils;
 import android.text.TextUtils.TruncateAt;
@@ -47,10 +46,12 @@ import android.widget.ScrollView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
 import com.flyingwing.android.R;
+import com.flyingwing.android.util.Utils;
 import com.flyingwing.android.view.DisplayUtils;
 import com.flyingwing.android.view.UIUtils;
-import com.flyingwing.android.util.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -472,10 +473,12 @@ public class SubWindow {
 			, boolean isOutsideCancel, final ClickAction clickAction){
 		final Resources res = context.getResources();
 
-		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH_480);
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		if(windowManager != null){
+			windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		}
+		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(displayMetrics, DisplayUtils.LIMIT_DIP_WIDTH_480);
 
 		LinearLayout linearLayout;
 
@@ -599,10 +602,12 @@ public class SubWindow {
 			, ClickAction clickAction){
 		Resources res = context.getResources();
 
-		DisplayMetrics dm = new DisplayMetrics();
 		WindowManager windowManager = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-		windowManager.getDefaultDisplay().getMetrics(dm);
-		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(dm, DisplayUtils.LIMIT_DIP_WIDTH_480);
+		DisplayMetrics displayMetrics = new DisplayMetrics();
+		if(windowManager != null){
+			windowManager.getDefaultDisplay().getMetrics(displayMetrics);
+		}
+		boolean isFillScreenDip480 = DisplayUtils.isFillScreen(displayMetrics, DisplayUtils.LIMIT_DIP_WIDTH_480);
 
 		int itemWi, itemHe;
 		LayoutParams linearLayoutParams;
@@ -1286,13 +1291,11 @@ public class SubWindow {
 	public static void dialogMenuUseListView(Context context, DisplayMetrics displayMetrics, View topBar, int width, int height, String title, String[] strArray
 			, int[] selectedArray, boolean isMulti, boolean isOutsideCancel, ClickAction clickAction) {
 		int resourceId;
-		int[] viewIdArray;
+		int[] viewIdArray = new int[]{android.R.id.text1};
 		if(isMulti){
 			resourceId = android.R.layout.simple_list_item_multiple_choice;
-			viewIdArray = new int[]{android.R.id.text1};
 		}else{
 			resourceId = android.R.layout.simple_list_item_single_choice;
-			viewIdArray = new int[]{android.R.id.text1};
 		}
 		dialogMenuUseListView(context, displayMetrics, topBar, width, height, title, strArray, selectedArray, resourceId, viewIdArray, isMulti, isOutsideCancel
 				, clickAction);
