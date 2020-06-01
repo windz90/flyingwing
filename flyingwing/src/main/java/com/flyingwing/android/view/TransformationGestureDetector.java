@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 3.0.4
+ * @version 3.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -18,15 +18,15 @@ public class TransformationGestureDetector {
 
 	public static abstract class OnTransformationGestureListener {
 
-		void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate, float xDistance, float yDistance){}
+		public void onClick(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate, float xDistance, float yDistance){}
 
-		void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate){}
+		public void onTap(MotionEvent motionEvent, float xScreenCoordinate, float yScreenCoordinate){}
 
-		void onTranslate(MotionEvent motionEvent, float xDistance, float yDistance, boolean isFling){}
+		public void onTranslate(MotionEvent motionEvent, float xDistance, float yDistance, boolean isFling){}
 
-		void onRotate(MotionEvent motionEvent, float angleDifference){}
+		public void onRotate(MotionEvent motionEvent, float angleDifference){}
 
-		void onScale(MotionEvent motionEvent, float scaleFactor){}
+		public void onScale(MotionEvent motionEvent, float scaleFactor){}
 	}
 
 	private OnTransformationGestureListener mOnTransformationGestureListener;
