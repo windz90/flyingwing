@@ -38,6 +38,8 @@ dependencies {
 	implementation 'androidx.appcompat:appcompat:1.1.0'
 	implementation 'com.google.android.material:material:1.1.0'
 	implementation 'androidx.recyclerview:recyclerview:1.1.0'
+	implementation 'androidx.documentfile:documentfile:1.0.1'
+	implementation 'androidx.exifinterface:exifinterface:1.2.0'
 }
 
 apply from: "https://raw.githubusercontent.com/xiaopansky/android-library-publish-to-jcenter/master/bintrayUpload.gradle"

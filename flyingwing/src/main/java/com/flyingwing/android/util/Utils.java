@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.3
+ * @version 4.0.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -21,6 +21,7 @@ import android.app.Service;
 import android.content.ClipData;
 import android.content.ComponentName;
 import android.content.ContentProviderOperation;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -38,6 +39,7 @@ import android.hardware.display.DisplayManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
@@ -74,6 +76,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NavUtils;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
+import androidx.documentfile.provider.DocumentFile;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -1051,11 +1054,11 @@ public class Utils {
 
 	/**
 	 * Android ID(SSAID)在設備出廠後第一次啟動時產生，當設備被執行「恢復原廠設定」時會被重新產生而改變。<br>
-	 * 在Android API 2.2當時的部份設備有bug，會產生相同的ANDROID_ID:9774d56d682e549c
+	 * 在Android 2.2 (API level 8)當時的部份設備有bug，會產生相同的ANDROID_ID:9774d56d682e549c
 	 */
 	@SuppressLint("HardwareIds")
 	public static String getAndroidID(Context context){
-		// BuildSerial 硬體的唯一值 API 9
+		// BuildSerial 硬體的唯一值 Android 2.3 (API level 9)
 //		String buildSerial = android.os.Build.SERIAL;
 
 		/*
@@ -1338,18 +1341,18 @@ public class Utils {
 
 	/**
 	 * Storage Access Framework (SAF)<br>
-	 * Call startActivityForResult<br>
-	 * Uri uri = resultIntent.getData()<br>
+	 * Call {@link Activity#startActivityForResult(Intent, int, Bundle)}<br>
+	 * Uri uri = {@link Intent#getData()}<br>
 	 * Write<br>
-	 * getContentResolver().openFileDescriptor(Uri, String)<br>
-	 * getContentResolver().openOutputStream(Uri)<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openOutputStream(Uri)}<br>
 	 * Delete<br>
-	 * DocumentsContract.deleteDocument(ContentResolver, Uri)
+	 * {@link DocumentsContract#deleteDocument(ContentResolver, Uri)}
 	 *
 	 * @param isOnlyShowOpenable Filter to only show results that can be "opened", such as a file (as opposed to a virtual file, list of contacts or timezones).
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.KITKAT)
-	public static Intent getFileCreateIntent(String intentType, String fileName, Uri uriInitialPath, boolean isOnlyShowOpenable){
+	public static Intent getFileCreateIntent(String intentType, String fileName, Uri contentUriInitialPath, boolean isOnlyShowOpenable){
 		Intent intent = new Intent();
 		intent.setAction(Intent.ACTION_CREATE_DOCUMENT);
 		if(isOnlyShowOpenable){
@@ -1359,27 +1362,27 @@ public class Utils {
 		intent.setType(intentType);
 		intent.putExtra(Intent.EXTRA_TITLE, fileName);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriInitialPath);
+			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, contentUriInitialPath);
 		}
 		return intent;
 	}
 
 	/**
 	 * Storage Access Framework (SAF)<br>
-	 * Call startActivityForResult<br>
-	 * Uri uri = resultIntent.getData()<br>
+	 * Call {@link Activity#startActivityForResult(Intent, int, Bundle)}<br>
+	 * Uri uri = {@link Intent#getData()}<br>
 	 * Write<br>
-	 * getContentResolver().openFileDescriptor(Uri, String)<br>
-	 * getContentResolver().openOutputStream(Uri)<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openOutputStream(Uri)}<br>
 	 * Read<br>
-	 * getContentResolver().openFileDescriptor(Uri, String)<br>
-	 * getContentResolver().openInputStream(Uri)<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openInputStream(Uri)}<br>
 	 * Delete<br>
-	 * DocumentsContract.deleteDocument(ContentResolver, Uri)
+	 * {@link DocumentsContract#deleteDocument(ContentResolver, Uri)}
 	 *
 	 * @param isOnlyShowOpenable Filter to only show results that can be "opened", such as a file (as opposed to a virtual file, list of contacts or timezones).
 	 */
-	public static Intent getFileSelectorIntent(String intentType, Uri uriInitialPath, boolean isOnlyShowOpenable, boolean allowMultiple){
+	public static Intent getFileSelectorIntent(String intentType, Uri contentUriInitialPath, boolean isOnlyShowOpenable, boolean allowMultiple){
 		Intent intent = new Intent();
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 			intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
@@ -1395,48 +1398,49 @@ public class Utils {
 			intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, allowMultiple);
 		}
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriInitialPath);
+			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, contentUriInitialPath);
 		}
 		return intent;
 	}
 
 	/**
 	 * Storage Access Framework (SAF)<br>
-	 * Call startActivityForResult<br>
-	 * Uri uriTree = resultIntent.getData()<br>
-	 * DocumentFile.fromTreeUri(Context, Uri).listFiles
+	 * Call {@link Activity#startActivityForResult(Intent, int, Bundle)}<br>
+	 * Uri uri = {@link Intent#getData()}<br>
+	 * {@link DocumentFile#fromTreeUri(Context, Uri)}, {@link DocumentFile#listFiles}
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-	public static Intent getDirectorySelectorIntent(String intentType, Uri uriInitialPath){
+	public static Intent getDirectorySelectorIntent(String intentType, Uri contentUriInitialPath){
 		Intent intent = new Intent();
 		intent.setAction(Intent.ACTION_OPEN_DOCUMENT_TREE);
 		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 		intent.setType(intentType);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, uriInitialPath);
+			intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, contentUriInitialPath);
 		}
 		return intent;
 	}
 
 	/**
 	 * Storage Access Framework (SAF)<br>
-	 * Uri uri = resultIntent.getData()<br>
 	 * Get persistable uri permission (even if the device restart), you can save uri.toString() for next access.
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.KITKAT)
-	public static void keepUriPermission(Context context, Intent intent){
-		Uri uri = intent.getData();
-		if(uri == null){
+	public static void keepContentUriPermissionFromIntent(Context context, Intent intent){
+		Uri[] uris = getIntentUris(intent);
+		if(uris.length == 0){
 			return;
 		}
-		if(DocumentsContract.isDocumentUri(context, uri)){
-			int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-			context.getApplicationContext().getContentResolver().takePersistableUriPermission(uri, takeFlags);
+		for(int i=0; i<uris.length; i++){
+			if(DocumentsContract.isDocumentUri(context, uris[i])){
+				int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+				context.getApplicationContext().getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
+			}
 		}
 	}
 
 	/**
-	 * Call startActivityForResult
+	 * Call {@link Activity#startActivityForResult(Intent, int, Bundle)}
 	 */
 	public static Intent getImageCropIntent(Uri uriSrc, Uri uriDst, int aspectX, int aspectY, int outputX, int outputY, String outputFormat
 			, boolean circleCrop, boolean noFaceDetection, boolean returnData){
@@ -1690,15 +1694,26 @@ public class Utils {
 		context.startActivity(intent);
 	}
 
-	public static String queryFilePathFromUri(Context context, Uri uri){
+	public static String queryFilePathFromContentUri(Context context, Uri contentUri){
 		String path = null;
 		Cursor cursor = null;
 		try {
-			String[] projection = new String[]{MediaStore.MediaColumns.DATA};
-			cursor = context.getApplicationContext().getContentResolver().query(uri, projection, null, null, null);
+			String[] projection;
+			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+				projection = new String[]{MediaStore.MediaColumns.RELATIVE_PATH, MediaStore.MediaColumns.DISPLAY_NAME};
+			}else{
+				projection = new String[]{MediaStore.MediaColumns.DATA};
+			}
+			cursor = context.getApplicationContext().getContentResolver().query(contentUri, projection, null, null, null);
 			if(cursor != null && cursor.moveToFirst()){
-				int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-				path = cursor.getString(columnIndex);
+				int columnIndex = cursor.getColumnIndexOrThrow(projection[0]);
+				if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+					path = cursor.getString(columnIndex);
+					columnIndex = cursor.getColumnIndexOrThrow(projection[1]);
+					path = path + File.separator + cursor.getString(columnIndex);
+				}else{
+					path = cursor.getString(columnIndex);
+				}
 				cursor.close();
 			}
 		} catch (Exception e) {
@@ -1712,35 +1727,20 @@ public class Utils {
 	}
 
 	public static Uri[] getIntentUris(Intent intent){
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
-			return new Uri[]{intent.getData()};
-		}
-		ClipData clipData = intent.getClipData();
-		if(clipData == null || clipData.getItemCount() == 0){
-			return new Uri[]{intent.getData()};
-		}
-		Uri[] uris = new Uri[clipData.getItemCount()];
-		for(int i=0; i<uris.length; i++){
-			uris[i] = clipData.getItemAt(i).getUri();
-		}
-		return uris;
-	}
-
-	@SuppressWarnings("ResourceType")
-	public static Uri[] getIntentUrisWithPath(Context context, Intent intent){
-		Uri[] uris = getIntentUris(intent);
-		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT){
-			return uris;
-		}
-
-		for(int i=0; i<uris.length; i++){
-			if(DocumentsContract.isDocumentUri(context, uris[i])){
-				// Get persistable uri permission, you can keep uri reference or save uri.toString() for next access.
-				int takeFlags = intent.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-				context.getApplicationContext().getContentResolver().takePersistableUriPermission(uris[i], takeFlags);
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN){
+			ClipData clipData = intent.getClipData();
+			if(clipData != null){
+				Uri[] uris = new Uri[clipData.getItemCount()];
+				for(int i=0; i<uris.length; i++){
+					uris[i] = clipData.getItemAt(i).getUri();
+				}
+				return uris;
 			}
 		}
-		return uris;
+		if(intent.getData() != null){
+			return new Uri[]{intent.getData()};
+		}
+		return new Uri[0];
 	}
 
 	public static String[] getFilesPathFromIntentUri(Context context, Intent intent){
@@ -1750,7 +1750,7 @@ public class Utils {
 		for(int i=0; i<uris.length; i++){
 			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
 				if(!DocumentsContract.isDocumentUri(context, uris[i])){
-					paths[i] = queryFilePathFromUri(context, uris[i]);
+					paths[i] = queryFilePathFromContentUri(context, uris[i]);
 					continue;
 				}
 
@@ -1761,7 +1761,7 @@ public class Utils {
 				docId = DocumentsContract.getDocumentId(uris[i]);
 				if(authority.equals("com.android.providers.downloads.documents")){
 					uris[i] = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), Long.parseLong(docId));
-					paths[i] = queryFilePathFromUri(context, uris[i]);
+					paths[i] = queryFilePathFromContentUri(context, uris[i]);
 					continue;
 				}
 
@@ -1773,20 +1773,20 @@ public class Utils {
 				}else if(authority.equals("com.android.providers.media.documents")){
 					if(divide[0].equals("image")){
 						uris[i] = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
-						paths[i] = queryFilePathFromUri(context, uris[i]);
+						paths[i] = queryFilePathFromContentUri(context, uris[i]);
 					}else if(divide[0].equals("audio")){
 						uris[i] = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
-						paths[i] = queryFilePathFromUri(context, uris[i]);
+						paths[i] = queryFilePathFromContentUri(context, uris[i]);
 					}else if(divide[0].equals("video")){
 						uris[i] = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, Long.parseLong(divide[1]));
-						paths[i] = queryFilePathFromUri(context, uris[i]);
+						paths[i] = queryFilePathFromContentUri(context, uris[i]);
 					}
 				}
 			}
 
 			scheme = uris[i].getScheme();
 			if(scheme != null && scheme.equals("content")){
-				paths[i] = queryFilePathFromUri(context, uris[i]);
+				paths[i] = queryFilePathFromContentUri(context, uris[i]);
 			}else{
 				paths[i] = uris[i].getPath();
 			}
@@ -2066,7 +2066,7 @@ public class Utils {
 	public static NotificationCompat.Builder createNotificationCompatBuilder(Context context, String channelId, String ticker, String contentTitle, String contentText
 			, String contentInfo, String subText, Integer color, int smallIcon, Bitmap bitmapLargeIcon, Long when, PendingIntent pendingIntent){
 		NotificationCompat.Builder notificationCompatBuilder = new NotificationCompat.Builder(context, channelId);
-		// According to high notification priority or channel importance, Android 3.0 to 4.4 use ticker, Android 5.0 and higher use head up.
+		// According to high notification priority or channel importance, Android 3.0 (API level 11) to 4.4 (API level 19) use ticker, Android 5.0 (API level 21) and higher use head up.
 		notificationCompatBuilder.setTicker(ticker);
 		notificationCompatBuilder.setContentTitle(contentTitle);
 		notificationCompatBuilder.setContentText(contentText);

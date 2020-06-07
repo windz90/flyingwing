@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.5
+ * @version 4.0.6
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -8,10 +8,13 @@
 package com.flyingwing.android.util;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -28,8 +31,10 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.RequiresPermission;
 import androidx.core.content.ContextCompat;
+import androidx.exifinterface.media.ExifInterface;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -1603,11 +1608,25 @@ public class IOUtils {
 		return file.delete();
 	}
 
-	public static @Nullable Uri getInsertUriFromMediaStore(Context context, String directoryPath, String fileName, String intentType, boolean isPending){
-		ContentValues contentValues = new ContentValues();
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br><br>
+	 *
+	 * Write<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openOutputStream(Uri)}
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static @Nullable Uri getContentUriOfCreateFileFromMediaStore(Context context, String volumeName, ContentValues contentValues, String directoryPath, String fileName
+			, String mimeType, boolean isPending){
 		contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-		contentValues.put(MediaStore.MediaColumns.TITLE, fileName);
-		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, intentType);
+		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, mimeType);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
 			contentValues.put(MediaStore.MediaColumns.IS_PENDING, isPending ? 1 : 0);
 			contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, directoryPath);
@@ -1615,77 +1634,109 @@ public class IOUtils {
 			contentValues.put(MediaStore.MediaColumns.DATA, directoryPath);
 		}
 		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
-		if(intentType.toLowerCase().startsWith("image")){
-			return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-		}else if(intentType.toLowerCase().startsWith("audio")){
-			return contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);
-		}else if(intentType.toLowerCase().startsWith("video")){
-			return contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
+		if(mimeType.toLowerCase().startsWith("image")){
+			return contentResolver.insert(MediaStore.Images.Media.getContentUri(volumeName), contentValues);
+		}else if(mimeType.toLowerCase().startsWith("audio")){
+			return contentResolver.insert(MediaStore.Audio.Media.getContentUri(volumeName), contentValues);
+		}else if(mimeType.toLowerCase().startsWith("video")){
+			return contentResolver.insert(MediaStore.Video.Media.getContentUri(volumeName), contentValues);
+		}else if(mimeType.toLowerCase().startsWith("downloads")){
+			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
+				return contentResolver.insert(Uri.parse("content://media/" + volumeName + "/downloads"), contentValues);
+			}
+			return contentResolver.insert(MediaStore.Downloads.getContentUri(volumeName), contentValues);
 		}else{
-			return contentResolver.insert(Uri.parse("content://media/external/files"), contentValues);
+			return contentResolver.insert(Uri.parse("content://media/" + volumeName + "/file"), contentValues);
 		}
 	}
 
-	public static @Nullable Uri getInsertUriFromMediaStore(Context context, ContentValues contentValues, String directoryPath, String fileName, String intentType
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br><br>
+	 *
+	 * Write<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openOutputStream(Uri)}
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static @Nullable Uri getContentUriOfCreateFileFromMediaStore(Context context, String volumeName, String directoryPath, String fileName, String mimeType
 			, boolean isPending){
-		contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
-		contentValues.put(MediaStore.MediaColumns.TITLE, fileName);
-		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, intentType);
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-			contentValues.put(MediaStore.MediaColumns.IS_PENDING, isPending ? 1 : 0);
-			contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, directoryPath);
-		}else{
-			contentValues.put(MediaStore.MediaColumns.DATA, directoryPath);
-		}
-		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
-		if(intentType.toLowerCase().startsWith("image")){
-			return contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
-		}else if(intentType.toLowerCase().startsWith("audio")){
-			return contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues);
-		}else if(intentType.toLowerCase().startsWith("video")){
-			return contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
-		}else{
-			return contentResolver.insert(Uri.parse("content://media/external/files"), contentValues);
-		}
+		return getContentUriOfCreateFileFromMediaStore(context, volumeName, new ContentValues(), directoryPath, fileName, mimeType, isPending);
 	}
 
-
-	public static @Nullable Uri getQueryUriFromMediaStore(Context context, String directoryPath, String fileName, String intentType){
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br><br>
+	 *
+	 * Write<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openOutputStream(Uri)}<br>
+	 * Read<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
+	 * {@link Context#getContentResolver()}, {@link ContentResolver#openInputStream(Uri)}
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static @Nullable Uri getContentUriOfQueryFileFromMediaStore(Context context, String volumeName, String directoryPath, String fileName, String mimeType){
 		String[] projection = new String[]{MediaStore.MediaColumns._ID};
 		String selection;
 		String[] selectionArgs;
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-			selection = MediaStore.MediaColumns.RELATIVE_PATH + "=? and " + MediaStore.MediaColumns.TITLE + "=?";
+			selection = MediaStore.MediaColumns.RELATIVE_PATH + "=? and " + MediaStore.MediaColumns.DISPLAY_NAME + "=?";
 			selectionArgs = new String[]{directoryPath, fileName};
 		}else{
 			selection = MediaStore.MediaColumns.DATA + "=?";
 			selectionArgs = new String[]{directoryPath + fileName};
 		}
-		Uri uri;
+		Uri contentUri;
 		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
-		if(intentType.toLowerCase().startsWith("image")){
-			uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-		}else if(intentType.toLowerCase().startsWith("audio")){
-			uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-		}else if(intentType.toLowerCase().startsWith("video")){
-			uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+		if(mimeType.toLowerCase().startsWith("image")){
+			contentUri = MediaStore.Images.Media.getContentUri(volumeName);
+		}else if(mimeType.toLowerCase().startsWith("audio")){
+			contentUri = MediaStore.Audio.Media.getContentUri(volumeName);
+		}else if(mimeType.toLowerCase().startsWith("video")){
+			contentUri = MediaStore.Video.Media.getContentUri(volumeName);
+		}else if(mimeType.toLowerCase().startsWith("downloads")){
+			if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
+				return Uri.parse("content://media/" + volumeName + "/downloads");
+			}
+			return MediaStore.Downloads.getContentUri(volumeName);
 		}else{
-			uri = Uri.parse("content://media/external/files");
+			contentUri = Uri.parse("content://media/" + volumeName + "/file");
 		}
-		Cursor cursor = contentResolver.query(uri, projection, selection, selectionArgs, null);
+		Cursor cursor = contentResolver.query(contentUri, projection, selection, selectionArgs, null);
 		if(cursor != null && cursor.moveToFirst()){
-			uri = ContentUris.withAppendedId(uri, cursor.getLong(0));
+			contentUri = ContentUris.withAppendedId(contentUri, cursor.getLong(cursor.getColumnIndexOrThrow(projection[0])));
 			cursor.close();
-			return uri;
+			return contentUri;
 		}
 		return null;
 	}
 
-	public static int editUriFromMediaStore(Context context, Uri uri, String directoryPathNew, String fileNameNew, String intentTypeNew, boolean isPendingNew){
-		ContentValues contentValues = new ContentValues();
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 */
+	public static int editFileInfoByContentUriFromMediaStore(Context context, Uri contentUri, ContentValues contentValues, String directoryPathNew, String fileNameNew
+			, String mimeTypeNew, boolean isPendingNew){
 		contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileNameNew);
-		contentValues.put(MediaStore.MediaColumns.TITLE, fileNameNew);
-		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, intentTypeNew);
+		contentValues.put(MediaStore.MediaColumns.MIME_TYPE, mimeTypeNew);
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
 			contentValues.put(MediaStore.MediaColumns.IS_PENDING, isPendingNew ? 1 : 0);
 			contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, directoryPathNew);
@@ -1693,43 +1744,92 @@ public class IOUtils {
 			contentValues.put(MediaStore.MediaColumns.DATA, directoryPathNew);
 		}
 		ContentResolver contentResolver = context.getApplicationContext().getContentResolver();
-		return contentResolver.update(uri, contentValues, null, null);
+		return contentResolver.update(contentUri, contentValues, null, null);
 	}
 
-	public static boolean insertUriFromMediaStore(Context context, InputStream inputStream, String directoryPath, String fileName, String intentType, boolean isPending){
-		Uri uri = getInsertUriFromMediaStore(context, directoryPath, fileName, intentType, isPending);
-		if(uri == null){
-			return false;
-		}
-		try {
-			return inputStreamWriteOutputStream(inputStream, context.getApplicationContext().getContentResolver().openOutputStream(uri));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-		return false;
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 */
+	public static int editFileInfoByContentUriFromMediaStore(Context context, Uri contentUri, String directoryPathNew, String fileNameNew, String mimeTypeNew
+			, boolean isPendingNew){
+		return editFileInfoByContentUriFromMediaStore(context, contentUri, new ContentValues(), directoryPathNew, fileNameNew, mimeTypeNew, isPendingNew);
 	}
 
-	public static boolean insertUriFromMediaStore(Context context, ContentValues contentValues, InputStream inputStream, String directoryPath, String fileName, String intentType
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static boolean createFileByContentUriFromMediaStore(Context context, String volumeName, InputStream inputStream, String directoryPath, String fileName, String mimeType
 			, boolean isPending){
-		Uri uri = getInsertUriFromMediaStore(context, contentValues, directoryPath, fileName, intentType, isPending);
-		if(uri == null){
+		Uri contentUri = getContentUriOfCreateFileFromMediaStore(context, volumeName, directoryPath, fileName, mimeType, isPending);
+		if(contentUri == null){
 			return false;
 		}
 		try {
-			return inputStreamWriteOutputStream(inputStream, context.getApplicationContext().getContentResolver().openOutputStream(uri));
+			return inputStreamWriteOutputStream(inputStream, context.getApplicationContext().getContentResolver().openOutputStream(contentUri));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		return false;
 	}
 
-	public static boolean writeUriFromMediaStore(Context context, InputStream inputStream, String directoryPath, String fileName, String intentType){
-		Uri uri = getQueryUriFromMediaStore(context, directoryPath, fileName, intentType);
-		if(uri == null){
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static boolean createFileByContentUriFromMediaStore(Context context, String volumeName, ContentValues contentValues, InputStream inputStream, String directoryPath
+			, String fileName, String mimeType, boolean isPending){
+		Uri contentUri = getContentUriOfCreateFileFromMediaStore(context, volumeName, contentValues, directoryPath, fileName, mimeType, isPending);
+		if(contentUri == null){
 			return false;
 		}
 		try {
-			ParcelFileDescriptor parcelFileDescriptor = context.getApplicationContext().getContentResolver().openFileDescriptor(uri, "w");
+			return inputStreamWriteOutputStream(inputStream, context.getApplicationContext().getContentResolver().openOutputStream(contentUri));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static boolean writeFileByContentUriFromMediaStore(Context context, String volumeName, InputStream inputStream, String directoryPath, String fileName
+			, String mimeType){
+		Uri contentUri = getContentUriOfQueryFileFromMediaStore(context, volumeName, directoryPath, fileName, mimeType);
+		if(contentUri == null){
+			return false;
+		}
+		try {
+			ParcelFileDescriptor parcelFileDescriptor = context.getApplicationContext().getContentResolver().openFileDescriptor(contentUri, "w");
 			if(parcelFileDescriptor != null){
 				// Native Fd
 				// parcelFileDescriptor.detachFd()
@@ -1743,13 +1843,24 @@ public class IOUtils {
 		return false;
 	}
 
-	public static @Nullable byte[] readUriFromMediaStore(Context context, String directoryPath, String fileName, String intentType){
-		Uri uri = getQueryUriFromMediaStore(context, directoryPath, fileName, intentType);
-		if(uri == null){
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static @Nullable byte[] readFileByContentUriFromMediaStore(Context context, String volumeName, String directoryPath, String fileName, String mimeType){
+		Uri contentUri = getContentUriOfQueryFileFromMediaStore(context, volumeName, directoryPath, fileName, mimeType);
+		if(contentUri == null){
 			return null;
 		}
 		try {
-			ParcelFileDescriptor parcelFileDescriptor = context.getApplicationContext().getContentResolver().openFileDescriptor(uri, "r");
+			ParcelFileDescriptor parcelFileDescriptor = context.getApplicationContext().getContentResolver().openFileDescriptor(contentUri, "r");
 			if(parcelFileDescriptor != null){
 				// Native Fd
 				// parcelFileDescriptor.detachFd()
@@ -1763,13 +1874,52 @@ public class IOUtils {
 		return null;
 	}
 
-	public static int deleteUriFromMediaStore(Context context, InputStream inputStream, String directoryPath, String fileName, String intentType){
-		Uri uri = getQueryUriFromMediaStore(context, directoryPath, fileName, intentType);
-		if(uri == null){
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 */
+	@RequiresApi(api = Build.VERSION_CODES.Q)
+	public static double[] readFileLocationByContentUriFromMediaStore(Context context, Uri contentUri){
+		MediaStore.setRequireOriginal(contentUri);
+		double[] LatLong = new double[2];
+		try {
+			InputStream inputStream = context.getApplicationContext().getContentResolver().openInputStream(contentUri);
+			if(inputStream != null){
+				ExifInterface exifInterface = new ExifInterface(inputStream);
+				LatLong = exifInterface.getLatLong();
+				inputStream.close();
+			}
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return LatLong;
+	}
+
+	/**
+	 * MediaStore<br>
+	 * Scoped Storage in Android 10 (API level 29)<br>
+	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
+	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 *
+	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
+	 */
+	public static int deleteFileByContentUriFromMediaStore(Context context, String volumeName, String directoryPath, String fileName, String mimeType){
+		Uri contentUri = getContentUriOfQueryFileFromMediaStore(context, volumeName, directoryPath, fileName, mimeType);
+		if(contentUri == null){
 			return -1;
 		}
 		try {
-			return context.getApplicationContext().getContentResolver().delete(uri, null, null);
+			return context.getApplicationContext().getContentResolver().delete(contentUri, null, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

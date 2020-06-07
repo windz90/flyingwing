@@ -407,7 +407,7 @@ public class NetworkUtils {
 
 	/**
 	 * android.permission.CHANGE_WIFI_STATE<br>
-	 * {@link IntentFilter#addAction(String)} {@link WifiManager#WIFI_STATE_CHANGED_ACTION}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link WifiManager#WIFI_STATE_CHANGED_ACTION}<br>
 	 * {@link WifiManager#EXTRA_WIFI_STATE}
 	 */
 	@RequiresPermission(android.Manifest.permission.CHANGE_WIFI_STATE)
@@ -453,7 +453,7 @@ public class NetworkUtils {
 	 * android.permission.ACCESS_WIFI_STATE (WifiManager.getScanResults())<br>
 	 * android.permission.CHANGE_WIFI_STATE<br>
 	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (WifiManager.getScanResults())<br>
-	 * {@link IntentFilter#addAction(String)} {@link WifiManager#SCAN_RESULTS_AVAILABLE_ACTION}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link WifiManager#SCAN_RESULTS_AVAILABLE_ACTION}<br>
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
 	public static void wifiScan(@NonNull final Context context, final BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
@@ -501,14 +501,14 @@ public class NetworkUtils {
 			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		}
 		// <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-		// This method was deprecated in API level P.
+		// This method was deprecated in Android 9 (API level 28).
 		wifiManager.startScan();
 	}
 
 	/**
 	 * android.permission.ACCESS_WIFI_STATE<br>
 	 * android.permission.CHANGE_WIFI_STATE<br>
-	 * {@link IntentFilter#addAction(String)} {@link WifiManager#NETWORK_STATE_CHANGED_ACTION} {@link ConnectivityManager#CONNECTIVITY_ACTION}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link WifiManager#NETWORK_STATE_CHANGED_ACTION}, {@link ConnectivityManager#CONNECTIVITY_ACTION}<br>
 	 * NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO)
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
@@ -650,7 +650,7 @@ public class NetworkUtils {
 	/**
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN (BluetoothAdapter.disable())<br>
-	 * {@link IntentFilter#addAction(String)} {@link BluetoothAdapter#ACTION_STATE_CHANGED}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link BluetoothAdapter#ACTION_STATE_CHANGED}<br>
 	 * {@link BluetoothAdapter#EXTRA_STATE}<br>
 	 * {@link BluetoothAdapter#EXTRA_PREVIOUS_STATE}
 	 */
@@ -731,7 +731,7 @@ public class NetworkUtils {
 	/**
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * {@link IntentFilter#addAction(String)} {@link BluetoothAdapter#ACTION_STATE_CHANGED}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link BluetoothAdapter#ACTION_STATE_CHANGED}<br>
 	 * {@link BluetoothAdapter#EXTRA_STATE}<br>
 	 * {@link BluetoothAdapter#EXTRA_PREVIOUS_STATE}
 	 */
@@ -777,7 +777,7 @@ public class NetworkUtils {
 	}
 
 	/**
-	 * For Android 5.0 and higher<br>
+	 * For Android 5.0 (API level 21) and higher<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback))<br>
@@ -859,7 +859,7 @@ public class NetworkUtils {
 	}
 
 	/**
-	 * For Android 4.3 and higher to 5.0 below<br>
+	 * For Android 4.3 (API level 18) and higher to 5.0 (API level 21) below<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * BluetoothAdapter.stopLeScan(leScanCallback)
@@ -903,7 +903,7 @@ public class NetworkUtils {
 	}
 
 	/**
-	 * For Android 4.3 and higher<br>
+	 * For Android 4.3 (API level 18) and higher<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback))<br>
@@ -967,7 +967,7 @@ public class NetworkUtils {
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
 	 * android.permission.ACCESS_COARSE_LOCATION<br>
-	 * {@link IntentFilter#addAction(String)} {@link BluetoothDevice#ACTION_FOUND}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link BluetoothDevice#ACTION_FOUND}<br>
 	 * BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)<br>
 	 * BluetoothAdapter.cancelDiscovery(); (android.permission.BLUETOOTH_ADMIN)
 	 */
@@ -1026,7 +1026,7 @@ public class NetworkUtils {
 	 * callback use BroadcastReceiver or activityForResult<br>
 	 * Discoverability will auto enable bluetooth<br>
 	 * android.Manifest.permission.BLUETOOTH<br>
-	 * {@link IntentFilter#addAction(String)} {@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED}<br>
 	 * {@link BluetoothAdapter#EXTRA_SCAN_MODE}<br>
 	 * {@link BluetoothAdapter#EXTRA_PREVIOUS_SCAN_MODE}
 	 * @param seconds default 120 sec
@@ -1076,7 +1076,7 @@ public class NetworkUtils {
 	 * Use BroadcastReceiver<br>
 	 * Discoverability will auto enable bluetooth<br>
 	 * android.Manifest.permission.BLUETOOTH
-	 * {@link IntentFilter#addAction(String)} {@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED}
+	 * {@link IntentFilter#addAction(String)}, {@link BluetoothAdapter#ACTION_SCAN_MODE_CHANGED}
 	 * @param seconds default 120 sec
 	 */
 	@RequiresPermission(android.Manifest.permission.BLUETOOTH)
@@ -1099,7 +1099,7 @@ public class NetworkUtils {
 
 	/**
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * {@link IntentFilter#addAction(String)} {@link BluetoothDevice#ACTION_FOUND}<br>
+	 * {@link IntentFilter#addAction(String)}, {@link BluetoothDevice#ACTION_FOUND}<br>
 	 * {@link BluetoothDevice#EXTRA_BOND_STATE}<br>
 	 * BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 	 */
