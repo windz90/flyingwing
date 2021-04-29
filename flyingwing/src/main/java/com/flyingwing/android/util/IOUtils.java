@@ -51,6 +51,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -131,7 +132,8 @@ public class IOUtils {
 			return false;
 		}
 		if(charset == null){
-			charset = Charset.forName("ISO-8859-1");
+			//noinspection CharsetObjectCanBeUsed
+			charset = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.ISO_8859_1 : Charset.forName("ISO-8859-1");
 //			System.out.println("charset get failed, using default charset " + charset.displayName());
 		}
 		byte[] byteArray;
@@ -202,7 +204,8 @@ public class IOUtils {
 			return null;
 		}
 		if(charset == null){
-			charset = Charset.forName("ISO-8859-1");
+			//noinspection CharsetObjectCanBeUsed
+			charset = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.ISO_8859_1 : Charset.forName("ISO-8859-1");
 //			System.out.println("charset get failed, using default charset " + charset.displayName());
 		}
 		if(bufferSize < 8192){

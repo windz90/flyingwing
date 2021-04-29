@@ -30,6 +30,7 @@ import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -122,7 +123,8 @@ public class ImageLoader {
 			if(mIsPrintException){
 				byte[] bytes = inputStreamToByteArray(inputStreamError, mBufferSize);
 				if(bytes != null){
-					System.out.println(new String(bytes, Charset.forName("UTF-8")));
+					//noinspection CharsetObjectCanBeUsed
+					System.out.println(new String(bytes, Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.UTF_8 : Charset.forName("UTF-8")));
 				}
 			}
 			inputStreamError.close();
