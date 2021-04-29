@@ -39,10 +39,10 @@ public class CustomComparator implements Comparator<Map<String, String>>{
 	
 	private Pattern pattern;
 	private Matcher matcher;
-	private String compareKey;
-	private int style, orderBy;
-	private boolean isRunDefaultSort;
-	private RuleBasedCollator collator;
+	private final String compareKey;
+	private final int style, orderBy;
+	private final boolean isRunDefaultSort;
+	private final RuleBasedCollator collator;
 	
 	public CustomComparator(String compareKey, int style, int orderBy, Locale locale, boolean isRunDefaultSort){
 		this.compareKey = compareKey;

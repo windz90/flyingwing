@@ -64,8 +64,8 @@ public class ImageLoader {
 
 	private OnLoadImageListener mOnLoadImageListener;
 	private ThreadPoolExecutor mThreadPoolExecutor;
-	private Map<String, SoftReference<Bitmap>> mImageBufferMap;
-	private Map<String, String> mImageScaleMap;
+	private final Map<String, SoftReference<Bitmap>> mImageBufferMap;
+	private final Map<String, String> mImageScaleMap;
 	private int mBufferSize = 1024 * 16;
 	private boolean mIsPrintException;
 

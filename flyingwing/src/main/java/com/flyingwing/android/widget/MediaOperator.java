@@ -29,7 +29,7 @@ import java.lang.reflect.Field;
 @SuppressWarnings({"unused"})
 public class MediaOperator {
 	
-	private Context mContext;
+	private final Context mContext;
 	private MediaPlayer mMediaPlayer;
 	private MediaController mMediaController;
 

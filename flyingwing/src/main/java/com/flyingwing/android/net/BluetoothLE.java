@@ -1011,7 +1011,7 @@ public class BluetoothLE {
 		mRetryPeriodSeconds = -1;
 	}
 
-	private class BLEConnection {
+	private static class BLEConnection {
 
 		private BluetoothGatt bluetoothGatt;
 		private ArrayMap<String, String> arrayMap;
@@ -1024,9 +1024,9 @@ public class BluetoothLE {
 		}
 	}
 
-	private class BLEGattCallback {
+	private static class BLEGattCallback {
 
-		private BluetoothGattCallback bluetoothGattCallback;
+		private final BluetoothGattCallback bluetoothGattCallback;
 		private List<String[]> listFilter;
 
 		/**

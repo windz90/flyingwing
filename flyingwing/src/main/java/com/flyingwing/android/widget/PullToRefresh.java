@@ -355,9 +355,9 @@ public class PullToRefresh {
 				final Timer timer = new Timer();
 				timer.schedule(new TimerTask() {
 					
-					int diffWidth = mProgressWidth / 10;
+					final int diffWidth = mProgressWidth / 10;
 					
-					Handler handler = new Handler(new Callback() {
+					final Handler handler = new Handler(new Callback() {
 						
 						@Override
 						public boolean handleMessage(@NonNull Message msg) {
