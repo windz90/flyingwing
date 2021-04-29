@@ -22,7 +22,6 @@ public class First extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
 		if(BuildConfig.DEBUG && Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD){
 			StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
 					.detectAll()
@@ -51,7 +50,7 @@ public class First extends Activity {
 			public void completed(int statusBarHe, int usableHe) {
 				IOUtils.writeSharedPreferencesCommitAsync(First.this, Global.SP_NAME, DisplayUtils.SP_KEY_STATUS_BAR_HEIGHT, statusBarHe, null);
 				CustomProgressDialog.dismissInstance();
-				startActivity(Utils.getNextIntentFromTaskHistoryMigrate(First.this, Main.class));
+				startActivity(Utils.getIntentFromHistoryStackToFront(First.this, Main.class));
 				finish();
 			}
 		});
