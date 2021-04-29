@@ -52,7 +52,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "ManualMinMaxCalculation"})
 public class ImageUtils {
 
 	public static boolean writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, OutputStream outputStream){

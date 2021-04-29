@@ -58,7 +58,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
 public class IOUtils {
 
 	public static final int IO_BUFFER_SIZE = 1024 * 16;

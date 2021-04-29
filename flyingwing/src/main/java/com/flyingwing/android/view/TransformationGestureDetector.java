@@ -13,7 +13,7 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class TransformationGestureDetector {
 
 	public static abstract class OnTransformationGestureListener {

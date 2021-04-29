@@ -14,7 +14,7 @@ import android.view.Gravity;
 
 import androidx.annotation.ColorInt;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class TextViewAttribute {
 
 	private int mGravity = Gravity.TOP | Gravity.START;

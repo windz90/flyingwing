@@ -28,7 +28,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class SocketUDP {
 
 	public static final int STATE_RECEIVE_SUCCESS = 100;

@@ -12,7 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.widget.ImageView;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class MotionMatrixOperator {
 
 	public static final int AREA_INDEX_INVALID = -1;

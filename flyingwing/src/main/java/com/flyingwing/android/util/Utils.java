@@ -95,7 +95,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
-@SuppressWarnings({"unused", "WeakerAccess", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond"})
 public class Utils {
 
 	public static final char[] HEX_CHARS_SAMPLE = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};

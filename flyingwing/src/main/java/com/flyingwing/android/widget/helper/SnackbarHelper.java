@@ -24,7 +24,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import com.flyingwing.android.R;
 import com.google.android.material.snackbar.Snackbar;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class SnackbarHelper {
 
 	public static abstract class PendingMakeWindowSnackbarCallback {

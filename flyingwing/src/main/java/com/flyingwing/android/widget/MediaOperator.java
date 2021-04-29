@@ -26,7 +26,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class MediaOperator {
 	
 	private Context mContext;

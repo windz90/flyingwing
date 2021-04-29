@@ -16,7 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class CustomItemDecoration extends RecyclerView.ItemDecoration {
 
 	private Drawable mDrawable;

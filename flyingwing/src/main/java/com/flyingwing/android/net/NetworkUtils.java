@@ -57,7 +57,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
 public class NetworkUtils {
 
 	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)

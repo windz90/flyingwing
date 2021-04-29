@@ -28,7 +28,7 @@ import android.view.WindowManager;
 
 import androidx.annotation.RequiresApi;
 
-@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "WeakerAccess", "SameParameterValue"})
+@SuppressWarnings({"unused", "UnnecessaryLocalVariable", "ManualMinMaxCalculation"})
 public class DisplayUtils {
 
 	public static final int LIMIT_DIP_WIDTH_320 = 320;

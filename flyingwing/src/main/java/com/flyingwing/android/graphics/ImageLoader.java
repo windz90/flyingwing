@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond"})
 public class ImageLoader {
 
 	public static final int FLAG_FAIL = -1;

@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BluetoothLE {
 

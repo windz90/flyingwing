@@ -64,7 +64,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "SameParameterValue"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach"})
 public class NetworkAccess {
 
 	public static final int CONNECTION_NO_NETWORK = 100;

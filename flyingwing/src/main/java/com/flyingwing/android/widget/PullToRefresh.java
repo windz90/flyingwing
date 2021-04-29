@@ -42,7 +42,7 @@ import androidx.annotation.RequiresApi;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "ManualMinMaxCalculation"})
 public class PullToRefresh {
 	
 	public static int NONE = -1;

@@ -34,7 +34,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond"})
 public class UIUtils {
 
 	public static final int SIZE_TEXT_S = 10;
