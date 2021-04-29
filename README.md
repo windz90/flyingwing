@@ -1,5 +1,7 @@
-# Flyingwing
+# FlyingWing
 Android utility library.
+
+[![](https://jitpack.io/v/windz90/flyingwing.svg)](https://jitpack.io/#windz90/flyingwing)
 
 Step 1. Add the JitPack repository to your build file
 
@@ -17,5 +19,3 @@ Step 2. Add the dependency
 	dependencies {
 	        implementation 'com.github.windz90:flyingwing:1.1.8'
 	}
-
-[![](https://jitpack.io/v/windz90/flyingwing.svg)](https://jitpack.io/#windz90/flyingwing)
