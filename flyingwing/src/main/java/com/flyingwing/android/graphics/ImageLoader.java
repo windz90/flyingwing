@@ -16,6 +16,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 
@@ -257,7 +258,7 @@ public class ImageLoader {
 			return null;
 		}
 
-		final Handler handlerConnectionRead = new Handler(new Handler.Callback() {
+		final Handler handlerConnectionRead = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {
@@ -311,7 +312,7 @@ public class ImageLoader {
 			}
 		};
 
-		Handler handlerNeedConnection = new Handler(new Handler.Callback() {
+		Handler handlerNeedConnection = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {
@@ -359,7 +360,7 @@ public class ImageLoader {
 			return null;
 		}
 
-		final Handler handlerStorageRead = new Handler(new Handler.Callback() {
+		final Handler handlerStorageRead = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {
@@ -435,7 +436,7 @@ public class ImageLoader {
 			return null;
 		}
 
-		final Handler handlerConnectionRead = new Handler(new Handler.Callback() {
+		final Handler handlerConnectionRead = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {

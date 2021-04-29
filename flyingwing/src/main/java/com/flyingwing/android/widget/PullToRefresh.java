@@ -12,7 +12,7 @@ import android.content.Context;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Handler.Callback;
+import android.os.Looper;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -357,7 +357,7 @@ public class PullToRefresh {
 					
 					final int diffWidth = mProgressWidth / 10;
 					
-					final Handler handler = new Handler(new Callback() {
+					final Handler handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 						
 						@Override
 						public boolean handleMessage(@NonNull Message msg) {

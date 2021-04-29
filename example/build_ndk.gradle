@@ -1,14 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-	compileSdkVersion 29
+	compileSdkVersion 30
 	defaultConfig {
 		applicationId "com.flyingwing.android.example"
 		minSdkVersion 19
-		targetSdkVersion 29
+		targetSdkVersion 30
 		versionCode 1
 		versionName "1.0"
-		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 		manifestPlaceholders = [appName:"@string/app_name", appIcon:"@drawable/ic_launcher", appIconRound:"@drawable/ic_launcher_round"]
 		setProperty("archivesBaseName", "app-$versionName")// Set output file name
 //		ndk {
@@ -23,6 +22,8 @@ android {
 				abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'//'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64', NDK r17 remove 'armeabi', 'mips', 'mips64'
 			}
 		}
+
+		testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 	}
 
 	signingConfigs {
@@ -95,10 +96,10 @@ android {
 
 dependencies {
 	implementation fileTree(include: ['*.jar'], dir: 'libs')
-	testImplementation 'junit:junit:4.13'
-	androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-	androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-	implementation 'androidx.appcompat:appcompat:1.1.0'
+	testImplementation 'junit:junit:4.13.2'
+	androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+	androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+	implementation 'androidx.appcompat:appcompat:1.2.0'
 	implementation project(':flyingwing')
 }
 

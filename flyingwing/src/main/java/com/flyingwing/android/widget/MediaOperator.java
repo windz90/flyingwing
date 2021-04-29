@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.view.View;
 import android.widget.ImageButton;
@@ -208,7 +209,7 @@ public class MediaOperator {
 		if(sourceFile == null){
 			return;
 		}
-		final Handler handler = new Handler(new Handler.Callback() {
+		final Handler handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {
 				mMediaController.show();
