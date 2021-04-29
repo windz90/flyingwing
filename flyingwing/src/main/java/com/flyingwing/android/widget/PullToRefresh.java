@@ -42,6 +42,7 @@ import androidx.annotation.RequiresApi;
 import java.util.Timer;
 import java.util.TimerTask;
 
+@Deprecated
 @SuppressWarnings({"unused", "ManualMinMaxCalculation"})
 public class PullToRefresh {
 	
