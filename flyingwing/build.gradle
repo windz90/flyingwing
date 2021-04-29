@@ -6,7 +6,7 @@ android {
 		minSdkVersion 9 // Android Support Library 24.2.0 removes support for Android 2.2 (API level 8) and lower.
 		targetSdkVersion 30
 		versionCode 1
-		versionName "1.1.8"
+		versionName "1.1.9"
 		setProperty("archivesBaseName", "flyingwing-android-$versionName")// Set output file name
 		multiDexEnabled true
 
