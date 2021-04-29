@@ -40,6 +40,7 @@ import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.SecureRandom;
@@ -64,7 +65,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "SameParameterValue"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach"})
 public class NetworkAccess {
 
 	public static final int CONNECTION_NO_NETWORK = 100;
@@ -88,7 +89,8 @@ public class NetworkAccess {
 	public static final String CONTENT_TYPE_JSON = "application/json";
 	public static final String CONTENT_TYPE_URLENCODED = "application/x-www-form-urlencoded";
 	public static final String CONTENT_TYPE_MULTIPART = "multipart/form-data";
-	private static final Charset DEFAULT_CHARSET = Charset.forName("UTF-8");
+	@SuppressWarnings("CharsetObjectCanBeUsed")
+	private static final Charset DEFAULT_CHARSET = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.UTF_8 : Charset.forName("UTF-8");
 	private static final NetworkSetting NETWORKSETTING = new NetworkSetting();
 
 	public static class NetworkSetting {
@@ -1577,7 +1579,8 @@ public class NetworkAccess {
 			return null;
 		}
 		if(charset == null){
-			charset = Charset.forName("ISO-8859-1");
+			//noinspection CharsetObjectCanBeUsed
+			charset = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.ISO_8859_1 : Charset.forName("ISO-8859-1");
 //			System.out.println("charset get failed, using default charset " + charset.displayName());
 		}
 //		System.out.println("charset = " + charset.displayName());

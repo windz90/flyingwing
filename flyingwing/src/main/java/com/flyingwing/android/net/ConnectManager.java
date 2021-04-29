@@ -16,7 +16,7 @@ import androidx.annotation.NonNull;
 
 import java.util.concurrent.ExecutorService;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class ConnectManager {
 
 	public static class ConnectSetting {

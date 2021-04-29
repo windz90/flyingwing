@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class BluetoothLE {
 
@@ -1011,7 +1011,7 @@ public class BluetoothLE {
 		mRetryPeriodSeconds = -1;
 	}
 
-	private class BLEConnection {
+	private static class BLEConnection {
 
 		private BluetoothGatt bluetoothGatt;
 		private ArrayMap<String, String> arrayMap;
@@ -1024,9 +1024,9 @@ public class BluetoothLE {
 		}
 	}
 
-	private class BLEGattCallback {
+	private static class BLEGattCallback {
 
-		private BluetoothGattCallback bluetoothGattCallback;
+		private final BluetoothGattCallback bluetoothGattCallback;
 		private List<String[]> listFilter;
 
 		/**

@@ -25,7 +25,7 @@ import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class CustomProgressDialog {
 
 	private static final class StaticNestedClass {

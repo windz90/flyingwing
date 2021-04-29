@@ -12,7 +12,7 @@ import android.content.Context;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Handler;
-import android.os.Handler.Callback;
+import android.os.Looper;
 import android.os.Message;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -42,7 +42,8 @@ import androidx.annotation.RequiresApi;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@Deprecated
+@SuppressWarnings({"unused", "ManualMinMaxCalculation"})
 public class PullToRefresh {
 	
 	public static int NONE = -1;
@@ -355,9 +356,9 @@ public class PullToRefresh {
 				final Timer timer = new Timer();
 				timer.schedule(new TimerTask() {
 					
-					int diffWidth = mProgressWidth / 10;
+					final int diffWidth = mProgressWidth / 10;
 					
-					Handler handler = new Handler(new Callback() {
+					final Handler handler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 						
 						@Override
 						public boolean handleMessage(@NonNull Message msg) {

@@ -16,6 +16,7 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
 
@@ -30,6 +31,7 @@ import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -37,7 +39,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond"})
 public class ImageLoader {
 
 	public static final int FLAG_FAIL = -1;
@@ -64,8 +66,8 @@ public class ImageLoader {
 
 	private OnLoadImageListener mOnLoadImageListener;
 	private ThreadPoolExecutor mThreadPoolExecutor;
-	private Map<String, SoftReference<Bitmap>> mImageBufferMap;
-	private Map<String, String> mImageScaleMap;
+	private final Map<String, SoftReference<Bitmap>> mImageBufferMap;
+	private final Map<String, String> mImageScaleMap;
 	private int mBufferSize = 1024 * 16;
 	private boolean mIsPrintException;
 
@@ -122,7 +124,8 @@ public class ImageLoader {
 			if(mIsPrintException){
 				byte[] bytes = inputStreamToByteArray(inputStreamError, mBufferSize);
 				if(bytes != null){
-					System.out.println(new String(bytes, Charset.forName("UTF-8")));
+					//noinspection CharsetObjectCanBeUsed
+					System.out.println(new String(bytes, Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.UTF_8 : Charset.forName("UTF-8")));
 				}
 			}
 			inputStreamError.close();
@@ -255,7 +258,7 @@ public class ImageLoader {
 			return null;
 		}
 
-		final Handler handlerConnectionRead = new Handler(new Handler.Callback() {
+		final Handler handlerConnectionRead = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {
@@ -309,7 +312,7 @@ public class ImageLoader {
 			}
 		};
 
-		Handler handlerNeedConnection = new Handler(new Handler.Callback() {
+		Handler handlerNeedConnection = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {
@@ -357,7 +360,7 @@ public class ImageLoader {
 			return null;
 		}
 
-		final Handler handlerStorageRead = new Handler(new Handler.Callback() {
+		final Handler handlerStorageRead = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {
@@ -433,7 +436,7 @@ public class ImageLoader {
 			return null;
 		}
 
-		final Handler handlerConnectionRead = new Handler(new Handler.Callback() {
+		final Handler handlerConnectionRead = new Handler(Looper.getMainLooper(), new Handler.Callback() {
 
 			@Override
 			public boolean handleMessage(@NonNull Message msg) {

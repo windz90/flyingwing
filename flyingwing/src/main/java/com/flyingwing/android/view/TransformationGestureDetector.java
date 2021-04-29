@@ -13,7 +13,7 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class TransformationGestureDetector {
 
 	public static abstract class OnTransformationGestureListener {
@@ -29,14 +29,15 @@ public class TransformationGestureDetector {
 		public void onScale(MotionEvent motionEvent, float scaleFactor){}
 	}
 
-	private OnTransformationGestureListener mOnTransformationGestureListener;
+	private final OnTransformationGestureListener mOnTransformationGestureListener;
 	private VelocityTracker mVelocityTracker;
 	private final float[][] mPointsExisted = new float[2][2];
 	private final float[] mPointFirstDown = new float[2];
 	private final int[] mLocationOnScreen = new int[2];
 	private float mScale;
 
-	private int mDurationTap, mGapDistanceTap, mMinimumFlingVelocity, mMaximumFlingVelocity;
+	private final int mMinimumFlingVelocity, mMaximumFlingVelocity;
+	private int mDurationTap, mGapDistanceTap;
 
 	public TransformationGestureDetector(Context context, OnTransformationGestureListener onTransformationGestureListener) {
 		mOnTransformationGestureListener = onTransformationGestureListener;

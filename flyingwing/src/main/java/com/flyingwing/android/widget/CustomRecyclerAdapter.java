@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.0.15
+ * @version 1.0.16
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings({"unused", "WeakerAccess", "Convert2Diamond"})
+@SuppressWarnings({"unused", "Convert2Diamond", "ManualMinMaxCalculation"})
 public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
 	protected OnItemClickListener mOnItemClickListener;
@@ -44,11 +44,11 @@ public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<Recy
 	private long timeClick;
 
 	public interface OnItemClickListener {
-		void onItemClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, String clickDescription, int position);
+		void onItemClick(CustomRecyclerAdapter<?> adapter, RecyclerView.ViewHolder viewHolder, String clickDescription, int position);
 	}
 
 	public interface OnItemLongClickListener {
-		void onItemLongClick(CustomRecyclerAdapter adapter, RecyclerView.ViewHolder viewHolder, String clickDescription, int position);
+		void onItemLongClick(CustomRecyclerAdapter<?> adapter, RecyclerView.ViewHolder viewHolder, String clickDescription, int position);
 	}
 
 	public static abstract class OnItemTouchListener implements RecyclerView.OnItemTouchListener {
@@ -593,7 +593,7 @@ public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<Recy
 					public void onClick(View v) {
 						// 提升對Android 4.0的相容性，避免RecyclerView.ViewHolder的itemView.OnClick重複執行
 						if(System.currentTimeMillis() - timeClick > 300L){
-							mOnItemClickListener.onItemClick(CustomRecyclerAdapter.this, ViewHolder.this, "itemView", getAdapterPosition());
+							mOnItemClickListener.onItemClick(CustomRecyclerAdapter.this, ViewHolder.this, "itemView", getBindingAdapterPosition());
 							timeClick = System.currentTimeMillis();
 						}
 					}
@@ -604,7 +604,7 @@ public abstract class CustomRecyclerAdapter<T> extends RecyclerView.Adapter<Recy
 
 					@Override
 					public boolean onLongClick(View v) {
-						mOnItemLongClickListener.onItemLongClick(CustomRecyclerAdapter.this, ViewHolder.this, "itemView", getAdapterPosition());
+						mOnItemLongClickListener.onItemLongClick(CustomRecyclerAdapter.this, ViewHolder.this, "itemView", getBindingAdapterPosition());
 						return false;
 					}
 				});

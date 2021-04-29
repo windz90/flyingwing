@@ -16,13 +16,13 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused"})
 public class CustomItemDecoration extends RecyclerView.ItemDecoration {
 
-	private Drawable mDrawable;
-	private int mStroke;
-	private Rect mRectPadding;
-	private boolean mIsPreDraw;
+	private final Drawable mDrawable;
+	private final int mStroke;
+	private final Rect mRectPadding;
+	private final boolean mIsPreDraw;
 
 	public CustomItemDecoration(Drawable drawable, int stroke, Rect rectPadding, boolean isPreDraw){
 		mDrawable = drawable;

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.4
+ * @version 4.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -52,7 +52,7 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
+@SuppressWarnings({"unused", "ManualMinMaxCalculation"})
 public class ImageUtils {
 
 	public static boolean writeBitmapEncode(Bitmap bitmap, Bitmap.CompressFormat compressFormat, int quality, OutputStream outputStream){
@@ -123,7 +123,7 @@ public class ImageUtils {
 	 * In the past, maximum file size of raw directory was limited to 1MB.
 	 */
 	public static @Nullable Bitmap readRawBitmap(Resources resources, int resourceId, int inSampleSize, Bitmap.Config config){
-		return readBitmapByNative(resources.openRawResource(resourceId), inSampleSize, config);
+		return inputStreamToBitmapByNative(resources.openRawResource(resourceId), inSampleSize, config);
 	}
 
 	/**
@@ -131,7 +131,7 @@ public class ImageUtils {
 	 * In the past, maximum file size of raw directory was limited to 1MB.
 	 */
 	public static @Nullable Bitmap readRawBitmap(Resources resources, int resourceId, int inSampleSize){
-		return readBitmapByNative(resources.openRawResource(resourceId), inSampleSize, Bitmap.Config.ARGB_8888);
+		return inputStreamToBitmapByNative(resources.openRawResource(resourceId), inSampleSize, Bitmap.Config.ARGB_8888);
 	}
 
 	/**
@@ -147,7 +147,7 @@ public class ImageUtils {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return readBitmapByNative(resources.openRawResource(resourceId), scale, config);
+		return inputStreamToBitmapByNative(resources.openRawResource(resourceId), scale, config);
 	}
 
 	/**
@@ -165,7 +165,7 @@ public class ImageUtils {
 	public static @Nullable Bitmap readAssetsBitmap(Context context, String imageName, int inSampleSize, Bitmap.Config config){
 		try {
 			InputStream inputStream = context.getApplicationContext().getAssets().open(imageName);
-			return readBitmapByNative(inputStream, inSampleSize, config);
+			return inputStreamToBitmapByNative(inputStream, inSampleSize, config);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -199,7 +199,7 @@ public class ImageUtils {
 				inputStream = assetManager.open(imageName);
 				e1.printStackTrace();
 			}
-			return readBitmapByNative(inputStream, scale, config);
+			return inputStreamToBitmapByNative(inputStream, scale, config);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -217,7 +217,7 @@ public class ImageUtils {
 	public static @Nullable Bitmap readFileBitmap(Context context, File file, int inSampleSize, Bitmap.Config config){
 		try {
 			InputStream inputStream = new FileInputStream(file);
-			return readBitmapByNative(inputStream, inSampleSize, config);
+			return inputStreamToBitmapByNative(inputStream, inSampleSize, config);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -242,7 +242,7 @@ public class ImageUtils {
 				fileInputStream = new FileInputStream(file);
 				e1.printStackTrace();
 			}
-			return readBitmapByNative(fileInputStream, scale, config);
+			return inputStreamToBitmapByNative(fileInputStream, scale, config);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -255,7 +255,7 @@ public class ImageUtils {
 
 	public static @Nullable Bitmap readFileDescriptorBitmap(Context context, FileDescriptor fileDescriptor, int inSampleSize, Bitmap.Config config){
 		InputStream inputStream = new FileInputStream(fileDescriptor);
-		return readBitmapByNative(inputStream, inSampleSize, config);
+		return inputStreamToBitmapByNative(inputStream, inSampleSize, config);
 	}
 
 	public static @Nullable Bitmap readFileDescriptorBitmap(Context context, FileDescriptor fileDescriptor, int inSampleSize){
@@ -276,7 +276,7 @@ public class ImageUtils {
 				fileInputStream = new FileInputStream(fileDescriptor);
 				e1.printStackTrace();
 			}
-			return readBitmapByNative(fileInputStream, scale, config);
+			return inputStreamToBitmapByNative(fileInputStream, scale, config);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -287,7 +287,7 @@ public class ImageUtils {
 		return readFileDescriptorBitmap(context, fileDescriptor, targetSize, Bitmap.Config.ARGB_8888);
 	}
 
-	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream, int inSampleSize, Bitmap.Config config){
+	public static @Nullable Bitmap inputStreamToBitmapByNative(InputStream inputStream, int inSampleSize, Bitmap.Config config){
 		// 圖片設定
 		BitmapFactory.Options options = new BitmapFactory.Options();
 		// 設定是否讓BitmapFactory.Options只讀取圖片寬高資料而不實際將圖片載入Bitmap
@@ -331,16 +331,16 @@ public class ImageUtils {
 		return bitmap;
 	}
 
-	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream, int inSampleSize){
-		return readBitmapByNative(inputStream, inSampleSize, Bitmap.Config.ARGB_8888);
+	public static @Nullable Bitmap inputStreamToBitmapByNative(InputStream inputStream, int inSampleSize){
+		return inputStreamToBitmapByNative(inputStream, inSampleSize, Bitmap.Config.ARGB_8888);
 	}
 
-	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream, Bitmap.Config config){
-		return readBitmapByNative(inputStream, 1, config);
+	public static @Nullable Bitmap inputStreamToBitmapByNative(InputStream inputStream, Bitmap.Config config){
+		return inputStreamToBitmapByNative(inputStream, 1, config);
 	}
 
-	public static @Nullable Bitmap readBitmapByNative(InputStream inputStream){
-		return readBitmapByNative(inputStream, 1, Bitmap.Config.ARGB_8888);
+	public static @Nullable Bitmap inputStreamToBitmapByNative(InputStream inputStream){
+		return inputStreamToBitmapByNative(inputStream, 1, Bitmap.Config.ARGB_8888);
 	}
 
 	public static float[] readImageSize(InputStream inputStream){
@@ -461,6 +461,99 @@ public class ImageUtils {
 		Bitmap.Config config = bitmap.getConfig();
 		File tempFile = new File(Environment.getExternalStorageDirectory().toString() + File.separator + "temp.tmp");
 		return convertMappedBitmap(bitmap, newWidth, newHeight, config, tempFile);
+	}
+
+	public static byte[] bitmapToBytes(Bitmap bitmap){
+		ByteBuffer byteBuffer = ByteBuffer.allocate(bitmap.getRowBytes() * bitmap.getHeight());
+		bitmap.copyPixelsToBuffer(byteBuffer);
+		return byteBuffer.array();
+	}
+
+	public static byte[] bitmapToBytes(Bitmap bitmap, File tempFile){
+		if(tempFile == null){
+			return bitmapToBytes(bitmap);
+		}
+		try {
+			RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw");
+			FileChannel fileChannel = randomAccessFile.getChannel();
+			MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, bitmap.getRowBytes() * bitmap.getHeight());
+			bitmap.copyPixelsToBuffer(mappedByteBuffer);
+			bitmap.recycle();
+			System.gc();
+			return mappedByteBuffer.array();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static Bitmap bytesToBitmap(byte[] bytes, int width, int height, Bitmap.Config config){
+		Bitmap bitmap = Bitmap.createBitmap(width, height, config);
+		bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(bytes));
+		return bitmap;
+	}
+
+	public static Bitmap bytesToBitmap(byte[] bytes){
+		return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+	}
+
+	public static Bitmap bytesToBitmap(byte[] bytes, BitmapFactory.Options options){
+		return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+	}
+
+	public static Drawable bitmapToDrawable(Resources resources, Bitmap bitmap){
+		return new BitmapDrawable(resources, bitmap);
+	}
+
+	public static Bitmap drawableToBitmap(Drawable drawable, boolean isOptimumConfig){
+		if(drawable instanceof BitmapDrawable){
+			return ((BitmapDrawable)drawable).getBitmap();
+		}
+
+		int width = drawable.getIntrinsicWidth();
+		width = width > 0 ? width : 1;
+		int height = drawable.getIntrinsicHeight();
+		height = height > 0 ? height : 1;
+
+		Bitmap.Config config;
+		PixelFormat pixelFormat = new PixelFormat();
+		if(drawable.getOpacity() > -1){
+			PixelFormat.getPixelFormatInfo(drawable.getOpacity(), pixelFormat);
+			if(isOptimumConfig && !PixelFormat.formatHasAlpha(drawable.getOpacity())){
+				config = Bitmap.Config.RGB_565;
+			}else if(isOptimumConfig && pixelFormat.bytesPerPixel == 1 && pixelFormat.bitsPerPixel == 8){
+				config = Bitmap.Config.ALPHA_8;
+			}else{
+				config = Bitmap.Config.ARGB_8888;
+			}
+		}else if(drawable.getOpacity() == PixelFormat.OPAQUE){
+			config = Bitmap.Config.RGB_565;
+		}else{
+			config = Bitmap.Config.ARGB_8888;
+		}
+
+		Bitmap bitmap = Bitmap.createBitmap(width, height, config);
+		Canvas canvas = new Canvas(bitmap);
+		drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+		drawable.draw(canvas);
+		return bitmap;
+	}
+
+	/**
+	 * @param rgbArray Support rgb or argb hex order integer array, 8-bit per channel.
+	 */
+	public static void rgbToGrayscale(int[] rgbArray){
+		int a, r, g, b, grayscale;
+		for(int i=0; i<rgbArray.length; i++){
+			// Bitmap order ABGR
+			a = rgbArray[i] >> 24 & 0xFF;
+			b = rgbArray[i] >> 16 & 0xFF;
+			g = rgbArray[i] >> 8 & 0xFF;
+			r = rgbArray[i] & 0xFF;
+			// grayscale = r * 0.213 + g * 0.715 + b * 0.072, r = g = b = grayscale.
+			grayscale = (int) (r * 0.213f + g * 0.715f + b * 0.072f);
+			rgbArray[i] = a << 24 | grayscale << 16 | grayscale << 8 | grayscale;
+		}
 	}
 
 	public static Canvas createCanvas(Bitmap bitmap){
@@ -762,76 +855,6 @@ public class ImageUtils {
 		return bitmap;
 	}
 
-	public static byte[] bitmapToBytes(Bitmap bitmap){
-		ByteBuffer byteBuffer = ByteBuffer.allocate(bitmap.getRowBytes() * bitmap.getHeight());
-		bitmap.copyPixelsToBuffer(byteBuffer);
-		return byteBuffer.array();
-	}
-
-	public static byte[] bitmapToBytes(Bitmap bitmap, File tempFile){
-		if(tempFile == null){
-			return bitmapToBytes(bitmap);
-		}
-		try {
-			RandomAccessFile randomAccessFile = new RandomAccessFile(tempFile, "rw");
-			FileChannel fileChannel = randomAccessFile.getChannel();
-			MappedByteBuffer mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, bitmap.getRowBytes() * bitmap.getHeight());
-			bitmap.copyPixelsToBuffer(mappedByteBuffer);
-			bitmap.recycle();
-			System.gc();
-			return mappedByteBuffer.array();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	public static Bitmap bytesToBitmap(byte[] bytes){
-		return BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-	}
-
-	public static Bitmap bytesToBitmap(byte[] bytes, BitmapFactory.Options options){
-		return BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
-	}
-
-	public static Drawable bitmapToDrawable(Resources resources, Bitmap bitmap){
-		return new BitmapDrawable(resources, bitmap);
-	}
-
-	public static Bitmap drawableToBitmap(Drawable drawable, boolean isOptimumConfig){
-		if(drawable instanceof BitmapDrawable){
-			return ((BitmapDrawable)drawable).getBitmap();
-		}
-
-		int width = drawable.getIntrinsicWidth();
-		width = width > 0 ? width : 1;
-		int height = drawable.getIntrinsicHeight();
-		height = height > 0 ? height : 1;
-
-		Bitmap.Config config;
-		PixelFormat pixelFormat = new PixelFormat();
-		if(drawable.getOpacity() > -1){
-			PixelFormat.getPixelFormatInfo(drawable.getOpacity(), pixelFormat);
-			if(isOptimumConfig && !PixelFormat.formatHasAlpha(drawable.getOpacity())){
-				config = Bitmap.Config.RGB_565;
-			}else if(isOptimumConfig && pixelFormat.bytesPerPixel == 1 && pixelFormat.bitsPerPixel == 8){
-				config = Bitmap.Config.ALPHA_8;
-			}else{
-				config = Bitmap.Config.ARGB_8888;
-			}
-		}else if(drawable.getOpacity() == PixelFormat.OPAQUE){
-			config = Bitmap.Config.RGB_565;
-		}else{
-			config = Bitmap.Config.ARGB_8888;
-		}
-
-		Bitmap bitmap = Bitmap.createBitmap(width, height, config);
-		Canvas canvas = new Canvas(bitmap);
-		drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-		drawable.draw(canvas);
-		return bitmap;
-	}
-
 	public static Drawable getStateListDrawable(int[][] ints, Drawable[] drawables){
 		StateListDrawable stateListDrawable = new StateListDrawable();
 		for(int i=0; i<ints.length; i++){
@@ -890,7 +913,7 @@ public class ImageUtils {
 	}
 
 	public static @Nullable Bitmap drawResourceBitmapRoundRect(Resources resources, int resourceId, int inSampleSize, Bitmap.Config config, float roundRadius){
-		Bitmap bitmap = readBitmapByNative(resources.openRawResource(resourceId), inSampleSize, config);
+		Bitmap bitmap = inputStreamToBitmapByNative(resources.openRawResource(resourceId), inSampleSize, config);
 		if(bitmap == null){
 			return null;
 		}
@@ -898,7 +921,7 @@ public class ImageUtils {
 	}
 
 	public static @Nullable Bitmap drawResourceBitmapRoundRect(Resources resources, int resourceId, int inSampleSize, float roundRadius){
-		Bitmap bitmap = readBitmapByNative(resources.openRawResource(resourceId), inSampleSize, Bitmap.Config.ARGB_8888);
+		Bitmap bitmap = inputStreamToBitmapByNative(resources.openRawResource(resourceId), inSampleSize, Bitmap.Config.ARGB_8888);
 		if(bitmap == null){
 			return null;
 		}
@@ -907,7 +930,7 @@ public class ImageUtils {
 
 	public static @Nullable Bitmap drawResourceBitmapRoundRect(Resources resources, int resourceId, float targetSize, float roundRadius){
 		int scale = calculateImageTargetSizeMinimumScale(resources.openRawResource(resourceId), targetSize);
-		Bitmap bitmap = readBitmapByNative(resources.openRawResource(resourceId), scale, Bitmap.Config.ARGB_8888);
+		Bitmap bitmap = inputStreamToBitmapByNative(resources.openRawResource(resourceId), scale, Bitmap.Config.ARGB_8888);
 		if(bitmap == null){
 			return null;
 		}

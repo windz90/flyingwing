@@ -12,7 +12,7 @@ import android.util.Base64;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach"})
 public class EncryptUtils {
 	
 	public static final String TYPE_MD2 = "MD2";

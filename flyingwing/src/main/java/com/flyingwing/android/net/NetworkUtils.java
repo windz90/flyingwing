@@ -1,6 +1,6 @@
 /*
  * Copyright 2015 Andy Lin. All rights reserved.
- * @version 1.1.3
+ * @version 1.1.4
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -57,7 +57,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
 public class NetworkUtils {
 
 	@RequiresPermission(android.Manifest.permission.ACCESS_NETWORK_STATE)
@@ -318,7 +318,9 @@ public class NetworkUtils {
 	}
 
 	/**
-	 * android.permission.ACCESS_WIFI_STATE
+	 * android.permission.ACCESS_WIFI_STATE<br>
+	 * For Android 10 (API level 29) and higher<br>
+	 * android.permission.ACCESS_FINE_LOCATION ({@link WifiManager#getConnectionInfo()})
 	 */
 	@RequiresPermission(android.Manifest.permission.ACCESS_WIFI_STATE)
 	public static WifiInfo getWifiConnectionInfo(@NonNull Context context, Handler handlerNoPermissions){
@@ -336,6 +338,8 @@ public class NetworkUtils {
 			return null;
 		}
 		// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+		// For Android 10 (API level 29) and higher
+		// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 		return wifiManager.getConnectionInfo();
 	}
 
@@ -408,7 +412,12 @@ public class NetworkUtils {
 	/**
 	 * android.permission.CHANGE_WIFI_STATE<br>
 	 * {@link IntentFilter#addAction(String)}, {@link WifiManager#WIFI_STATE_CHANGED_ACTION}<br>
-	 * {@link WifiManager#EXTRA_WIFI_STATE}
+	 * {@link WifiManager#EXTRA_WIFI_STATE}<br><br>
+	 *
+	 * For Android 10 (API level 29) and higher<br>
+	 * Restriction on enabling and disabling Wi-Fi<br>
+	 * {@link WifiManager#setWifiEnabled(boolean)}<br>
+	 * This method was deprecated in API level 29. The method always returns false.<br>
 	 */
 	@RequiresPermission(android.Manifest.permission.CHANGE_WIFI_STATE)
 	public static void setWifiEnabled(@NonNull Context context, final boolean isEnable, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
@@ -444,16 +453,23 @@ public class NetworkUtils {
 			@Override
 			public void run() {
 				// <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+				// This method was deprecated in API level 29
 				wifiManager.setWifiEnabled(isEnable);
 			}
 		}).start();
 	}
 
 	/**
-	 * android.permission.ACCESS_WIFI_STATE (WifiManager.getScanResults())<br>
+	 * android.permission.ACCESS_WIFI_STATE ({@link WifiManager#getScanResults()})<br>
 	 * android.permission.CHANGE_WIFI_STATE<br>
-	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (WifiManager.getScanResults())<br>
-	 * {@link IntentFilter#addAction(String)}, {@link WifiManager#SCAN_RESULTS_AVAILABLE_ACTION}<br>
+	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION ({@link WifiManager#getScanResults()})<br>
+	 * {@link IntentFilter#addAction(String)}, {@link WifiManager#SCAN_RESULTS_AVAILABLE_ACTION}<br><br>
+	 *
+	 * {@link WifiManager#startScan()}<br>
+	 * This method was deprecated in Android 9 (API level 28)<br><br>
+	 *
+	 * For Android 10 (API level 29) and higher<br>
+	 * android.permission.ACCESS_FINE_LOCATION ({@link WifiManager#getScanResults()}, {@link WifiManager#startScan()})
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
 	public static void wifiScan(@NonNull final Context context, final BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
@@ -493,6 +509,8 @@ public class NetworkUtils {
 				// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
 				// <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> or
 				// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+				// For Android 10 (API level 29) and higher
+				// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 				List<ScanResult> list = wifiManager.getScanResults();
 			}
 		};
@@ -501,7 +519,9 @@ public class NetworkUtils {
 			context.getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
 		}
 		// <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-		// This method was deprecated in Android 9 (API level 28).
+		// This method was deprecated in Android 9 (API level 28)
+		// For Android 10 (API level 29) and higher
+		// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 		wifiManager.startScan();
 	}
 
@@ -509,9 +529,15 @@ public class NetworkUtils {
 	 * android.permission.ACCESS_WIFI_STATE<br>
 	 * android.permission.CHANGE_WIFI_STATE<br>
 	 * {@link IntentFilter#addAction(String)}, {@link WifiManager#NETWORK_STATE_CHANGED_ACTION}, {@link ConnectivityManager#CONNECTIVITY_ACTION}<br>
-	 * NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO)
+	 * NetworkInfo networkInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO)<br><br>
+	 *
+	 * For Android 10 (API level 29) and higher<br>
+	 * android.permission.ACCESS_FINE_LOCATION ({@link WifiManager#getConfiguredNetworks()})<br>
+	 * Restrictions on direct access to configured Wi-Fi networks<br>
+	 * The {@link WifiManager#getConfiguredNetworks()} method always returns an empty list.<br>
+	 * Note: If a carrier app calls {@link WifiManager#getConfiguredNetworks()}, the system returns a list containing only the networks that the carrier configured.
 	 */
-	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
+	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE, android.Manifest.permission.ACCESS_FINE_LOCATION}, conditional = true)
 	public static boolean wifiConnect(@NonNull Context context, @NonNull String ssId, String bssId, String password, boolean isUseExistWifiConfiguration
 			, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
 		WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
@@ -559,6 +585,11 @@ public class NetworkUtils {
 		boolean isEnable;
 		if(isUseExistWifiConfiguration){
 			// <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+			// For Android 10 (API level 29) and higher
+			// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+			// Restrictions on direct access to configured Wi-Fi networks
+			// The getConfiguredNetworks() method always returns an empty list.
+			// Note: If a carrier app calls getConfiguredNetworks(), the system returns a list containing only the networks that the carrier configured.
 			List<WifiConfiguration> listWifiConfiguration = wifiManager.getConfiguredNetworks();
 			if(listWifiConfiguration != null){
 				int size = listWifiConfiguration.size();
@@ -591,7 +622,7 @@ public class NetworkUtils {
 		return isEnable && wifiManager.reconnect();
 	}
 
-	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE})
+	@RequiresPermission(allOf = {android.Manifest.permission.ACCESS_WIFI_STATE, android.Manifest.permission.CHANGE_WIFI_STATE, android.Manifest.permission.ACCESS_FINE_LOCATION}, conditional = true)
 	public static boolean wifiConnect(@NonNull Context context, @NonNull ScanResult scanResult, String password, boolean isUseExistWifiConfiguration
 			, BroadcastReceiver broadcastReceiver, Handler handlerNoPermissions){
 		return wifiConnect(context, scanResult.SSID, scanResult.BSSID, password, isUseExistWifiConfiguration, broadcastReceiver, handlerNoPermissions);
@@ -780,7 +811,7 @@ public class NetworkUtils {
 	 * For Android 5.0 (API level 21) and higher<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback))<br>
+	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION ({@link BluetoothLeScanner#startScan(ScanCallback)})<br>
 	 * BluetoothDevice bluetoothDevice = result.getDevice()<br>
 	 * BluetoothLeScanner.stopScan(scanCallback)
 	 */
@@ -848,10 +879,8 @@ public class NetworkUtils {
 				bluetoothLeScanner.stopScan(scanCallback);
 				if(isStartScan){
 					// <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-					/*
-					<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> or
-					<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-					*/
+					// <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/> or
+					// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 					bluetoothLeScanner.startScan(scanCallback);
 				}
 			}
@@ -862,7 +891,10 @@ public class NetworkUtils {
 	 * For Android 4.3 (API level 18) and higher to 5.0 (API level 21) below<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * BluetoothAdapter.stopLeScan(leScanCallback)
+	 * BluetoothAdapter.stopLeScan(leScanCallback)<br><br>
+	 *
+	 * For Android 10 (API level 29) and higher<br>
+	 * android.permission.ACCESS_FINE_LOCATION ({@link BluetoothAdapter#startLeScan(BluetoothAdapter.LeScanCallback)})
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
@@ -897,6 +929,8 @@ public class NetworkUtils {
 		if(bluetoothAdapter != null && bluetoothAdapter.isEnabled()){
 			// <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 			bluetoothAdapter.stopLeScan(leScanCallback);
+			// For Android 10 (API level 29) and higher
+			// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 			return isStartScan && bluetoothAdapter.startLeScan(leScanCallback);
 		}
 		return false;
@@ -906,10 +940,15 @@ public class NetworkUtils {
 	 * For Android 4.3 (API level 18) and higher<br>
 	 * android.permission.BLUETOOTH<br>
 	 * android.permission.BLUETOOTH_ADMIN<br>
-	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION (BluetoothLeScanner.startScan(scanCallback))<br>
+	 * BluetoothAdapter.stopLeScan(leScanCallback)<br><br>
+	 *
+	 * For Android 5.0 (API level 21) and higher<br>
+	 * android.permission.ACCESS_COARSE_LOCATION or android.permission.ACCESS_FINE_LOCATION ({@link BluetoothLeScanner#startScan(ScanCallback)})<br>
 	 * BluetoothDevice bluetoothDevice = result.getDevice()<br>
-	 * BluetoothLeScanner.stopScan(scanCallback);
-	 * BluetoothAdapter.stopLeScan(leScanCallback)
+	 * BluetoothLeScanner.stopScan(scanCallback)<br><br>
+	 *
+	 * For Android 10 (API level 29) and higher<br>
+	 * android.permission.ACCESS_FINE_LOCATION ({@link BluetoothAdapter#startLeScan(BluetoothAdapter.LeScanCallback)})
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN})
@@ -969,7 +1008,10 @@ public class NetworkUtils {
 	 * android.permission.ACCESS_COARSE_LOCATION<br>
 	 * {@link IntentFilter#addAction(String)}, {@link BluetoothDevice#ACTION_FOUND}<br>
 	 * BluetoothDevice bluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)<br>
-	 * BluetoothAdapter.cancelDiscovery(); (android.permission.BLUETOOTH_ADMIN)
+	 * BluetoothAdapter.cancelDiscovery(); (android.permission.BLUETOOTH_ADMIN)<br><br>
+	 *
+	 * For Android 10 (API level 29) and higher<br>
+	 * android.permission.ACCESS_FINE_LOCATION ({@link BluetoothAdapter#startDiscovery()})
 	 */
 	@RequiresPermission(allOf = {android.Manifest.permission.BLUETOOTH, android.Manifest.permission.BLUETOOTH_ADMIN
 			, android.Manifest.permission.ACCESS_COARSE_LOCATION})
@@ -1019,6 +1061,8 @@ public class NetworkUtils {
 			bluetoothAdapter.cancelDiscovery();
 		}
 		// <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+		// For Android 10 (API level 29) and higher
+		// <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 		bluetoothAdapter.startDiscovery();
 	}
 

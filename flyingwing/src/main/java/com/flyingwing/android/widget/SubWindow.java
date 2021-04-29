@@ -58,7 +58,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond"})
 public class SubWindow {
 
 	public static boolean sIsInstanceShow;

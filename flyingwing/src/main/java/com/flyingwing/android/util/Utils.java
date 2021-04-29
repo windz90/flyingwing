@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.4
+ * @version 4.0.5
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -95,7 +95,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 
-@SuppressWarnings({"unused", "WeakerAccess", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "IfCanBeSwitch", "ForLoopReplaceableByForEach", "Convert2Diamond"})
 public class Utils {
 
 	public static final char[] HEX_CHARS_SAMPLE = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
@@ -1167,12 +1167,26 @@ public class Utils {
 		return intent;
 	}
 
+	/**
+	 * For Android 11 (API level 30) or higher<br>
+	 * Limited package visibility<br>
+	 * Affected methods include the following: {@link PackageManager#queryIntentActivities(Intent, int)}, {@link PackageManager#queryIntentServices(Intent, int)}, {@link PackageManager#queryBroadcastReceivers(Intent, int)},
+	 * {@link PackageManager#getPackageInfo(String, int)}, {@link PackageManager#getInstalledPackages(int)} (int)}, {@link PackageManager#getInstalledApplications(int)},
+	 * {@link Intent#resolveActivity(PackageManager)}, {@link Intent#resolveActivityInfo(PackageManager, int)}.<br>
+	 * To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.<br>
+	 * To view all installed apps, require android.permission.QUERY_ALL_PACKAGES.
+	 */
 	public static Intent getActionSendIntentForAPP(Context context, String packageName, String className, String intentType, String subject, String text, Uri streamUri){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		Intent intent = packageManager.getLaunchIntentForPackage(packageName);
 		if(intent == null){
 			intent = getLauncherIntent(packageName, className);
 		}
+		// For Android 11 (API level 30) or higher
+		// Limited package visibility
+		// To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.
+		// To view all installed apps, require <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>.
+		@SuppressLint("QueryPermissionsNeeded")
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo.size() == 0){
 			intent = new Intent();
@@ -1289,35 +1303,35 @@ public class Utils {
 		return getLauncherIntent(new Intent(context, targetClass));
 	}
 
-	public static Intent getNextIntentFromTaskHistoryMigrate(Intent intent){
+	public static Intent getIntentFromHistoryStackToFront(Intent intent){
 		intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
 		return intent;
 	}
 
-	public static Intent getNextIntentFromTaskHistoryMigrate(String packageName, String className){
+	public static Intent getIntentFromHistoryStackToFront(String packageName, String className){
 		Intent intent = new Intent();
 		intent.setComponent(new ComponentName(packageName, className));
-		return getNextIntentFromTaskHistoryMigrate(intent);
+		return getIntentFromHistoryStackToFront(intent);
 	}
 
-	public static Intent getNextIntentFromTaskHistoryMigrate(Context context, Class<? extends Activity> targetClass){
-		return getNextIntentFromTaskHistoryMigrate(new Intent(context, targetClass));
+	public static Intent getIntentFromHistoryStackToFront(Context context, Class<? extends Activity> targetClass){
+		return getIntentFromHistoryStackToFront(new Intent(context, targetClass));
 	}
 
-	public static Intent getBackTaskIntent(Intent intent){
+	public static Intent getBackHistoryStackIntent(Intent intent){
 		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		return intent;
 	}
 
-	public static Intent getBackTaskIntent(String packageName, String className){
+	public static Intent getBackHistoryStackIntent(String packageName, String className){
 		Intent intent = new Intent();
 		intent.setComponent(new ComponentName(packageName, className));
-		return getBackTaskIntent(intent);
+		return getBackHistoryStackIntent(intent);
 	}
 
-	public static Intent getBackTaskIntent(Context context, Class<? extends Activity> targetClass){
-		return getBackTaskIntent(new Intent(context, targetClass));
+	public static Intent getBackHistoryStackIntent(Context context, Class<? extends Activity> targetClass){
+		return getBackHistoryStackIntent(new Intent(context, targetClass));
 	}
 
 	@RequiresApi(api = Build.VERSION_CODES.HONEYCOMB)
@@ -1519,7 +1533,7 @@ public class Utils {
 			className = activity.getIntent().getAction();
 		}
 		if(className != null){
-			NavUtils.navigateUpTo(activity, getBackTaskIntent(activity.getPackageName(), className));
+			NavUtils.navigateUpTo(activity, getBackHistoryStackIntent(activity.getPackageName(), className));
 		}
 	}
 
@@ -1537,14 +1551,42 @@ public class Utils {
 		activity.startActivity(intent);
 	}
 
+	/**
+	 * For Android 11 (API level 30) or higher<br>
+	 * Limited package visibility<br>
+	 * Affected methods include the following: {@link PackageManager#queryIntentActivities(Intent, int)}, {@link PackageManager#queryIntentServices(Intent, int)}, {@link PackageManager#queryBroadcastReceivers(Intent, int)},
+	 * {@link PackageManager#getPackageInfo(String, int)}, {@link PackageManager#getInstalledPackages(int)} (int)}, {@link PackageManager#getInstalledApplications(int)},
+	 * {@link Intent#resolveActivity(PackageManager)}, {@link Intent#resolveActivityInfo(PackageManager, int)}.<br>
+	 * To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.<br>
+	 * To view all installed apps, require android.permission.QUERY_ALL_PACKAGES.
+	 */
 	public static int intentMatchAppCount(Context context, Intent intent){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
+		// For Android 11 (API level 30) or higher
+		// Limited package visibility
+		// To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.
+		// To view all installed apps, require <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>.
+		@SuppressLint("QueryPermissionsNeeded")
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		return listResolveInfo.size();
 	}
 
+	/**
+	 * For Android 11 (API level 30) or higher<br>
+	 * Limited package visibility<br>
+	 * Affected methods include the following: {@link PackageManager#queryIntentActivities(Intent, int)}, {@link PackageManager#queryIntentServices(Intent, int)}, {@link PackageManager#queryBroadcastReceivers(Intent, int)},
+	 * {@link PackageManager#getPackageInfo(String, int)}, {@link PackageManager#getInstalledPackages(int)} (int)}, {@link PackageManager#getInstalledApplications(int)},
+	 * {@link Intent#resolveActivity(PackageManager)}, {@link Intent#resolveActivityInfo(PackageManager, int)}.<br>
+	 * To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.<br>
+	 * To view all installed apps, require android.permission.QUERY_ALL_PACKAGES.
+	 */
 	public static int callMatchApp(Context context, Intent intent){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
+		// For Android 11 (API level 30) or higher
+		// Limited package visibility
+		// To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.
+		// To view all installed apps, require <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>.
+		@SuppressLint("QueryPermissionsNeeded")
 		List<ResolveInfo> listResolveInfo = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 		if(listResolveInfo.size() == 0){
 			return 0;
@@ -2601,14 +2643,36 @@ public class Utils {
 		logDebugMemoryInfo(null);
 	}
 
-	// 取得軟體資訊
+	/**
+	 * For Android 11 (API level 30) or higher<br>
+	 * Limited package visibility<br>
+	 * Affected methods include the following: {@link PackageManager#queryIntentActivities(Intent, int)}, {@link PackageManager#queryIntentServices(Intent, int)}, {@link PackageManager#queryBroadcastReceivers(Intent, int)},
+	 * {@link PackageManager#getPackageInfo(String, int)}, {@link PackageManager#getInstalledPackages(int)} (int)}, {@link PackageManager#getInstalledApplications(int)},
+	 * {@link Intent#resolveActivity(PackageManager)}, {@link Intent#resolveActivityInfo(PackageManager, int)}.<br>
+	 * To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.<br>
+	 * To view all installed apps, require android.permission.QUERY_ALL_PACKAGES.
+	 */
 	public static PackageInfo getPackageInfo(Context context, String packageName, int flags){
+		PackageManager packageManager = context.getApplicationContext().getPackageManager();
 		try {
-			return context.getApplicationContext().getPackageManager().getPackageInfo(packageName, flags);
+			// For Android 11 (API level 30) or higher
+			// Limited package visibility
+			// To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.
+			// To view all installed apps, require <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>.
+			return packageManager.getPackageInfo(packageName, flags);
 		} catch (NameNotFoundException ignored) {}
 		return null;
 	}
 
+	/**
+	 * For Android 11 (API level 30) or higher<br>
+	 * Limited package visibility<br>
+	 * Affected methods include the following: {@link PackageManager#queryIntentActivities(Intent, int)}, {@link PackageManager#queryIntentServices(Intent, int)}, {@link PackageManager#queryBroadcastReceivers(Intent, int)},
+	 * {@link PackageManager#getPackageInfo(String, int)}, {@link PackageManager#getInstalledPackages(int)} (int)}, {@link PackageManager#getInstalledApplications(int)},
+	 * {@link Intent#resolveActivity(PackageManager)}, {@link Intent#resolveActivityInfo(PackageManager, int)}.<br>
+	 * To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.<br>
+	 * To view all installed apps, require android.permission.QUERY_ALL_PACKAGES.
+	 */
 	public static PackageInfo getPackageInfo(Context context, int flags){
 		return getPackageInfo(context, context.getApplicationContext().getPackageName(), flags);
 	}
@@ -2642,9 +2706,22 @@ public class Utils {
 		return null;
 	}
 
-	// 取得已安裝的軟體資訊
+	/**
+	 * For Android 11 (API level 30) or higher<br>
+	 * Limited package visibility<br>
+	 * Affected methods include the following: {@link PackageManager#queryIntentActivities(Intent, int)}, {@link PackageManager#queryIntentServices(Intent, int)}, {@link PackageManager#queryBroadcastReceivers(Intent, int)},
+	 * {@link PackageManager#getPackageInfo(String, int)}, {@link PackageManager#getInstalledPackages(int)} (int)}, {@link PackageManager#getInstalledApplications(int)},
+	 * {@link Intent#resolveActivity(PackageManager)}, {@link Intent#resolveActivityInfo(PackageManager, int)}.<br>
+	 * To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.<br>
+	 * To view all installed apps, require android.permission.QUERY_ALL_PACKAGES.
+	 */
 	public static List<PackageInfo> getInstallPackageInfo(Context context, boolean isContainSystemDefaultInstall){
 		PackageManager packageManager = context.getApplicationContext().getPackageManager();
+		// For Android 11 (API level 30) or higher
+		// Limited package visibility
+		// To view other packages, the app need to declare the <queries> element to increase the visibility of the target package.
+		// To view all installed apps, require <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>.
+		@SuppressLint("QueryPermissionsNeeded")
 		List<PackageInfo> listPackageInfo = packageManager.getInstalledPackages(0);
 		if(!isContainSystemDefaultInstall){
 			List<PackageInfo> linkedList = new LinkedList<PackageInfo>(listPackageInfo);
@@ -2805,10 +2882,16 @@ public class Utils {
 
 	/**
 	 * 取得手機資訊<br>
-	 * android.permission.READ_PHONE_STATE
+	 * android.permission.READ_PHONE_STATE<br>
+	 * For Android 10 (API level 29) and higher<br>
+	 * Restriction on non-resettable device identifiers<br>
+	 * android.permission.READ_PRIVILEGED_PHONE_STATE<br>
+	 * Affected methods include the following: {@link Build#getSerial()}, {@link TelephonyManager#getImei()}, {@link TelephonyManager#getDeviceId()},
+	 * {@link TelephonyManager#getMeid()}, {@link TelephonyManager#getSimSerialNumber()}, {@link TelephonyManager#getSubscriberId()}.<br>
+	 * Caution: Third-party apps installed from the Google Play Store cannot declare privileged permissions.
 	 */
 	@SuppressLint("HardwareIds")
-	@RequiresPermission(android.Manifest.permission.READ_PHONE_STATE)
+	@RequiresPermission(allOf = {android.Manifest.permission.READ_PHONE_STATE})
 	public static Map<String, String> getPhoneInfo(Context context, Handler handlerNoPermissions){
 		if(ContextCompat.checkSelfPermission(context.getApplicationContext(), android.Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_DENIED){
 			if(handlerNoPermissions != null){
@@ -2833,16 +2916,43 @@ public class Utils {
 		hashMap.put("MSISDN", MSISDN);
 
 		// IMEI(International Mobile Equipment Identity number) or MEID or ESN 手機序號(國際移動設備辨識碼)
-		// IMEI for GSM, MEID or ESN for CDMA
-		String IMEI = telephonyManager.getDeviceId();
+		// For Android 10 (API level 29) and higher
+		// Restriction on non-resettable device identifiers
+		// <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"/>
+		// Caution: Third-party apps installed from the Google Play Store cannot declare privileged permissions.
+		String IMEI;
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+			IMEI = telephonyManager.getImei();
+		}else{
+			// IMEI for GSM, MEID or ESN for CDMA
+			// This method was deprecated in API level 26. Use getImei() which returns IMEI for GSM or getMeid() which returns MEID for CDMA.
+			IMEI = telephonyManager.getDeviceId();
+		}
 		hashMap.put("IMEI", IMEI);
+
+		// For Android 10 (API level 29) and higher
+		// Restriction on non-resettable device identifiers
+		// <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"/>
+		// Caution: Third-party apps installed from the Google Play Store cannot declare privileged permissions.
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+			String MEID = telephonyManager.getMeid();
+			hashMap.put("MEID", MEID);
+		}
 
 		// IMSI(International Mobile Subscriber Identity) SIM卡號碼(國際行動用戶辨識碼)
 		// IMSI for GSM
+		// For Android 10 (API level 29) and higher
+		// Restriction on non-resettable device identifiers
+		// <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"/>
+		// Caution: Third-party apps installed from the Google Play Store cannot declare privileged permissions.
 		String IMSI = telephonyManager.getSubscriberId();
 		hashMap.put("IMSI", IMSI);
 
 		// ICCID(Integrate Circuit Card Identity) SIM卡序號(積體電路卡辨識碼)
+		// For Android 10 (API level 29) and higher
+		// Restriction on non-resettable device identifiers
+		// <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"/>
+		// Caution: Third-party apps installed from the Google Play Store cannot declare privileged permissions.
 		String ICCID = telephonyManager.getSimSerialNumber();
 		hashMap.put("ICCID", ICCID);
 

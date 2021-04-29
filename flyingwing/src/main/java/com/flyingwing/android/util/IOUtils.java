@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 Andy Lin. All rights reserved.
- * @version 4.0.6
+ * @version 4.0.7
  * @author Andy Lin
  * @since JDK 1.5 and Android 2.2
  */
@@ -51,6 +51,8 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +60,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-@SuppressWarnings({"unused", "WeakerAccess", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "ForLoopReplaceableByForEach", "Convert2Diamond", "UnusedReturnValue"})
 public class IOUtils {
 
 	public static final int IO_BUFFER_SIZE = 1024 * 16;
@@ -131,7 +133,8 @@ public class IOUtils {
 			return false;
 		}
 		if(charset == null){
-			charset = Charset.forName("ISO-8859-1");
+			//noinspection CharsetObjectCanBeUsed
+			charset = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.ISO_8859_1 : Charset.forName("ISO-8859-1");
 //			System.out.println("charset get failed, using default charset " + charset.displayName());
 		}
 		byte[] byteArray;
@@ -202,7 +205,8 @@ public class IOUtils {
 			return null;
 		}
 		if(charset == null){
-			charset = Charset.forName("ISO-8859-1");
+			//noinspection CharsetObjectCanBeUsed
+			charset = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT ? StandardCharsets.ISO_8859_1 : Charset.forName("ISO-8859-1");
 //			System.out.println("charset get failed, using default charset " + charset.displayName());
 		}
 		if(bufferSize < 8192){
@@ -1609,13 +1613,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br><br>
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * Write<br>
 	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
@@ -1651,13 +1668,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br><br>
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * Write<br>
 	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
@@ -1671,13 +1701,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br><br>
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * Write<br>
 	 * {@link Context#getContentResolver()}, {@link ContentResolver#openFileDescriptor(Uri, String)}<br>
@@ -1725,13 +1768,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 */
 	public static int editFileInfoByContentUriFromMediaStore(Context context, Uri contentUri, ContentValues contentValues, String directoryPathNew, String fileNameNew
 			, String mimeTypeNew, boolean isPendingNew){
@@ -1748,13 +1804,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 */
 	public static int editFileInfoByContentUriFromMediaStore(Context context, Uri contentUri, String directoryPathNew, String fileNameNew, String mimeTypeNew
 			, boolean isPendingNew){
@@ -1762,13 +1831,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
 	 */
@@ -1787,13 +1869,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
 	 */
@@ -1812,13 +1907,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
 	 */
@@ -1844,13 +1952,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
 	 */
@@ -1875,13 +1996,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 */
 	@RequiresApi(api = Build.VERSION_CODES.Q)
 	public static double[] readFileLocationByContentUriFromMediaStore(Context context, Uri contentUri){
@@ -1903,13 +2037,26 @@ public class IOUtils {
 	}
 
 	/**
-	 * MediaStore<br>
-	 * Scoped Storage in Android 10 (API level 29)<br>
-	 * Read media files (images, audio, video) created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
-	 * Write or delete media files (images, audio, video) created by other apps, will throws RecoverableSecurityException,
+	 * For Android 10 (API level 29) and higher<br>
+	 * Scoped Storage:<br>
+	 * App is not allowed to access direct file paths of shared storage, use MediaStore to access media (image, audio, video) files, and use Storage Access Framework (SAF) to access non-media files.<br>
+	 * MediaStore can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).<br>
+	 * App cannot access the app-specific directories that belong to other apps.<br>
+	 * Use MediaStore to read media files created by other apps, require android.permission.READ_EXTERNAL_STORAGE.<br>
+	 * Use MediaStore to write or delete media files created by other apps, will throws RecoverableSecurityException,
 	 * call {@link Activity#startIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle)}
-	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write permission, or via Storage Access Framework (SAF).<br>
-	 * Can not access non-media files created by other apps, only accessible via Storage Access Framework (SAF).
+	 * incoming RecoverableSecurityException.getUserAction().getActionIntent().getIntentSender() to request write authorization, or via Storage Access Framework (SAF).<br><br>
+	 *
+	 * For Android 11 (API level 30) and higher<br>
+	 * Scoped Storage:<br>
+	 * App cannot create their own app-specific directory on external storage.<br>
+	 * MediaStore added batch operations to update multiple media (images, audio, video) files (including created by other apps) in a single operation.<br>
+	 * The batch operations include the following: {@link MediaStore#createWriteRequest(ContentResolver, Collection)}, {@link MediaStore#createFavoriteRequest(ContentResolver, Collection, boolean)},
+	 * {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}, {@link MediaStore#createTrashRequest(ContentResolver, Collection, boolean)}.<br>
+	 * Allows app to use APIs other than MediaStore API to access media files from shared storage using direct file paths. (access without the necessary permissions will throws FileNotFoundException)<br>
+	 * To manage all files, require android.permission.MANAGE_EXTERNAL_STORAGE and use Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION intent to request authorization from the system settings page.<br>
+	 * Except for /Android/data/, /sdcard/Android, and most subdirectories of /sdcard/Android, these directories are not accessible.<br>
+	 * Use {@link Environment#isExternalStorageManager()} to determine whether to obtain authorization<br><br>
 	 *
 	 * @param volumeName "internal", "external", "external_primary".<br>reference {@link MediaStore#getExternalVolumeNames(Context)}
 	 */
