@@ -41,5 +41,3 @@ dependencies {
 	implementation 'androidx.documentfile:documentfile:1.0.1'
 	implementation 'androidx.exifinterface:exifinterface:1.2.0'
 }
-
-apply from: "https://raw.githubusercontent.com/xiaopansky/android-library-publish-to-jcenter/master/bintrayUpload.gradle"
